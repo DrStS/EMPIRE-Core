@@ -1,0 +1,25 @@
+# the mesh is used to test GiDFileIO
+MESH  "dummy"  dimension 3 ElemType Quadrilateral  Nnode 4
+Coordinates
+#node_id          x_coord         y_coord         z_coord
+    1               0               0               0
+    2               1               0               0
+    3               1               1               0
+# node 4 is not in the mesh
+    4               100             100             100
+    5               0               1               0
+end coordinates
+
+Elements
+#elem_id  node_1   node_2   node_3   node_4
+    1      1        2        3        5
+end elements
+
+MESH  dimension 3 ElemType Triangle  Nnode 3
+Coordinates
+    6               0.5             1.5             0
+end coordinates
+
+Elements
+    2       5     3     6
+end elements

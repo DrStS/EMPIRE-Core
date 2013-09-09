@@ -1,0 +1,209 @@
+/*  Copyright &copy; 2013, TU Muenchen, Chair of Structural Analysis,
+ *  Stefan Sicklinger, Tianyang Wang, Munich
+ *
+ *  All rights reserved.
+ *
+ *  This file is part of EMPIRE.
+ *
+ *  EMPIRE is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  EMPIRE is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with EMPIRE.  If not, see http://www.gnu.org/licenses/.
+ */
+#include <assert.h>
+#include <string.h>
+#include "ClientCode.h"
+#include "ServerCommunication.h"
+#include "DataField.h"
+#include "AbstractMesh.h"
+#include "FEMesh.h"
+#include "Signal.h"
+#include "Message.h"
+#include <stdlib.h>
+
+namespace EMPIRE {
+
+using namespace std;
+
+ClientCode::ClientCode(string _name) :
+        name(_name), serverComm(NULL), nameToMeshMap(), nameToSignalMap() {
+}
+
+ClientCode::~ClientCode() {
+    for (map<string, AbstractMesh*>::iterator it = nameToMeshMap.begin(); it != nameToMeshMap.end();
+            it++) {
+        delete it->second;
+    }
+    for (map<string, Signal*>::iterator it = nameToSignalMap.begin(); it != nameToSignalMap.end();
+            it++) {
+        delete it->second;
+    }
+}
+
+void ClientCode::setServerCommunication(ServerCommunication *_serverComm) {
+    assert(_serverComm!=NULL);
+    serverComm = _serverComm;
+}
+
+void ClientCode::recvMesh(std::string meshName, EMPIRE_Mesh_type meshType) {
+    assert(serverComm!=NULL);
+    assert(nameToMeshMap.find(meshName) == nameToMeshMap.end());
+
+    if (meshType == EMPIRE_Mesh_FEMesh) {
+        const int BUFFER_SIZE = 2;
+        int meshInfo[BUFFER_SIZE]; // number of nodes, number of elements, number of nodes per element
+        { // output to shell
+            HEADING_OUT(3, "ClientCode",
+                    "receiving mesh (" + meshName + ") from [" + name + "]...", infoOut);
+        }
+        serverComm->receiveFromClientBlocking<int>(name, BUFFER_SIZE, meshInfo);
+        int numNodes = meshInfo[0];
+        int numElems = meshInfo[1];
+
+        FEMesh *mesh = new FEMesh(meshName, numNodes, numElems);
+        serverComm->receiveFromClientBlocking<double>(name, numNodes * 3, mesh->nodes);
+        serverComm->receiveFromClientBlocking<int>(name, numNodes, mesh->nodeIDs);
+        serverComm->receiveFromClientBlocking<int>(name, numElems, mesh->numNodesPerElem);
+        mesh->initElems();
+        serverComm->receiveFromClientBlocking<int>(name, mesh->elemsArraySize, mesh->elems);
+        nameToMeshMap.insert(pair<string, AbstractMesh*>(meshName, mesh));
+        { // output to shell
+            DEBUG_OUT() << (*mesh) << endl;
+            mesh->computeBoundingBox();
+            INFO_OUT() << mesh->boundingBox << endl;
+        }
+    } else {
+        assert(false);
+    }
+}
+
+void ClientCode::recvDataField(std::string meshName, std::string dataFieldName) {
+    assert(serverComm!=NULL);
+    assert(nameToMeshMap.find(meshName) != nameToMeshMap.end());
+    AbstractMesh *mesh = nameToMeshMap[meshName];
+    DataField *df = mesh->getDataFieldByName(dataFieldName);
+
+    { // output to shell
+        string info = "Emperor is receiving (" + meshName + ": " + dataFieldName + ") from [" + name
+                + "] ...";
+        INDENT_OUT(1, info, infoOut);
+    }
+
+    int sizeClientSay = -1;
+    serverComm->receiveFromClientBlocking<int>(name, 1, &sizeClientSay);
+    int bufferSize = df->numLocations * df->dimension;
+    assert(bufferSize==sizeClientSay);
+
+    serverComm->receiveFromClientBlocking<double>(name, bufferSize, df->data);
+    DEBUG_OUT() << (*df) << endl;
+}
+
+void ClientCode::sendDataField(std::string meshName, std::string dataFieldName) {
+    assert(serverComm!=NULL);
+    assert(nameToMeshMap.find(meshName) != nameToMeshMap.end());
+    AbstractMesh *mesh = nameToMeshMap[meshName];
+    DataField *df = mesh->getDataFieldByName(dataFieldName);
+
+    { // output to shell
+        string info = "Emperor is sending (" + meshName + ": " + dataFieldName + ") to [" + name
+                + "] ...";
+        INDENT_OUT(1, info, infoOut);
+    }
+
+    int bufferSize = df->numLocations * df->dimension;
+    serverComm->sendToClientBlocking<int>(name, 1, &bufferSize);
+    serverComm->sendToClientBlocking<double>(name, bufferSize, df->data);
+    DEBUG_OUT() << (*df) << endl;
+}
+
+void ClientCode::sendConvergenceSignal(bool convergent) {
+    assert(serverComm!=NULL);
+    int tmpInt = (int) convergent;
+
+    { // output to shell
+        string converg;
+        if (convergent)
+            converg = "true";
+        else
+            converg = "false";
+        string info = "Emperor is sending convergence signal (" + converg + ") to [" + name
+                + "] ...";
+        INDENT_OUT(1, info, infoOut);
+    }
+
+    serverComm->sendToClientBlocking<int>(name, 1, &tmpInt);
+}
+
+AbstractMesh *ClientCode::getMeshByName(std::string meshName) {
+    assert(nameToMeshMap.find(meshName) != nameToMeshMap.end());
+    return nameToMeshMap[meshName];
+}
+
+void ClientCode::addSignal(std::string signalName, int size0, int size1, int size2) {
+    assert(nameToSignalMap.find(signalName) == nameToSignalMap.end());
+    nameToSignalMap.insert(
+            pair<string, Signal*>(signalName, new Signal(signalName, size0, size1, size2)));
+}
+
+void ClientCode::recvSignal(std::string signalName) {
+    assert(nameToSignalMap.find(signalName) != nameToSignalMap.end());
+    { // output to shell
+        string info = "Emperor is receiving (" + signalName + ") from [" + name + "] ...";
+        INDENT_OUT(1, info, infoOut);
+    }
+    Signal *signal = nameToSignalMap[signalName];
+    int signalSizeReceive = -1;
+    const int NAME_STRING_LENGTH = ServerCommunication::NAME_STRING_LENGTH;
+    char signalNameReceive[NAME_STRING_LENGTH];
+    serverComm->receiveFromClientBlocking<char>(name, NAME_STRING_LENGTH, signalNameReceive);
+    string tmp(signalNameReceive);
+    { // output to shell
+        string info = "Signal name received is \"" + tmp + "\"";
+        INDENT_OUT(2, info, infoOut);
+    }assert(signalName.compare(tmp) == 0);
+    serverComm->receiveFromClientBlocking<int>(name, 1, &signalSizeReceive);
+    assert(signalSizeReceive==signal->size);
+    serverComm->receiveFromClientBlocking<double>(name, signal->size, signal->array);
+    DEBUG_OUT() << (*signal) << endl;
+}
+
+void ClientCode::sendSignal(std::string signalName) {
+    assert(nameToSignalMap.find(signalName) != nameToSignalMap.end());
+    { // output to shell
+        string info = "Emperor is sending (" + signalName + ") to [" + name + "] ...";
+        INDENT_OUT(1, info, infoOut);
+    }
+    const Signal *signal = nameToSignalMap[signalName];
+    const int NAME_STRING_LENGTH = ServerCommunication::NAME_STRING_LENGTH;
+    char signalNameSend[NAME_STRING_LENGTH];
+    strcpy(signalNameSend, signalName.c_str());
+    serverComm->sendToClientBlocking<char>(name, NAME_STRING_LENGTH, signalNameSend);
+    assert(signal->size != 0);
+    int signalSize = signal->size;
+    serverComm->sendToClientBlocking<int>(name, 1, &(signalSize));
+    serverComm->sendToClientBlocking<double>(name, signal->size, signal->array);
+    DEBUG_OUT() << *(const_cast<Signal*>(signal)) << endl;
+}
+
+Signal *ClientCode::getSignalByName(std::string signalName) {
+    if(nameToSignalMap.find(signalName) == nameToSignalMap.end()){
+    	ERROR_OUT("Signal name: "+signalName+" not found!");
+    	for(map<std::string, Signal*>::iterator it=nameToSignalMap.begin(); it!=nameToSignalMap.end();it++){
+    		ERROR_OUT("Possible signal names for client "+name+" are : "+it->first);
+    	}
+
+    	assert(nameToSignalMap.find(signalName) != nameToSignalMap.end());
+    }
+    return nameToSignalMap[signalName];
+}
+
+} /* namespace EMPIRE */
+

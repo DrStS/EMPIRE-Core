@@ -1,0 +1,525 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.example.org/emperorInput"
+	elementFormDefault="qualified" xmlns:tns="http://www.example.org/emperorInput">
+	<!-- REMARK: * The schema is a kind of language. A tutorial can be found 
+		at http://www.w3.org/TR/xmlschema-0/. * There are different ways to define 
+		a schema file which specifies the xml input file, but it is recommanded to 
+		follow the style defined here. * Please understand this file before editing 
+		it. * The xml input file can be valiated by eclipse xml editor, or online 
+		at e.g. http://www.freeformatter.com/xml-validator-xsd.html. * Author: Tianyang 
+		Wang, tianyang.wang@tum.de -->
+
+	<!-- ========================== Element Types ================================================ 
+		The simpleTypes are strings that restricted by a group of values, which should 
+		be consistent with EMPEROR_Enum.h. The complexTypes are similar to c++ classes, 
+		which should be consistent with MetaDataStructures.h. -->
+	<simpleType name="stringCouplingLogicType">
+		<restriction base="string">
+			<enumeration value="timeStepLoop"></enumeration>
+			<enumeration value="iterativeCouplingLoop"></enumeration>
+			<enumeration value="connection"></enumeration>
+		</restriction>
+	</simpleType>
+
+	<simpleType name="stringMapperType">
+		<restriction base="string">
+			<enumeration value="mortarMapper"></enumeration>
+			<enumeration value="nearestNeighborMapper"></enumeration>
+			<enumeration value="barycentricInterpolationMapper"></enumeration>
+		</restriction>
+	</simpleType>
+
+	<simpleType name="stringMortarMapperType">
+		<restriction base="string">
+			<enumeration value="quad"></enumeration>
+			<enumeration value="quad dual"></enumeration>
+			<enumeration value="triangle"></enumeration>
+			<enumeration value="triangle dual"></enumeration>
+		</restriction>
+	</simpleType>
+
+	<simpleType name="stringCouplingAlgorithmType">
+		<restriction base="string">
+			<enumeration value="aitken"></enumeration>
+			<enumeration value="constantRelaxation"></enumeration>
+		</restriction>
+	</simpleType>
+
+	<simpleType name="stringExtrapolatorType">
+		<restriction base="string">
+			<enumeration value="simpleExtrapolator"></enumeration>
+			<enumeration value="genMSExtrapolator"></enumeration>
+		</restriction>
+	</simpleType>
+
+	<simpleType name="stringFilterType">
+		<restriction base="string">
+			<enumeration value="mappingFilter"></enumeration>
+			<enumeration value="couplingAlgorithmFilter"></enumeration>
+			<enumeration value="extrapolatingFilter"></enumeration>
+			<enumeration value="locationFilter"></enumeration>
+			<enumeration value="copyFilter"></enumeration>
+			<enumeration value="scalingFilter"></enumeration>
+		</restriction>
+	</simpleType>
+
+	<simpleType name="stringDataFieldLocationType">
+		<restriction base="string">
+			<enumeration value="atNode"></enumeration>
+			<enumeration value="atElemCentroid"></enumeration>
+		</restriction>
+	</simpleType>
+
+	<simpleType name="stringDataFieldDimensionType">
+		<restriction base="string">
+			<enumeration value="vector"></enumeration>
+			<enumeration value="scalar"></enumeration>
+		</restriction>
+	</simpleType>
+
+	<simpleType name="stringDataFieldTypeOfQuantityType">
+		<restriction base="string">
+			<enumeration value="field"></enumeration>
+			<enumeration value="fieldIntegral"></enumeration>
+		</restriction>
+	</simpleType>
+
+	<simpleType name="integer123Type">
+		<restriction base="integer">
+			<minInclusive value="1" />
+			<maxInclusive value="3" />
+		</restriction>
+	</simpleType>
+
+	<complexType name="doubleCoefficientType">
+		<attribute name="value" type="double" use="required"></attribute>
+	</complexType>
+
+	<complexType name="couplingLogicType">
+		<sequence>
+			<choice>
+				<element name="timeStepLoop" maxOccurs="1" minOccurs="0">
+					<complexType>
+						<sequence>
+							<element ref="tns:extrapolatorRef" maxOccurs="unbounded"
+								minOccurs="0">
+							</element>
+							<element ref="tns:dataOutputRef" maxOccurs="unbounded"
+								minOccurs="0">
+							</element>
+						</sequence>
+						<attribute name="numTimeSteps" type="int" use="required">
+						</attribute>
+					</complexType>
+				</element>
+				<element name="iterativeCouplingLoop" maxOccurs="1"
+					minOccurs="0">
+					<complexType>
+						<sequence>
+							<element name="convergenceChecker" maxOccurs="1"
+								minOccurs="1">
+								<complexType>
+									<choice>
+										<element ref="tns:dataFieldRef" maxOccurs="1"
+											minOccurs="1">
+										</element>
+										<element ref="tns:signalRef" maxOccurs="1" minOccurs="1">
+										</element>
+										<element ref="tns:couplingAlgorithmRef" maxOccurs="1"
+											minOccurs="1">
+										</element>
+									</choice>
+									<attribute name="absoluteTolerance" type="double"
+										use="optional">
+									</attribute>
+									<attribute name="relativeTolerance" type="double"
+										use="optional">
+									</attribute>
+									<attribute name="maxNumOfIterations" type="double"
+										use="optional">
+									</attribute>
+								</complexType>
+							</element>
+							<element name="convergenceObserver" maxOccurs="unbounded"
+								minOccurs="1">
+								<complexType>
+									<sequence>
+										<element ref="tns:clientCodeRef" maxOccurs="unbounded"
+											minOccurs="1">
+										</element>
+									</sequence>
+								</complexType>
+							</element>
+							<element ref="tns:couplingAlgorithmRef" maxOccurs="unbounded"
+								minOccurs="0">
+							</element>
+							<element ref="tns:dataOutputRef" maxOccurs="unbounded"
+								minOccurs="0">
+							</element>
+						</sequence>
+					</complexType>
+				</element>
+				<element ref="tns:connectionRef" maxOccurs="1" minOccurs="0">
+				</element>
+			</choice>
+			<element name="sequence" maxOccurs="1" minOccurs="0">
+				<complexType>
+					<sequence>
+						<element name="couplingLogic" type="tns:couplingLogicType"
+							maxOccurs="unbounded" minOccurs="1"></element>
+					</sequence>
+				</complexType>
+			</element>
+		</sequence>
+		<attribute name="type" type="tns:stringCouplingLogicType"
+			use="optional">
+		</attribute>
+	</complexType>
+
+
+	<complexType name="dataOutputType">
+		<sequence>
+			<element ref="tns:dataFieldRef" maxOccurs="unbounded"
+				minOccurs="0">
+			</element>
+			<element ref="tns:signalRef" maxOccurs="unbounded" minOccurs="0">
+			</element>
+		</sequence>
+		<attribute name="name" type="string" use="required"></attribute>
+		<attribute name="interval" type="int" use="required"></attribute>
+	</complexType>
+
+	<complexType name="mapperType">
+		<sequence>
+			<element name="meshA" maxOccurs="1" minOccurs="1">
+				<complexType>
+					<sequence>
+						<element ref="tns:meshRef"></element>
+					</sequence>
+				</complexType>
+			</element>
+			<element name="meshB" maxOccurs="1" minOccurs="1">
+				<complexType>
+					<sequence>
+						<element ref="tns:meshRef"></element>
+					</sequence>
+				</complexType>
+			</element>
+			<choice>
+				<element name="mortarMapper" maxOccurs="1" minOccurs="0">
+					<complexType>
+						<attribute name="type" type="tns:stringMortarMapperType">
+						</attribute>
+						<attribute name="oppositeSurfaceNormal" type="boolean"></attribute>
+						<attribute name="dual" type="boolean"></attribute>
+						<attribute name="enforceConsistency" type="boolean"></attribute>
+					</complexType>
+				</element>
+			</choice>
+		</sequence>
+
+		<attribute name="name" type="string" use="required"></attribute>
+		<attribute name="type" type="tns:stringMapperType"></attribute>
+	</complexType>
+
+	<complexType name="extrapolatorType">
+		<sequence>
+			<choice>
+				<element name="genMSExtrapolator" maxOccurs="1" minOccurs="0">
+					<complexType>
+						<sequence>
+							<element name="coefficientDot0" type="tns:doubleCoefficientType"
+								minOccurs="1" maxOccurs="unbounded" />
+							<element name="coefficientDot1" type="tns:doubleCoefficientType"
+								minOccurs="0" maxOccurs="unbounded" />
+							<element name="coefficientDot2" type="tns:doubleCoefficientType"
+								minOccurs="0" maxOccurs="unbounded" />
+							<element name="coefficientOut" type="tns:doubleCoefficientType"
+								minOccurs="0" maxOccurs="unbounded" />
+						</sequence>
+						<attribute name="numInput" type="tns:integer123Type"
+							use="required"></attribute>
+						<attribute name="seqLen" type="positiveInteger" use="required"></attribute>
+						<attribute name="sumOutput" type="boolean" use="required"></attribute>
+						<attribute name="deltaTime" type="double" use="required"></attribute>
+					</complexType>
+				</element>
+			</choice>
+		</sequence>
+		<attribute name="name" type="string" use="required"></attribute>
+		<attribute name="type" type="tns:stringExtrapolatorType"></attribute>
+	</complexType>
+
+	<complexType name="couplingAlgorithmType">
+		<sequence>
+			<choice>
+				<element name="aitken" maxOccurs="1" minOccurs="1">
+					<complexType>
+						<attribute name="initialAitkenFactor" type="double"></attribute>
+					</complexType>
+				</element>
+				<element name="constantRelaxation" maxOccurs="1" minOccurs="1">
+					<complexType>
+						<attribute name="relaxationFactor" type="double"></attribute>
+					</complexType>
+				</element>
+			</choice>
+		</sequence>
+		<attribute name="name" type="string" use="required"></attribute>
+		<attribute name="type" type="tns:stringCouplingAlgorithmType"></attribute>
+	</complexType>
+
+	<complexType name="connectionType">
+		<sequence>
+			<choice>
+				<sequence maxOccurs="1" minOccurs="1">
+					<element name="input" maxOccurs="unbounded" minOccurs="0">
+						<complexType>
+							<choice>
+								<element ref="tns:dataFieldRef" maxOccurs="1" minOccurs="1">
+								</element>
+								<element ref="tns:signalRef" maxOccurs="1" minOccurs="1"></element>
+							</choice>
+
+						</complexType>
+					</element>
+					<element name="output" maxOccurs="unbounded" minOccurs="0">
+						<complexType>
+							<choice>
+								<element ref="tns:dataFieldRef" maxOccurs="1" minOccurs="1">
+								</element>
+								<element ref="tns:signalRef" maxOccurs="1" minOccurs="1"></element>
+							</choice>
+						</complexType>
+					</element>
+				</sequence>
+				<element name="inputAndOutput" maxOccurs="1" minOccurs="1">
+					<complexType>
+						<choice>
+							<element ref="tns:dataFieldRef" maxOccurs="1" minOccurs="1">
+							</element>
+							<element ref="tns:signalRef" maxOccurs="1" minOccurs="1"></element>
+						</choice>
+					</complexType>
+				</element>
+			</choice>
+			<element name="sequence" maxOccurs="1" minOccurs="0">
+				<complexType>
+					<sequence>
+						<element name="filter" type="tns:filterType" maxOccurs="unbounded"
+							minOccurs="1">
+						</element>
+					</sequence>
+				</complexType>
+			</element>
+		</sequence>
+		<attribute name="name" type="string" use="required"></attribute>
+	</complexType>
+
+	<complexType name="filterType">
+		<sequence>
+			<choice>
+				<sequence maxOccurs="1" minOccurs="1">
+					<element name="input" maxOccurs="unbounded" minOccurs="0">
+						<complexType>
+							<choice>
+								<element ref="tns:dataFieldRef" maxOccurs="1" minOccurs="1">
+								</element>
+								<element ref="tns:signalRef" maxOccurs="1" minOccurs="1"></element>
+							</choice>
+						</complexType>
+					</element>
+					<element name="output" maxOccurs="unbounded" minOccurs="0">
+						<complexType>
+							<choice>
+								<element ref="tns:dataFieldRef" maxOccurs="1" minOccurs="1">
+								</element>
+								<element ref="tns:signalRef" maxOccurs="1" minOccurs="1"></element>
+							</choice>
+						</complexType>
+					</element>
+				</sequence>
+				<element name="inputAndOutput" maxOccurs="1" minOccurs="1">
+					<complexType>
+						<choice>
+							<element ref="tns:dataFieldRef" maxOccurs="1" minOccurs="1">
+							</element>
+							<element ref="tns:signalRef" maxOccurs="1" minOccurs="1"></element>
+						</choice>
+					</complexType>
+				</element>
+			</choice>
+			<choice>
+				<element name="mappingFilter" maxOccurs="1" minOccurs="0">
+					<complexType>
+						<sequence>
+							<element ref="tns:mapperRef"></element>
+						</sequence>
+					</complexType>
+				</element>
+				<element name="couplingAlgorithmFilter" maxOccurs="1"
+					minOccurs="0">
+					<complexType>
+						<sequence>
+							<element ref="tns:couplingAlgorithmRef"></element>
+						</sequence>
+					</complexType>
+				</element>
+				<element name="scalingFilter" maxOccurs="1" minOccurs="0">
+					<complexType>
+						<attribute name="factor" type="double" use="required">
+						</attribute>
+					</complexType>
+				</element>
+				<element name="extrapolatingFilter" maxOccurs="1" minOccurs="0">
+					<complexType>
+						<sequence>
+							<element ref="tns:extrapolatorRef"></element>
+						</sequence>
+					</complexType>
+				</element>
+			</choice>
+		</sequence>
+		<attribute name="type" type="tns:stringFilterType"></attribute>
+	</complexType>
+
+	<complexType name="clientCodeType">
+		<sequence>
+			<element name="mesh" maxOccurs="unbounded" minOccurs="0">
+				<complexType>
+					<sequence>
+						<element name="dataField" maxOccurs="unbounded" minOccurs="1">
+							<complexType>
+								<attribute name="name" type="string" use="required"></attribute>
+								<attribute name="location" type="tns:stringDataFieldLocationType"
+									use="required">
+								</attribute>
+								<attribute name="dimension" type="tns:stringDataFieldDimensionType"
+									use="required">
+								</attribute>
+								<attribute name="typeOfQuantity"
+									type="tns:stringDataFieldTypeOfQuantityType" use="required">
+								</attribute>
+							</complexType>
+						</element>
+					</sequence>
+					<attribute name="name" type="string" use="required"></attribute>
+				</complexType>
+			</element>
+			<element name="signal" maxOccurs="unbounded" minOccurs="0">
+				<complexType>
+					<attribute name="name" type="string" use="required"></attribute>
+					<attribute name="size" type="string" use="required"></attribute>
+				</complexType>
+			</element>
+		</sequence>
+		<attribute name="name" type="string" use="required"></attribute>
+	</complexType>
+	<!-- ================================================================================================ -->
+
+
+
+	<!-- ========================== Elements ======================================================== 
+		Global elements, which are similar to c++ objects. They are the concrete 
+		elements shown in an xml file. The references to different types are also 
+		defined here. -->
+	<element name="dataFieldRef">
+		<complexType>
+			<attribute name="clientCodeName" type="string" use="required"></attribute>
+			<attribute name="meshName" type="string" use="required"></attribute>
+			<attribute name="dataFieldName" type="string" use="required"></attribute>
+		</complexType>
+	</element>
+
+	<element name="signalRef">
+		<complexType>
+			<attribute name="clientCodeName" type="string" use="required"></attribute>
+			<attribute name="signalName" type="string" use="required"></attribute>
+		</complexType>
+	</element>
+
+	<element name="meshRef">
+		<complexType>
+			<attribute name="clientCodeName" type="string" use="required"></attribute>
+			<attribute name="meshName" type="string" use="required"></attribute>
+		</complexType>
+	</element>
+
+	<element name="clientCodeRef">
+		<complexType>
+			<attribute name="clientCodeName" type="string" use="required"></attribute>
+		</complexType>
+	</element>
+
+	<element name="couplingAlgorithmRef">
+		<complexType>
+			<attribute name="couplingAlgorithmName" type="string" use="required"></attribute>
+		</complexType>
+	</element>
+
+	<element name="connectionRef">
+		<complexType>
+			<attribute name="connectionName" type="string" use="required"></attribute>
+		</complexType>
+	</element>
+
+	<element name="mapperRef">
+		<complexType>
+			<attribute name="mapperName" type="string" use="required"></attribute>
+		</complexType>
+	</element>
+
+	<element name="dataOutputRef">
+		<complexType>
+			<attribute name="dataOutputName" type="string" use="required"></attribute>
+		</complexType>
+	</element>
+
+	<element name="extrapolatorRef">
+		<complexType>
+			<attribute name="extrapolatorName" type="string" use="required"></attribute>
+		</complexType>
+	</element>
+
+	<element name="EMPEROR">
+		<complexType>
+			<sequence>
+				<element name="clientCode" type="tns:clientCodeType"
+					maxOccurs="unbounded" minOccurs="1">
+				</element>
+				<element name="dataOutput" type="tns:dataOutputType"
+					maxOccurs="unbounded" minOccurs="0" />
+				<element name="mapper" type="tns:mapperType" maxOccurs="unbounded"
+					minOccurs="0">
+				</element>
+				<element name="couplingAlgorithm" type="tns:couplingAlgorithmType"
+					maxOccurs="unbounded" minOccurs="0">
+				</element>
+				<element name="extrapolator" type="tns:extrapolatorType"
+					maxOccurs="unbounded" minOccurs="0"></element>
+				<element name="connection" type="tns:connectionType"
+					maxOccurs="unbounded" minOccurs="1">
+				</element>
+				<element name="coSimulation" type="tns:couplingLogicType"
+					maxOccurs="1" minOccurs="1">
+				</element>
+				<element name="general" maxOccurs="1" minOccurs="1">
+					<complexType>
+						<all>
+							<element name="portFile" maxOccurs="1" minOccurs="1"
+								type="string">
+							</element>
+							<element name="verbosity" type="string" maxOccurs="1"
+								minOccurs="1">
+							</element>
+						</all>
+					</complexType>
+				</element>
+			</sequence>
+		</complexType>
+	</element>
+
+	<!-- ================================================================================================ -->
+
+
+</schema>

@@ -1,0 +1,66 @@
+# Set EMPIRE environment
+export EMPIRE_BASE_DIR=@PROJECT_SOURCE_DIR@
+######################################################################################
+# Set TOOLCHAIN and BASE DIR
+if [ $# -eq 1 ]; then
+	export EMP_TOOLCHAIN=$1
+	echo 'Selecting toolchain' $EMP_TOOLCHAIN
+fi
+# If BASE_DIR has changed
+if [ $# -eq 2 ]; then
+	export EMP_TOOLCHAIN=$1
+	echo 'Selecting toolchain' $EMP_TOOLCHAIN
+	export EMPIRE_BASE_DIR=$2
+	echo 'Exporting EMPIRE_BASE_DIR' $EMPIRE_BASE_DIR
+fi
+######################################################################################
+# Set PATH ENV variables for INCLUDE, LINKING and EXECUTION
+ 
+    
+	export EMPIRE_API_LIB_NAME=EMPIRE_API
+	export EMPIRE_LD_LIBRARY_PATH=$EMPIRE_BASE_DIR/lib
+	export EMPIRE_API_INC_ON_MACHINE=$EMPIRE_BASE_DIR/EMPIRE_API/src/include/
+	export EMPIRE_API_LIB_ON_MACHINE=$EMPIRE_LD_LIBRARY_PATH/lib$EMPIRE_API_LIB_NAME.a	
+	export EMPIRE_API_LIBSO_ON_MACHINE=$EMPIRE_LD_LIBRARY_PATH/lib$EMPIRE_API_LIB_NAME.so
+	export EMP_PATH=$EMPIRE_BASE_DIR/bin:$EMP_PATH
+
+if [ "$EMP_TOOLCHAIN" == "ICC" ]; then
+	export EMP_PATH=$EMPIRE_BASE_DIR/testing/clients/dummyCFD/binICC:$EMP_PATH
+	export EMP_PATH=$EMPIRE_BASE_DIR/testing/clients/dummyCSM/binICC:$EMP_PATH
+	export EMP_PATH=$EMPIRE_BASE_DIR/testing/clients/meshClientA/binICC:$EMP_PATH
+	export EMP_PATH=$EMPIRE_BASE_DIR/testing/clients/meshClientB/binICC:$EMP_PATH
+	export EMP_PATH=$EMPIRE_BASE_DIR/testing/clients/mmsClient/binICC:$EMP_PATH
+	export EMP_PATH=$EMPIRE_BASE_DIR/testing/clients/mmsFsiClient/binICC:$EMP_PATH
+	export EMP_PATH=$EMPIRE_BASE_DIR/testing/clients/michlClient/binICC:$EMP_PATH
+	export EMP_PATH=$EMPIRE_BASE_DIR/testing/clients/meshClientTurbomachinery/binICC:$EMP_PATH	
+	export EMP_PATH=$EMPIRE_BASE_DIR/testing/clients/recorderClient/binICC:$EMP_PATH
+# INTEL MPI variables
+	export I_MPI_FABRICS=shm:tcp
+	export I_MPI_FAULT_CONTINUE=off
+	echo 'Setting toolchain ICC'
+elif [ "$EMP_TOOLCHAIN" == "GCC" ]; then
+	export EMP_PATH=$EMPIRE_BASE_DIR/testing/clients/dummyCFD/binGCC:$EMP_PATH
+	export EMP_PATH=$EMPIRE_BASE_DIR/testing/clients/dummyCSM/binGCC:$EMP_PATH
+	export EMP_PATH=$EMPIRE_BASE_DIR/testing/clients/meshClientA/binGCC:$EMP_PATH
+	export EMP_PATH=$EMPIRE_BASE_DIR/testing/clients/meshClientB/binGCC:$EMP_PATH
+	export EMP_PATH=$EMPIRE_BASE_DIR/testing/clients/mmsClient/binGCC:$EMP_PATH
+	export EMP_PATH=$EMPIRE_BASE_DIR/testing/clients/mmsFsiClient/binICC:$EMP_PATH
+	export EMP_PATH=$EMPIRE_BASE_DIR/testing/clients/michlClient/binICC:$EMP_PATH
+	export EMP_PATH=$EMPIRE_BASE_DIR/testing/clients/meshClientTurbomachinery/binGCC:$EMP_PATH
+	export EMP_PATH=$EMPIRE_BASE_DIR/testing/clients/recorderClient/binGCC:$EMP_PATH
+	echo 'Setting toolchain GCC'
+else
+	echo   'Please input ICC or GCC.'
+fi
+######################################################################################
+#Code metric
+export EMP_PATH=$EMPIRE_BASE_DIR/thirdparty/bin:$EMP_PATH
+EMPIRECodeMetric() { cloc-1.56.pl $EMPIRE_BASE_DIR/Emperor/src $EMPIRE_BASE_DIR/Emperor/test/ $EMPIRE_BASE_DIR/EMPIRE_API/src/; }
+######################################################################################
+export PATH=$EMP_PATH:$PATH
+export LD_LIBRARY_PATH=$EMPIRE_LD_LIBRARY_PATH:$LD_LIBRARY_PATH
+######################################################################################
+echo 'EMPIRE environment is ready to use.'
+
+
+ 

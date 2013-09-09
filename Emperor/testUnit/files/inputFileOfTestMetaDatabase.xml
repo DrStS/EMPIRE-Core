@@ -1,0 +1,222 @@
+<!--
+  Copyright (c) 2013, TU Muenchen, Chair of Structural Analysis,
+  Stefan Sicklinger, Tianyang Wang, Munich. All rights reserved.
+  
+  This file is part of EMPIRE.
+  
+  EMPIRE is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  EMPIRE is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU General Public License
+  along with EMPIRE.  If not, see http://www.gnu.org/licenses/.
+-->
+<EMPEROR>
+	<clientCode name="meshClientA">
+		<mesh name="myMesh">
+			<dataField name="displacements" dimension="vector"
+				location="atNode" typeOfQuantity="field" />
+			<dataField name="forces" location="atNode" dimension="vector"
+				typeOfQuantity="fieldIntegral" />
+		</mesh>
+		<signal name="signal" size="2 2 2" />
+	</clientCode>
+	<clientCode name="meshClientB">
+		<mesh name="myMesh">
+			<dataField name="displacements" dimension="vector"
+				location="atNode" typeOfQuantity="field" />
+			<dataField name="tractionsElem" location="atElemCentroid"
+				dimension="vector" typeOfQuantity="field" />
+			<dataField name="tractionsNode" location="atNode"
+				dimension="vector" typeOfQuantity="field" />
+		</mesh>
+		<signal name="signal" size="5" />
+	</clientCode>
+	<dataOutput name="timeStep" interval="5">
+		<dataFieldRef clientCodeName="meshClientA" meshName="myMesh"
+			dataFieldName="displacements" />
+		<dataFieldRef clientCodeName="meshClientB" meshName="myMesh"
+			dataFieldName="forces" />
+		<signalRef clientCodeName="meshClientA" signalName="signal" />
+		<signalRef clientCodeName="meshClientB" signalName="signal" />
+	</dataOutput>
+	<dataOutput name="iterativeCoupling" interval="1">
+		<dataFieldRef clientCodeName="meshClientA" meshName="myMesh"
+			dataFieldName="displacements" />
+		<dataFieldRef clientCodeName="meshClientB" meshName="myMesh"
+			dataFieldName="forces" />
+		<signalRef clientCodeName="meshClientA" signalName="signal" />
+		<signalRef clientCodeName="meshClientB" signalName="signal" />
+	</dataOutput>
+	<mapper name="mortar1" type="mortarMapper">
+		<meshA>
+			<meshRef clientCodeName="meshClientA" meshName="myMesh" />
+		</meshA>
+		<meshB>
+			<meshRef clientCodeName="meshClientB" meshName="myMesh" />
+		</meshB>
+		<mortarMapper oppositeSurfaceNormal="false" dual="true"
+			enforceConsistency="true" />
+	</mapper>
+	<mapper name="nn" type="nearestNeighborMapper">
+		<!-- mapping displacements from meshA to meshB, mapping forces from meshB 
+			to meshA. -->
+		<meshA>
+			<meshRef clientCodeName="meshClientA" meshName="myMesh" />
+		</meshA>
+		<meshB>
+			<meshRef clientCodeName="meshClientB" meshName="myMesh" />
+		</meshB>
+	</mapper>
+	<mapper name="bi" type="barycentricInterpolationMapper">
+		<!-- mapping displacements from meshA to meshB, mapping forces from meshB 
+			to meshA. -->
+		<meshA>
+			<meshRef clientCodeName="meshClientA" meshName="myMesh" />
+		</meshA>
+		<meshB>
+			<meshRef clientCodeName="meshClientB" meshName="myMesh" />
+		</meshB>
+	</mapper>
+	<couplingAlgorithm type="aitken" name="aitken A disp">
+		<aitken initialAitkenFactor="0.3" />
+	</couplingAlgorithm>
+	<extrapolator type="simpleExtrapolator" name="simple" />
+	<connection name="transfer displacements">
+		<input>
+			<dataFieldRef clientCodeName="meshClientA" meshName="myMesh"
+				dataFieldName="displacements" />
+		</input>
+		<output>
+			<dataFieldRef clientCodeName="meshClientB" meshName="myMesh"
+				dataFieldName="displacements" />
+		</output>
+		<sequence>
+			<filter type="couplingAlgorithmFilter">
+				<inputAndOutput>
+					<dataFieldRef clientCodeName="meshClientA" meshName="myMesh"
+						dataFieldName="displacements" />
+				</inputAndOutput>
+				<couplingAlgorithmFilter>
+					<couplingAlgorithmRef couplingAlgorithmName="aitken A disp" />
+				</couplingAlgorithmFilter>
+			</filter>
+			<filter type="mappingFilter">
+				<input>
+					<dataFieldRef clientCodeName="meshClientA" meshName="myMesh"
+						dataFieldName="displacements" />
+				</input>
+				<output>
+					<dataFieldRef clientCodeName="meshClientB" meshName="myMesh"
+						dataFieldName="displacements" />
+				</output>
+				<mappingFilter>
+					<mapperRef mapperName="mortar1" />
+				</mappingFilter>
+			</filter>
+		</sequence>
+	</connection>
+	<connection name="transfer forces">
+		<input>
+			<dataFieldRef clientCodeName="meshClientB" meshName="myMesh"
+				dataFieldName="tractionsElem" />
+		</input>
+		<output>
+			<dataFieldRef clientCodeName="meshClientA" meshName="myMesh"
+				dataFieldName="forces" />
+		</output>
+		<sequence>
+			<filter type="locationFilter">
+				<input>
+					<dataFieldRef clientCodeName="meshClientB" meshName="myMesh"
+						dataFieldName="tractionsElem" />
+				</input>
+				<output>
+					<dataFieldRef clientCodeName="meshClientB" meshName="myMesh"
+						dataFieldName="tractionsNode" />
+				</output>
+			</filter>
+			<filter type="mappingFilter">
+				<input>
+					<dataFieldRef clientCodeName="meshClientB" meshName="myMesh"
+						dataFieldName="tractionsNode" />
+				</input>
+				<output>
+					<dataFieldRef clientCodeName="meshClientA" meshName="myMesh"
+						dataFieldName="forces" />
+				</output>
+				<mappingFilter>
+					<mapperRef mapperName="mortar1" />
+				</mappingFilter>
+			</filter>
+		</sequence>
+	</connection>
+	<connection name="transfer signal">
+		<input>
+			<signalRef clientCodeName="meshClientA" signalName="signal" />
+		</input>
+		<output>
+			<signalRef clientCodeName="meshClientB" signalName="signal" />
+		</output>
+		<sequence>
+			<filter type="copyFilter">
+				<input>
+					<signalRef clientCodeName="meshClientA" signalName="signal" />
+				</input>
+				<output>
+					<signalRef clientCodeName="meshClientB" signalName="signal" />
+				</output>
+			</filter>
+		</sequence>
+	</connection>
+	<coSimulation>
+		<sequence>
+			<couplingLogic type="timeStepLoop">
+				<timeStepLoop numTimeSteps="5">
+					<dataOutputRef dataOutputName="timeStep" />
+					<extrapolatorRef extrapolatorName="simple" />
+				</timeStepLoop>
+				<sequence>
+					<couplingLogic type="iterativeCouplingLoop">
+						<iterativeCouplingLoop>
+							<convergenceChecker absoluteTolerance="1E-12"
+								relativeTolerance="1E-6" maxNumOfIterations="100">
+								<dataFieldRef clientCodeName="meshClientA"
+									meshName="myMesh" dataFieldName="displacements" />
+							</convergenceChecker>
+							<convergenceObserver>
+								<clientCodeRef clientCodeName="meshClientA" />
+							</convergenceObserver>
+							<convergenceObserver>
+								<clientCodeRef clientCodeName="meshClientB" />
+							</convergenceObserver>
+							<couplingAlgorithmRef couplingAlgorithmName="aitken A disp" />
+							<dataOutputRef dataOutputName="iterativeCoupling" />
+						</iterativeCouplingLoop>
+						<sequence>
+							<couplingLogic type="connection">
+								<connectionRef connectionName="transfer displacements" />
+							</couplingLogic>
+							<couplingLogic type="connection">
+								<connectionRef connectionName="transfer forces" />
+							</couplingLogic>
+							<couplingLogic type="connection">
+								<connectionRef connectionName="transfer signal" />
+							</couplingLogic>
+						</sequence>
+					</couplingLogic>
+				</sequence>
+			</couplingLogic>
+		</sequence>
+	</coSimulation>
+	<general>
+		<verbosity>DeBuG</verbosity>
+		<portFile>server.port</portFile>
+	</general>
+</EMPEROR>
