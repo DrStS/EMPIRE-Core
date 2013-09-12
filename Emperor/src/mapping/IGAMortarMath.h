@@ -124,16 +124,28 @@ private:
  * \return whether the determinant is zero or not
  * \author Tianyang Wang
  ***********/
-bool solve2x2LinearSystem(const double *A, double *b, double EPS);
+bool solve2x2LinearSystem(const double* _A, double* _b, double _EPS);
 
-void calcValueFromShapeFuncs(const double *values, const double *_shapeFuncs,
-		int _nNodes, int _nValue, double *returnValue);
+/***********************************************************************************************
+ * \brief Computes the value of a data field in the interior of an element
+ * \param[in] _nNodes The number of nodes of the element
+ * \param[in] _nValue Takes value 1 for a scalar, or the values 2-3 for a vector
+ * \param[in] _values The values on the nodes of the element
+ * \param[in] _shapeFuncs The values of the shape functions at the interior of the element
+ * \param[in/out] _returnValue The resulting linear combination of the nodal values
+ * \author Chenshen Wu
+ ***********/
+void computeLinearCombination(int _nNodes, int _nValue, const double * _values, const double *_shapeFuncs,
+		double* _returnValue);
 
-void calcCoords(const double *_coordsQuadrature, const double *_gaussPoint,
-		int _nNodes, int _nCoords, double *_coords);
-
-void calcLinearShapeFunc(const double *_coords, int _nCoords,
-		double *_shapeFuncs);
+/***********************************************************************************************
+ * \brief Computes the values of the low order shape functions (linear for triangle and bilinear
+ *        for the quadrilateral)
+ * \param[in] _nNodes The number of nodes in the element level
+ * \param[in] _coords The coordinates of the point where to evaluate the shape functions
+ * \param[in/out] _shapeFuncs The evaluated shape functions
+ ***********/
+void computeLowOrderShapeFunc(int _nNodes, const double* _coords, double* _shapeFuncs);
 
 /***********************************************************************************************
  * \brief Compute local coordinates of a point in a triangle in a 2D space
@@ -147,7 +159,8 @@ bool computeLocalCoordsInTriangle(const double *_coordsTriangle,
 		const double *_coordsNode, double* _localCoords);
 
 /***********************************************************************************************
- * \brief Compute local coordinates of a point in a quadriliteral in a 2D space
+ * \brief Compute local coordinates of a point in a quadriliteral in a 2D space by solving a nonlinear
+ *        system using the Newton-Raphson scheme
  * \param[in] _coordsQuad, coordinates of the quadriliteral. double[8].
  * \param[in] _coordsNode, coordinates of the point. double[2].
  * \param[out] _localCoords, local coordinates of the point. double[2]
@@ -158,13 +171,23 @@ bool computeLocalCoordsInQuad(const double *_coordsQuad,
 		const double *_coordsNode, double* _localCoords);
 
 /***********************************************************************************************
- * \brief Compute the area of a given triangle in a 2D space
+ * \brief Computes the area of a given triangle defined by two vectors
+ * \param[in] _x1, _y1, _z1 Vector 1
+ * \param[in] _x2, _y2, _z2 Vector 2
+ * \param[out] The area of the triangle included by the two vectors
  * \author Chenshen Wu
  ***********/
-double areaTriangle(double x1, double y1, double z1, double x2, double y2,
+double computeAreaTriangle(double x1, double y1, double z1, double x2, double y2,
 		double z2);
 
-double distance(double* _x1, double* _x2);
+/***********************************************************************************************
+ * \brief Computes the distance between two points
+ * \param[in] _x1 Point 1
+ * \param[in] _x2 Point 2
+ * \param[out] The distance between the two given points
+ * \author Chenshen Wu
+ ***********/
+double computePointDistance(double* _x1, double* _x2);
 
 }
 }

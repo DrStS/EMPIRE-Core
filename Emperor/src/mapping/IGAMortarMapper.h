@@ -26,90 +26,123 @@ class FEMesh;
 class DataField;
 
 namespace IGAMortarMath {
+
 class GaussQuadratureOnTriangle;
 class GaussQuadratureOnQuad;
+
 }
 
 /***********************************************************************************************
- * \brief This class performs mortar mapping for IGA
+ * \brief This class is related to IGA mortar mapping
  * ***********/
 class IGAMortarMapper: public AbstractMapper {
-public:
-	/***********************************************************************************************
-	 * \brief Constructor
-	 * \param[in] _name name of the mapper
-	 * \param[in] _meshS meshS, IGAMesh
-	 * \param[in] _meshF meshF, FEMesh
-	 * \author Chenshen Wu
-	 ***********/
-	IGAMortarMapper(std::string _name, IGAMesh *_meshS, FEMesh *_meshF);
-
-	/***********************************************************************************************
-	 * \brief Destructor Chenshen Wu
-	 ***********/
-	virtual ~IGAMortarMapper();
-	/***********************************************************************************************
-	 * \brief Do consistent mapping from A to B (map displacements)
-	 * \param[in] fieldA is the input data
-	 * \param[out] fieldB is the output data
-	 * \author Chenshen Wu
-	 ***********/
-	void consistentMapping(const double *fieldS, double *fieldF);
-	/***********************************************************************************************
-	 * \brief Do conservative mapping from B to A (map forces)
-	 * \param[in] fieldB is the input data
-	 * \param[out] fieldA is the output data
-	 * \author Chenshen Wu
-	 ***********/
-	void conservativeMapping(const double *fieldF, double *fieldS);
-
-	void printCouplingMatrix();
 
 private:
-	/// IGA Mesh
-	IGAMesh *meshS;
+    /// IGA Mesh
+    IGAMesh *meshIGA;
 
-	/// Fluid Mesh
-	FEMesh *meshF;
+    /// Fluid Mesh
+    FEMesh *meshFE;
 
-	MathLibrary::SparseMatrix<double> *C_NN;
+    /// The element freedom table for the fluid mesh
+    int **meshFEDirectElemTable;
 
-	MathLibrary::SparseMatrix<double> *C_NR;
+    /// The mass-like matrix
+    MathLibrary::SparseMatrix<double> *C_NN;
 
-	IGAMortarMath::GaussQuadratureOnTriangle *gaussTriangle;
-	IGAMortarMath::GaussQuadratureOnQuad *gaussQuad;
+    /// The right-hand side matrix
+    MathLibrary::SparseMatrix<double> *C_NR;
 
-	/// coordinates of parameter space of the projected nodes on the surface
-	std::vector<std::map<int, double*> > *projectedCoords;
+    /// Quadrature rule over the triangulated subdomains
+    IGAMortarMath::GaussQuadratureOnTriangle *gaussTriangle;
 
-	void projectPointsToSurface();
-//    /// number of Gauss points used for computing triangle element mass matrix
-//	static const int numGPsMassMatrixTri;
-//	/// number of Gauss points used for computing quad element mass matrix
-//	static const int numGPsMassMatrixQuad;
+    /// Quadrature rule over the non-triangulated subdomains
+    IGAMortarMath::GaussQuadratureOnQuad *gaussQuad;
 
-//	// number of Gauss points used for computing shape function (tri) products on a clip
-//	static const int numGPsOnClipTri;
-//	// number of Gauss points used for computing shape function (quad) products on a clip
-//	static const int numGPsOnClipQuad;
+    /// The parametric coordinates of the projected nodes on the surface
+    std::vector<std::map<int, double*> > *projectedCoords;
 
-/// unit test class
-	friend class TestIGAMortarMapper;
+public:
+    /***********************************************************************************************
+     * \brief Constructor
+     * \param[in] _name The name of the mapper
+     * \param[in] _meshIGA The IGAMesh
+     * \param[in] _meshFE The FEMesh
+     * \author Chenshen Wu
+     ***********/
+    IGAMortarMapper(std::string _name, IGAMesh *_meshIGA, FEMesh *_meshFE);
 
-	/***********************************************************************************************
-	 * \brief Compute matrix C_NN and C_NR
-	 * \author Chenshen Wu
-	 ***********/
-	void computeCouplingMatrix();
-	void initTables();
+    /***********************************************************************************************
+     * \brief Destructor Chenshen Wu
+     ***********/
+    virtual ~IGAMortarMapper();
 
-	void integrate(IGAPatchSurface* thePatch, double *polygonIGA, int spanU, int spanV, double *polygonFE,
-			int elementIndex, int numNodes, int nShapeFuncsFE);
+    /***********************************************************************************************
+     * \brief Initialization of the element freedom tables
+     * \author Chenshen Wu
+     ***********/
+    void initTables();
 
-	int **meshFDirectElemTable;
+    /***********************************************************************************************
+     * \brief Fills up the array projectedCoords by performing closest point projection
+     * \author Chenshen Wu
+     ***********/
+    void projectPointsToSurface();
 
-	const static double disTol = 1e-6;
+    /***********************************************************************************************
+     * \brief Compute matrices C_NN and C_NR
+     * \author Chenshen Wu
+     ***********/
+    void computeCouplingMatrices();
 
+    /***********************************************************************************************
+     * \brief Integrate the element coupling matrices and assemble them to the global one
+     * \param[in] _igaPatchSurface The patch to compute the coupling matrices for
+     * \param[in] _numNodes The number of nodes of the clipped polygon
+     * \param[in] _polygonIGA The resulting from the clipping polygon at each knot span in the NURBS space
+     * \param[in] _spanU The knot span index in the u-direction
+     * \param[in] _spanV The knot span index in the v-direction
+     * \param[in] _polygonFE The resulting from the clipping polygon at each knot span in the bilinear/linear space
+     * \param[in] _elementIndex The global numbering of the element from the FE mesh
+     * \param[in] _nShapeFuncsFE The number of the shape functions in the clipped element of the FE side
+     * \author Chenshen Wu
+     ***********/
+    void integrate(IGAPatchSurface* _igaPatchSurface, int _numNodes, double* _polygonIGA,
+            int _spanU, int _spanV, double* _polygonFE, int _elementIndex, int _nShapeFuncsFE);
+
+    /***********************************************************************************************
+     * \brief Do consistent mapping from IGA to FE (map displacements)
+     * \param[in] fieldIGA is the input data
+     * \param[out] fieldFE is the output data
+     * \author Chenshen Wu
+     ***********/
+    void consistentMapping(const double *fieldIGA, double *fieldFE);
+
+    /***********************************************************************************************
+     * \brief Do conservative mapping from FE to IGA (map forces)
+     * \param[in] fieldFE is the input data
+     * \param[out] fieldIGA is the output data
+     * \author Chenshen Wu
+     ***********/
+    void conservativeMapping(const double *fieldFE, double *fieldIGA);
+
+    /***********************************************************************************************
+     * \brief Print both coupling matrices C_NN and C_NR
+     * \author Chenshen Wu
+     ***********/
+    void printCouplingMatrices();
+
+    /// Tolerance up to which projection is trusted
+    const static double disTol = 1e-6;
+
+    /// number of Gauss points used for computing triangle element
+    static const int numGPsTri = 6;
+
+    /// number of Gauss points used for computing quad element
+    static const int numGPsQuad = 25;
+
+    /// unit test class
+    friend class TestIGAMortarMapper;
 };
 }
 

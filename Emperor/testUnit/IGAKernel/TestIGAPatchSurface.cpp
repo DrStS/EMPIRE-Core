@@ -284,8 +284,7 @@ public:
 //			controlPointWeights[i] = controlPointNet[i].getW();
 
 // Test just one object of the class (that works pretty also)
-		theIGAPatchSurface = new IGAPatchSurface("The IGA Surface Patch",
-				id_basis, p, uNoKnots, uKnotVector, q, vNoKnots, vKnotVector,
+		theIGAPatchSurface = new IGAPatchSurface(id_basis, p, uNoKnots, uKnotVector, q, vNoKnots, vKnotVector,
 				uNoControlPoints, vNoControlPoints, controlPointNet);
 
 		// nurbsBasis1D->printPolynomialDegree();

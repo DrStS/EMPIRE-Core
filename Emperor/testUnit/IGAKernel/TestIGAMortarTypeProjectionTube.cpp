@@ -384,7 +384,7 @@ public:
             controlPointWeights[i] = controlPointNet[i]->getW();
 
         // Test just one object of the class (that works pretty also)
-        igaPatch2D = new IGAPatchSurface("IGAPatch", id_basis, p, uNoKnots, uKnotVector, q, vNoKnots,
+        igaPatch2D = new IGAPatchSurface(id_basis, p, uNoKnots, uKnotVector, q, vNoKnots,
                 vKnotVector, uNoControlPoints, vNoControlPoints, controlPointNet);
 
         // nurbsBasis1D->printPolynomialDegree();

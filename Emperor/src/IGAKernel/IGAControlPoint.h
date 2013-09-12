@@ -64,6 +64,7 @@ public:
 
 	/***********************************************************************************************
 	 * \brief Copy Constructor
+	 * \param[in] _CP Pointer to a Control Point
 	 * \author Chenshen Wu
 	 ***********/
 	IGAControlPoint(IGAControlPoint *_CP) :

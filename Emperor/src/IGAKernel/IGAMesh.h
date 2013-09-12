@@ -4,7 +4,6 @@
  * \date 6/8/2013
  **************************************************************************************************/
 
-
 #ifndef IGAMesh_H_
 #define IGAMesh_H_
 
@@ -19,88 +18,123 @@ class IGAPatchSurface;
 class IGAControlPoint;
 
 /********//**
- * \brief class IGAMesh is a specialization of the class AbstractMesh used for IGA Mesh contains one or several IGA surface patches
+ * \brief class IGAMesh is a specialization of the class AbstractMesh used for IGA Mesh containing number of IGA surface patches
  ***********/
 
 class IGAMesh: public AbstractMesh {
 
 protected:
+    /// Array of IGA Surface Patches
+    std::vector<IGAPatchSurface*> surfacePatches;
 
-	/// Array of IGA Surface Patches
-	std::vector<IGAPatchSurface*> surfacePatches;
+    /// Array of IGA Control Points
+    std::vector<IGAControlPoint*> globalControlPoints;
 
-	/// Array of IGA Control Points
-	std::vector<IGAControlPoint*> globalControlPoints;
+    /// The global IDs of the Control Points in the IGAMesh
+    int* controlPointID;
 
-	/// The array of the global ID of the Control Points
-	int* controlPointID;
+    /// The map from the the global IDs of the Control Points to the elements in the array controlPointID
+    std::map<int, int> mapControlPointIDToIndex;
 
-	/// The map from the global ID of the Control Points to the Index of its array
-	std::map<int, int> cpMap;
+    /// The number of the Control Points in the IGAMesh
+    int numControlPoints;
 
-	int numControlPoints;
-
+    /// The constructor, the destructor and the copy constructor
 public:
-	/***********************************************************************************************
-	 * \brief Constructor
-	 * \author Chenshen Wu
-	 ***********/
-	IGAMesh(std::string _name, int numControlPoints, double* _globalControlPoints, int* _controlPointID);
-//	IGAMesh(int numControlPoints, double* _globalControlPoints, int* _controlPointID);
+    /***********************************************************************************************
+     * \brief Constructor
+     * \param[in] _name The name of the IGA mesh
+     * \param[in] _numControlPoints The number of the Control Points
+     * \param[in] _globalControlPoints The coordinates and the weights of the Control Points sorted in an array
+     * \param[in] _controlPointID The Control Point IDs sorted in an array
+     * \author Chenshen Wu
+     ***********/
+    IGAMesh(std::string _name, int _numControlPoints, double* _globalControlPoints,
+            int* _controlPointID);
 
-	/***********************************************************************************************
-	 * \brief Destructor
-	 * \author Chenshen Wu
-	 ***********/
-	~IGAMesh();
+    /***********************************************************************************************
+     * \brief Destructor
+     * \author Chenshen Wu
+     ***********/
+    ~IGAMesh();
 
-	/***********************************************************************************************
-	 * brief Add a new surface patch to this mesh
-	 * \param[in] _pDegree The polynomial degree of the IGA 2D patch in the u-direction
-	 * \param[in] _uNoKnots The number of knots for the knot vector in the u-direction
-	 * \param[in] _uKnotVector The underlying knot vector of the IGA 2D patch in the u-direction
-	 * \param[in] _qDegree The polynomial degree of the IGA 2D patch in the v-direction
-	 * \param[in] _vNoKnots The number of knots for the knot vector in the v-direction
-	 * \param[in] _vKnotVector The underlying knot vector of the IGA 2D patch in the v-direction
-	 * \param[in] _uNoControlPoints The number of the Control Points for the 2D NURBS patch in the u-direction
-	 * \param[in] _vNoControlPoints The number of the Control Points for the 2D NURBS patch in the v-direction
-	 * \param[in] _controlPointNet The set of the Control Points related to the 2D NURBS patch
-	 * \author Chenshen Wu
-	 ***********/
-	void addPatch(int _pDegree,	int _uNoKnots, double* _uKnotVector, int _qDegree, int _vNoKnots,
-			double* _vKnotVector, int _uNoControlPoints, int _vNoControlPoints, int* _controlPointNetID);
+    /***********************************************************************************************
+     * brief Add a new surface patch to the IGA mesh
+     * \param[in] _pDegree The polynomial degree of the IGA 2D patch in the u-direction
+     * \param[in] _uNoKnots The number of knots for the knot vector in the u-direction
+     * \param[in] _uKnotVector The underlying knot vector of the IGA 2D patch in the u-direction
+     * \param[in] _qDegree The polynomial degree of the IGA 2D patch in the v-direction
+     * \param[in] _vNoKnots The number of knots for the knot vector in the v-direction
+     * \param[in] _vKnotVector The underlying knot vector of the IGA 2D patch in the v-direction
+     * \param[in] _uNoControlPoints The number of the Control Points for the 2D NURBS patch in the u-direction
+     * \param[in] _vNoControlPoints The number of the Control Points for the 2D NURBS patch in the v-direction
+     * \param[in] _controlPointNet The set of the Control Points related to the 2D NURBS patch
+     * \author Chenshen Wu
+     ***********/
+    void addPatch(int _pDegree, int _uNoKnots, double* _uKnotVector, int _qDegree, int _vNoKnots,
+            double* _vKnotVector, int _uNoControlPoints, int _vNoControlPoints,
+            int* _controlPointNetID);
 
-	/// Functions from AbstractMesh
-	/***********************************************************************************************
-	 * \brief Add a new data field to this mesh
-	 * \param[in] dataFieldName name of the data field
-	 * \param[in] location at node or at element centroid
-	 * \param[in] dimension vector or scalar
-	 * \param[in] typeOfQuantity field or field integral
-	 * \author Tianyang Wang
-	 ***********/
-	void addDataField(std::string dataFieldName,
-			EMPIRE_DataField_location location,
-			EMPIRE_DataField_dimension dimension,
-			EMPIRE_DataField_typeOfQuantity typeOfQuantity);
+    /// Specializing abstract functions from AbstractMesh class
+public:
+    /***********************************************************************************************
+     * \brief Add a new data field to this mesh
+     * \param[in] _dataFieldName name of the data field
+     * \param[in] _location at node or at element centroid
+     * \param[in] _dimension vector or scalar
+     * \param[in] _typeOfQuantity field or field integral
+     * \author Chenshen Wu
+     ***********/
+    void addDataField(std::string _dataFieldName, EMPIRE_DataField_location _location,
+            EMPIRE_DataField_dimension _dimension, EMPIRE_DataField_typeOfQuantity _typeOfQuantity);
 
+    /***********************************************************************************************
+     * \brief Compute the bounding box of the mesh
+     * \author Chenshen Wu
+     ***********/
+    void computeBoundingBox();
 
-	inline std::vector<IGAPatchSurface*> getSurfacePatches(){ return surfacePatches;}
-	inline int getNumControlPoints(){return numControlPoints;}
-	inline std::map<int, int> getCpMap(){return cpMap;}
-	/***********************************************************************************************
-	 * \brief Return a pointer to the data field by its name
-	 * \param[in] dataFieldName name of the data field
-	 * \author Tianyang Wang
-	 ***********/
-	DataField *getDataFieldByName(std::string dataFieldName);
-	/***********************************************************************************************
-	 * \brief Compute the bounding box of the mesh
-	 * \author Chenshen Wu
-	 ***********/
-	void computeBoundingBox();
+    /// Get and set functions
+public:
+    /***********************************************************************************************
+     * \brief Get the surface patches
+     * \param[out] A container vector of type std::vector<IGAPatchSurface*>
+     * \author Chenshen Wu
+     ***********/
+    inline std::vector<IGAPatchSurface*> getSurfacePatches() {
+        return surfacePatches;
+    }
 
+    /***********************************************************************************************
+     * \brief Get the map of the global ID of the Control Points to the Index of its array controlPointID
+     * \param[out] The map of the global ID of the Control Points to the Index of its array
+     * \author Chenshen Wu
+     ***********/
+    inline std::map<int, int> getMapControlPointIDToIndex() {
+        return mapControlPointIDToIndex;
+    }
+
+    /***********************************************************************************************
+     * \brief Get the number of the Control Points
+     * \param[out] The number of the Control Points
+     * \author Chenshen Wu
+     ***********/
+    inline int getNumControlPoints() {
+        return numControlPoints;
+    }
+
+    /***********************************************************************************************
+     * \brief Return a pointer to the data field by its name
+     * \param[in] _dataFieldName name of the data field
+     * \author Tianyang Wang
+     ***********/
+    DataField *getDataFieldByName(std::string _dataFieldName);
 };
+
+/***********************************************************************************************
+ * \brief Allows for nice debug output later
+ * \author Chenshen Wu
+ ***********/
 Message &operator<<(Message &message, IGAMesh &mesh);
 
 }/* namespace EMPIRE */
