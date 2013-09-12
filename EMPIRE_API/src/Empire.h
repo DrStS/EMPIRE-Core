@@ -87,6 +87,22 @@ public:
     void sendMesh(int numNodes, int numElems, double *nodes, int *nodeIDs, int *numNodesPerElem,
             int *elems);
     /***********************************************************************************************
+     * \brief Send the IGA patch to the server
+     * \param[in] _pDegree The polynomial degree of the IGA 2D patch in the u-direction
+     * \param[in] _uNoKnots The number of knots for the knot vector in the u-direction
+     * \param[in] _uKnotVector The underlying knot vector of the IGA 2D patch in the u-direction
+     * \param[in] _qDegree The polynomial degree of the IGA 2D patch in the v-direction
+     * \param[in] _vNoKnots The number of knots for the knot vector in the v-direction
+     * \param[in] _vKnotVector The underlying knot vector of the IGA 2D patch in the v-direction
+     * \param[in] _uNoControlPoints The number of the Control Points for the 2D NURBS patch in the u-direction
+     * \param[in] _vNoControlPoints The number of the Control Points for the 2D NURBS patch in the v-direction
+     * \param[in] _controlPointNet The set of the Control Points related to the 2D NURBS patch
+     * \author Chenshen Wu 
+     ***********/
+    void sendIGAPatch(int _pDegree,	int _uNoKnots, double* _uKnotVector, int _qDegree, int _vNoKnots,
+    		double* _vKnotVector, int _uNoControlPoints, int _vNoControlPoints, int* _controlPointNetID);
+    void sendIGAMesh(int _numPatches, int _numControlPoints, double* _globalControlPoints, int* _controlPointID);
+    /***********************************************************************************************
      * \brief Send data field to the server
      * \param[in] sizeOfArray size of the array (data field)
      * \param[in] dataField the data field to be sent

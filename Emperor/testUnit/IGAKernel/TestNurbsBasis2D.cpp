@@ -1,23 +1,3 @@
-/*  Copyright &copy; 2013, TU Muenchen, Chair of Structural Analysis,
- *  Stefan Sicklinger, Tianyang Wang, Munich
- *
- *  All rights reserved.
- *
- *  This file is part of EMPIRE.
- *
- *  EMPIRE is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
- *
- *  EMPIRE is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with EMPIRE.  If not, see http://www.gnu.org/licenses/.
- */
 // inclusion of standard libraries   (only if really necessary here in *.h)
 #include "cppunit/TestFixture.h"
 #include "cppunit/TestAssert.h"
@@ -86,76 +66,38 @@ public:
         int noUControlPoints = noKnotsU - p - 1;
         int noVControlPoints = noKnotsV - q - 1;
 
-        IGAControlPoint** ControlPointNet = new IGAControlPoint*[noUControlPoints];
-        for (int i = 0; i < noUControlPoints; i++)
-            ControlPointNet[i] = new IGAControlPoint[noVControlPoints];
-
-        ControlPointNet[0][0] = IGAControlPoint(1, 0.0, -width_NURBS / 2.0, mid_Radius_NURBS, 1);
-        ControlPointNet[0][1] = IGAControlPoint(2, 0.0, 0.0, mid_Radius_NURBS, 3);
-        ControlPointNet[0][2] = IGAControlPoint(3, 0.0, width_NURBS / 2.0, mid_Radius_NURBS, 1);
-        ControlPointNet[1][0] = IGAControlPoint(4, mid_Radius_NURBS / 10.0, -width_NURBS / 2.0,
-                mid_Radius_NURBS, 2);
-        ControlPointNet[1][1] = IGAControlPoint(5, mid_Radius_NURBS / 10.0, 0, mid_Radius_NURBS,
-                1.5);
-        ControlPointNet[1][2] = IGAControlPoint(6, mid_Radius_NURBS / 10.0, width_NURBS / 2.0,
-                mid_Radius_NURBS, 4);
-        ControlPointNet[2][0] = IGAControlPoint(7, mid_Radius_NURBS / 9.0, -width_NURBS / 2.0,
-                mid_Radius_NURBS, 3.0);
-        ControlPointNet[2][1] = IGAControlPoint(8, mid_Radius_NURBS / 9.0, 0, mid_Radius_NURBS,
-                3.7);
-        ControlPointNet[2][2] = IGAControlPoint(9, mid_Radius_NURBS / 9.0, width_NURBS / 2.0,
-                mid_Radius_NURBS, 2.1);
-        ControlPointNet[3][0] = IGAControlPoint(10, mid_Radius_NURBS / 8.0, -width_NURBS / 2.0,
-                mid_Radius_NURBS, 4.0);
-        ControlPointNet[3][1] = IGAControlPoint(11, mid_Radius_NURBS / 8.0, 0, mid_Radius_NURBS,
-                1.9);
-        ControlPointNet[3][2] = IGAControlPoint(12, mid_Radius_NURBS / 8.0, width_NURBS / 2.0,
-                mid_Radius_NURBS, 1.0);
-        ControlPointNet[4][0] = IGAControlPoint(13, mid_Radius_NURBS / 7.0, -width_NURBS / 2.0,
-                mid_Radius_NURBS, 9.0);
-        ControlPointNet[4][1] = IGAControlPoint(14, mid_Radius_NURBS / 7.0, 0, mid_Radius_NURBS,
-                4.4);
-        ControlPointNet[4][2] = IGAControlPoint(15, mid_Radius_NURBS / 7.0, width_NURBS / 2.0,
-                mid_Radius_NURBS, 3.2);
-        ControlPointNet[5][0] = IGAControlPoint(16, mid_Radius_NURBS / 6.0, -width_NURBS / 2.0,
-                mid_Radius_NURBS, 10.0);
-        ControlPointNet[5][1] = IGAControlPoint(17, mid_Radius_NURBS / 6.0, 0, mid_Radius_NURBS,
-                1.6);
-        ControlPointNet[5][2] = IGAControlPoint(18, mid_Radius_NURBS / 6.0, width_NURBS / 2.0,
-                mid_Radius_NURBS, 1.02);
-        ControlPointNet[6][0] = IGAControlPoint(19, mid_Radius_NURBS / 5.0, -width_NURBS / 2.0,
-                mid_Radius_NURBS, 0.5);
-        ControlPointNet[6][1] = IGAControlPoint(20, mid_Radius_NURBS / 5.0, 0, mid_Radius_NURBS,
-                0.34);
-        ControlPointNet[6][2] = IGAControlPoint(21, mid_Radius_NURBS / 5.0, width_NURBS / 2.0,
-                mid_Radius_NURBS, 3.63);
-        ControlPointNet[7][0] = IGAControlPoint(22, mid_Radius_NURBS / 4.0, -width_NURBS / 2.0,
-                mid_Radius_NURBS, 2.0);
-        ControlPointNet[7][1] = IGAControlPoint(23, mid_Radius_NURBS / 4.0, 0, mid_Radius_NURBS,
-                2.6);
-        ControlPointNet[7][2] = IGAControlPoint(24, mid_Radius_NURBS / 4.0, width_NURBS / 2.0,
-                mid_Radius_NURBS, 2.0);
-        ControlPointNet[8][0] = IGAControlPoint(25, mid_Radius_NURBS / 3.0, -width_NURBS / 2.0,
-                mid_Radius_NURBS, 4.0);
-        ControlPointNet[8][1] = IGAControlPoint(26, mid_Radius_NURBS / 3.0, 0, mid_Radius_NURBS,
-                1.0);
-        ControlPointNet[8][2] = IGAControlPoint(27, mid_Radius_NURBS / 3.0, width_NURBS / 2.0,
-                mid_Radius_NURBS, 8.0);
-        ControlPointNet[9][0] = IGAControlPoint(28, mid_Radius_NURBS, -width_NURBS / 2.0,
-                mid_Radius_NURBS, 21.0);
-        ControlPointNet[9][1] = IGAControlPoint(29, mid_Radius_NURBS, 0, mid_Radius_NURBS, 1.4);
-        ControlPointNet[9][2] = IGAControlPoint(30, mid_Radius_NURBS, width_NURBS / 2.0,
-                mid_Radius_NURBS, 10.54);
-
-        // Create the array of the control point weights
         double* controlPointWeights = new double[noUControlPoints * noVControlPoints];
-        int counter = 0;
-        for (int i = 0; i < noUControlPoints; i++) {
-            for (int j = 0; j < noVControlPoints; j++) {
-                controlPointWeights[counter] = ControlPointNet[i][j].getW();
-                counter++;
-            }
-        }
+
+        controlPointWeights[0] = 1;
+        controlPointWeights[1] = 3;
+        controlPointWeights[2] = 1;
+        controlPointWeights[3] = 2;
+        controlPointWeights[4] = 1.5;
+        controlPointWeights[5] = 4;
+        controlPointWeights[6] = 3.0;
+        controlPointWeights[7] = 3.7;
+        controlPointWeights[8] = 2.1;
+        controlPointWeights[9] = 4.0;
+        controlPointWeights[10] = 1.9;
+        controlPointWeights[11] = 1.0;
+        controlPointWeights[12] = 9.0;
+        controlPointWeights[13] = 4.4;
+        controlPointWeights[14] = 3.2;
+        controlPointWeights[15] = 10.0;
+        controlPointWeights[16] = 1.6;
+        controlPointWeights[17] = 1.02;
+        controlPointWeights[18] = 0.5;
+        controlPointWeights[19] = 0.34;
+        controlPointWeights[20] = 3.63;
+        controlPointWeights[21] = 2.0;
+        controlPointWeights[22] = 2.6;
+        controlPointWeights[23] = 2.0;
+        controlPointWeights[24] = 4.0;
+        controlPointWeights[25] = 1.0;
+        controlPointWeights[26] = 8.0;
+        controlPointWeights[27] = 21.0;
+        controlPointWeights[28] = 1.4;
+        controlPointWeights[29] = 10.54;
 
         // Test just one object of the class (that works pretty also)
         nurbsBasis2D = new NurbsBasis2D(id, p, noKnotsU, knotVectorU, q, noKnotsV, knotVectorV,
@@ -207,9 +149,6 @@ public:
          delete nurbsBasis2DCopy;
          }*/
 
-        for (int i = 0; i < noUControlPoints; i++)
-            delete[] ControlPointNet[i];
-        delete[] ControlPointNet;
     }
 
     void tearDown() {

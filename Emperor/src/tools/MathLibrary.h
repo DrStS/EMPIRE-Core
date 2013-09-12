@@ -31,6 +31,7 @@
 #include <map>
 #include <vector>
 #include <assert.h>
+#include <typeinfo>
 #include "AuxiliaryParameters.h"
 #include "mkl.h"
 
@@ -199,6 +200,35 @@ public:
             y[ii] += sum;
         }
     }
+    
+    /***********************************************************************************************
+     * \brief This function is a fast alternative to the operator overloading alternative
+     * \param[in] x vector to be multiplied
+     * \param[out] y result vector
+     * \param[in] elements are the number of entries in the vector
+     * \author Chenshen Wu
+     ***********/
+    void transposeMulitplyVec(const T* x, T* y, const size_t elements) { //Computes y=A*x
+        if (this->m != elements)
+	    assert(0);
+	if (isSymmetric) {
+	    mulitplyVec(x, y, elements);
+	    return;  
+	}
+	
+	size_t iter;
+	for (iter = 0; iter < this->n; iter++) {
+	    y[iter] = 0;	  
+	}
+	
+	row_iter ii;
+	col_iter jj;
+	
+	for (ii = 0; ii < m; ii++)
+	    for (jj = (*mat)[ii].begin(); jj != (*mat)[ii].end(); jj++)
+	        y[(*jj).first] += (*jj).second * x[ii];      
+    }
+    
     /***********************************************************************************************
      * \brief This function performs the prepare of a solution
      * \param[in]  pointer to rhs vector
