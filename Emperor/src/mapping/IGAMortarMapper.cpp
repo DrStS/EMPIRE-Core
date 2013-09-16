@@ -40,6 +40,7 @@ IGAMortarMapper::IGAMortarMapper(std::string _name, IGAMesh *_meshIGA, FEMesh *_
     initTables();
     projectPointsToSurface();
     computeCouplingMatrices();
+    C_NN->factorize();
 
 }
 
@@ -50,6 +51,7 @@ IGAMortarMapper::~IGAMortarMapper() {
         delete[] meshFEDirectElemTable[i];
     delete[] meshFEDirectElemTable;
     delete C_NR;
+    C_NN->cleanPardiso();
     delete C_NN;
 
 }

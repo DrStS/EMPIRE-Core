@@ -20,7 +20,7 @@
  */
 #include "AuxiliaryParameters.h"
 #include <limits>
-#define GIT_SHA1 "48d0ce656e93b889d9353cbd3b0d76b4108387b7" //Cmake will set this value
+#define GIT_SHA1 "aa93b2d5e0f617bba39dfd112bea9f3d6919ff59" //Cmake will set this value
 
 namespace EMPIRE {
 

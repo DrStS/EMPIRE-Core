@@ -229,18 +229,14 @@ public:
 	        y[(*jj).first] += (*jj).second * x[ii];      
     }
     
-    /***********************************************************************************************
-     * \brief This function performs the prepare of a solution
-     * \param[in]  pointer to rhs vector
-     * \param[out] pointer to solution vector
-     * \return std vector
-     * \author Stefan Sicklinger
-     ***********/
-    void solve(T* x, T* b) { //Computes x=A^-1 *y
-        this->determineCSR();
 
-
+/***********************************************************************************************
+ * \brief This function analysis and factorize the matrix
+ * \author Stefan Sicklinger
+ ***********/
+    void factorize(){
 #ifdef USE_INTEL_MKL
+    	this->determineCSR();
         if (isSymmetric) {
             pardiso_mtype = 2;  // real symmetric matrix postive definite matrix
         } else {
@@ -267,6 +263,18 @@ public:
                     << std::endl;
             exit(EXIT_FAILURE);
         }
+#endif
+    }
+
+    /***********************************************************************************************
+     * \brief This function performs the prepare of a solution
+     * \param[in]  pointer to rhs vector
+     * \param[out] pointer to solution vector
+     * \return std vector
+     * \author Stefan Sicklinger
+     ***********/
+    void solve(T* x, T* b) { //Computes x=A^-1 *y
+#ifdef USE_INTEL_MKL
         // pardiso forward and backward substitution
         pardiso_phase = 33; // forward and backward substitution
         pardiso_error = 0;
@@ -275,6 +283,15 @@ public:
         pardiso(pardiso_pt, &pardiso_maxfct, &pardiso_mnum, &pardiso_mtype, &pardiso_phase,
                 &pardiso_neq, &values[0], &((*rowIndex)[0]), &columns[0], &pardiso_idum,
                 &pardiso_nrhs, pardiso_iparm, &pardiso_msglvl, b, x, &pardiso_error);
+#endif
+    }
+
+    /***********************************************************************************************
+     * \brief This function clean Pardiso
+     * \author Stefan Sicklinger
+     ***********/
+    void cleanPardiso(){
+#ifdef USE_INTEL_MKL
         // clean pardiso
         pardiso_phase = -1; // deallocate memory
         pardiso(pardiso_pt, &pardiso_maxfct, &pardiso_mnum, &pardiso_mtype, &pardiso_phase,
@@ -287,8 +304,8 @@ public:
             exit(EXIT_FAILURE);
         }
 #endif
-
     }
+
     /***********************************************************************************************
      * \brief This prints the matrix in CSR style i j value
      * \author Stefan Sicklinger
