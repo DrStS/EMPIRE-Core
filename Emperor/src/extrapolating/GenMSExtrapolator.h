@@ -37,25 +37,45 @@ namespace EMPIRE {
  **************************************************************************************************/
   class GenMSExtrapolator : public AbstractExtrapolator {
   public:
-
-    GenMSExtrapolator(std::string _name,                           /**< [in] Extrapolator name. */
-		      int _numInput,                               /**< [in] Number of dots plus one. */
-		      bool _sumOutput,                             /**< [in] Sum old extrapolated data. */
-		      int _seqLen,                                 /**< [in] Number of old time stations to sum. */
-		      double _deltaTime,                           /**< [in] Time step size. */
-		      const std::vector<double>* coefDot0,         /**< [in] Nondimensional coefficients. */
-		      const std::vector<double>* coefDot1=NULL,    /**< [in] Nondimensional coefficients. */
-		      const std::vector<double>* coefDot2=NULL,    /**< [in] Nondimensional coefficients. */
-		      const std::vector<double>* coefOut=NULL      /**< [in] Nondimensional coefficients. */
+	/***********************************************************************************************
+	* \brief Constructor, initialize member variables
+	* \param[in] _name      Extrapolator name.
+	* \param[in] _numInput  Number of dots plus one.
+	* \param[in] _sumOutput Sum old extrapolated data.
+	* \param[in] _seqLen    Number of old time stations to sum.
+	* \param[in] _deltaTime Time step size.
+	* \param[in] coefDot0 Nondimensional coefficients.
+	* \param[in] coefDot1 Nondimensional coefficients.
+	* \param[in] coefDot2 Nondimensional coefficients.
+	* \param[in] coefOut  Nondimensional coefficients.
+	* \author Michael Andre
+	***********/
+    GenMSExtrapolator(std::string _name,
+		      int _numInput,
+		      bool _sumOutput,
+		      int _seqLen,
+		      double _deltaTime,
+		      const std::vector<double>* coefDot0,
+		      const std::vector<double>* coefDot1=NULL,
+		      const std::vector<double>* coefDot2=NULL,
+		      const std::vector<double>* coefOut=NULL
 		      );
 
     ~GenMSExtrapolator();
-
-    void setDataIO(int _dataSize,               /**< [in]  Array size. */
-		   double* _out,                /**< [in]  Extrapolated data. */ 
-		   const double* _inDot0,       /**< [in]  Zeroth derivative input data. */
-		   const double* _inDot1=NULL,  /**< [in]  First derivative input data. */
-		   const double* _inDot2=NULL   /**< [in]  Second derivative input data. */
+	/***********************************************************************************************
+	* \brief setDataIO
+	* \param[in] _dataSize  Array size.
+	* \param[in] _out  Extrapolated data.
+	* \param[in] _inDot0    Zeroth derivative input data.
+	* \param[in] _inDot1    First derivative input data.
+	* \param[in] _inDot2    Second derivative input data.
+	* \author Michael Andre
+	***********/
+    void setDataIO(int _dataSize,
+		   double* _out,
+		   const double* _inDot0,
+		   const double* _inDot1=NULL,
+		   const double* _inDot2=NULL
 		   );
 
     void setInputAndOutput(const ConnectionIO *_input, ConnectionIO *_output);
