@@ -59,6 +59,11 @@ public:
      ***********/
     void initMortarMapper(bool oppositeSurfaceNormal, bool dual, bool enforceConsistency);
     /***********************************************************************************************
+     * \brief Initialize IGA Mortar Mapper
+     * \author Chenshen Wu
+     ***********/
+    void initIGAMortarMapper();
+    /***********************************************************************************************
      * \brief Initialize NearestNeighborMapper
      * \author Tianyang Wang
      ***********/

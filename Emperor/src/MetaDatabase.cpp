@@ -271,12 +271,14 @@ void MetaDatabase::fillSettingMapperVec() {
                 mapper.mortarMapper.enforceConsistency = true;
             else if (xmlMortarMapper->GetAttribute("enforceConsistency") == "false")
                 mapper.mortarMapper.enforceConsistency = false;
-            else
+            else 
                 assert(false);
         } else if (xmlMapper->GetAttribute("type") == "nearestNeighborMapper") {
             mapper.type = EMPIRE_NearestNeighborMapper;
         } else if (xmlMapper->GetAttribute("type") == "barycentricInterpolationMapper") {
             mapper.type = EMPIRE_BarycentricInterpolationMapper;
+        } else if (xmlMapper->GetAttribute("type") == "IGAMortarMapper"){
+        	mapper.type = EMPIRE_IGAMortarMapper;
         } else {
             assert(false);
         }

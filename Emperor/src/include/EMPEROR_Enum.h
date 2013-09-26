@@ -62,7 +62,7 @@ enum EMPIRE_ConvergenceChecker_whichRef {
  * use "MortarMapper" instead of "MortarMapperAdapter"
  ***********/
 enum EMPIRE_Mapper_type {
-    EMPIRE_MortarMapper, EMPIRE_NearestNeighborMapper, EMPIRE_BarycentricInterpolationMapper
+    EMPIRE_IGAMortarMapper, EMPIRE_MortarMapper, EMPIRE_NearestNeighborMapper, EMPIRE_BarycentricInterpolationMapper
 };
 
 enum EMPIRE_Mesh_type {

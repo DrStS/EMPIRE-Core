@@ -71,9 +71,13 @@ void DataOutput::writeMeshes() {
 
         assert(nameToClientCodeMap.find(clientCodeName)!=nameToClientCodeMap.end());
         AbstractMesh *mesh = nameToClientCodeMap[clientCodeName]->getMeshByName(meshName);
-        assert(mesh->type == EMPIRE_Mesh_FEMesh);
-        FEMesh *feMesh = dynamic_cast<FEMesh*>(mesh);
-        meshFileNameToMeshMap.insert(pair<string, FEMesh*>(meshFileName, feMesh));
+        if (mesh->type == EMPIRE_Mesh_FEMesh){
+        	FEMesh *feMesh = dynamic_cast<FEMesh*>(mesh);
+        	meshFileNameToMeshMap.insert(pair<string, FEMesh*>(meshFileName, feMesh));
+        } else if (mesh->type == EMPIRE_Mesh_IGAMesh){
+        } else
+        	assert(0);
+
     }
     // write meshes
     for (map<string, FEMesh*>::iterator it = meshFileNameToMeshMap.begin();
@@ -100,9 +104,13 @@ void DataOutput::initDataFieldFiles() {
 
         assert(nameToClientCodeMap.find(clientCodeName)!=nameToClientCodeMap.end());
         AbstractMesh *mesh = nameToClientCodeMap[clientCodeName]->getMeshByName(meshName);
-        assert(mesh->type == EMPIRE_Mesh_FEMesh);
-        FEMesh *feMesh = dynamic_cast<FEMesh*>(mesh);
-        dataFieldFileNameToMeshMap.insert(pair<string, FEMesh*>(dataFieldFileName, feMesh));
+        if (mesh->type == EMPIRE_Mesh_FEMesh) {
+        	FEMesh *feMesh = dynamic_cast<FEMesh*>(mesh);
+        	dataFieldFileNameToMeshMap.insert(pair<string, FEMesh*>(dataFieldFileName, feMesh));
+        } else if (mesh->type == EMPIRE_Mesh_IGAMesh){
+
+        } else
+        	assert(0);
     }
     for (map<string, FEMesh*>::iterator it = dataFieldFileNameToMeshMap.begin();
             it != dataFieldFileNameToMeshMap.end(); it++) {
@@ -124,31 +132,40 @@ void DataOutput::writeDataFields(int step) {
             string meshName = dataFieldRef.meshName;
             string dataFieldName = dataFieldRef.dataFieldName;
             AbstractMesh *mesh = nameToClientCodeMap[clientCodeName]->getMeshByName(meshName);
-            assert(mesh->type == EMPIRE_Mesh_FEMesh);
-            FEMesh *feMesh = dynamic_cast<FEMesh*>(mesh);
-            const string UNDERSCORE = "_";
-            string dataFieldFileName = dataOutputName + UNDERSCORE + clientCodeName + UNDERSCORE
-                    + meshName + ".res";
-            DataField *dataField = feMesh->getDataFieldByName(dataFieldName);
-            bool atNode = (dataField->location == EMPIRE_DataField_atNode ? true : false);
-            //if ((mesh->triangulate() != NULL) && (!atNode))
-            int *locationIDs = (atNode ? feMesh->nodeIDs : feMesh->elemIDs);
-            string type;
-            if (dataField->dimension == EMPIRE_DataField_vector)
-                type = "Vector";
-            else if (dataField->dimension == EMPIRE_DataField_scalar)
-                type = "Scalar";
-            else
-                assert(false);
-            string tmpdataFieldName = "\"" + dataFieldName + "\"";
-            if (atNode) {
-                GiDFileIO::appendNodalDataToDotRes(dataFieldFileName, tmpdataFieldName,
-                        "\"EMPIRE_CoSimulation\"", step, type, dataField->numLocations, locationIDs,
-                        dataField->data);
+			if (mesh->type == EMPIRE_Mesh_FEMesh) {
+				FEMesh *feMesh = dynamic_cast<FEMesh*>(mesh);
+				const string UNDERSCORE = "_";
+				string dataFieldFileName = dataOutputName + UNDERSCORE
+						+ clientCodeName + UNDERSCORE + meshName + ".res";
+				DataField *dataField = feMesh->getDataFieldByName(
+						dataFieldName);
+				bool atNode = (
+						dataField->location == EMPIRE_DataField_atNode ?
+								true : false);
+				//if ((mesh->triangulate() != NULL) && (!atNode))
+				int *locationIDs = (atNode ? feMesh->nodeIDs : feMesh->elemIDs);
+				string type;
+				if (dataField->dimension == EMPIRE_DataField_vector)
+					type = "Vector";
+				else if (dataField->dimension == EMPIRE_DataField_scalar)
+					type = "Scalar";
+				else
+					assert(false);
+				string tmpdataFieldName = "\"" + dataFieldName + "\"";
+				if (atNode) {
+					GiDFileIO::appendNodalDataToDotRes(dataFieldFileName,
+							tmpdataFieldName, "\"EMPIRE_CoSimulation\"", step,
+							type, dataField->numLocations, locationIDs,
+							dataField->data);
+				} else {
+					GiDFileIO::appendElementalDataToDotRes(dataFieldFileName,
+							tmpdataFieldName, "\"EMPIRE_CoSimulation\"", step,
+							type, dataField->numLocations, locationIDs,
+							feMesh->numNodesPerElem, dataField->data);
+				}
+            } else if (mesh->type == EMPIRE_Mesh_IGAMesh) {
             } else {
-                GiDFileIO::appendElementalDataToDotRes(dataFieldFileName, tmpdataFieldName,
-                        "\"EMPIRE_CoSimulation\"", step, type, dataField->numLocations, locationIDs,
-                        feMesh->numNodesPerElem, dataField->data);
+            	assert(0);
             }
         }
     }

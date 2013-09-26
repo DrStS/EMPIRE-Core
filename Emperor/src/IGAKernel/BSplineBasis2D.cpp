@@ -1,23 +1,3 @@
-/*  Copyright &copy; 2013, TU Muenchen, Chair of Structural Analysis,
- *  Stefan Sicklinger, Tianyang Wang, Munich
- *
- *  All rights reserved.
- *
- *  This file is part of EMPIRE.
- *
- *  EMPIRE is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
- *
- *  EMPIRE is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with EMPIRE.  If not, see http://www.gnu.org/licenses/.
- */
 // Inclusion of standard libraries
 #include <iostream>
 #include <stdlib.h>
@@ -83,7 +63,8 @@ int BSplineBasis2D::indexDerivativeBasisFunction(int _derivDegree, int _uDerivIn
         cout << "Error in BSplineBasis2D::indexDerivativeBasisFunction" << endl;
         cout << "It has been requested the " << _uDerivIndex
                 << "-th partial derivative w.r.t. u and" << endl;
-        cout << "the " << _vDerivIndex << "-th partial derivative w.r.t. v of the basis functions but " << endl;
+        cout << "the " << _vDerivIndex
+                << "-th partial derivative w.r.t. v of the basis functions but " << endl;
         cout << "the maximum absolute derivative selected is of " << _derivDegree << "-th order"
                 << endl;
         cout << endl;
@@ -154,6 +135,31 @@ void BSplineBasis2D::computeLocalBasisFunctions(double* _basisFcts, double _uPrm
     // Free the memory from the heap
     delete[] uBSplinebasis1DFcts;
     delete[] vBSplinebasis1DFcts;
+}
+
+void BSplineBasis2D::getBasisFunctionsIndex(int _KnotSpanIndexU, int _KnotSpanIndexV,
+        int* _funcsIndex) {
+    /*
+     *  Returns the index of the basis function given the knot span indices.
+     *
+     *  Note that:
+     *  The numbering scheme for basis functions shows in BSplineBasis2D::computeLocalBasisFunctions
+     *  The numbering scheme for control points shows in IGAPatchSurface::computeCartesianCoordinates and
+     *  are different
+     */
+
+    // Check input
+    assert(_funcsIndex!=NULL);
+
+    int counter = 0;
+    int numBasisFuncsV = vBSplineBasis1D->computeNoBasisFunctions();
+
+    for (int i = _KnotSpanIndexV - vBSplineBasis1D->getPolynomialDegree(); i <= _KnotSpanIndexV;
+            i++)
+        for (int j = _KnotSpanIndexU - uBSplineBasis1D->getPolynomialDegree(); j <= _KnotSpanIndexU;
+                j++)
+            _funcsIndex[counter++] = j * numBasisFuncsV + i;
+
 }
 
 void BSplineBasis2D::computeLocalBasisFunctionsAndDerivativesInefficient(

@@ -284,6 +284,9 @@ void Emperor::initMappers() {
         } else if (settingMapper.type == EMPIRE_BarycentricInterpolationMapper) {
             mapper->initBarycentricInterpolationMapper();
             nameToMapperMap.insert(pair<string, MapperAdapter*>(name, mapper));
+        } else if (settingMapper.type == EMPIRE_IGAMortarMapper) {
+            mapper->initIGAMortarMapper();
+	    nameToMapperMap.insert(pair<string, MapperAdapter*>(name, mapper));
         } else {
             assert(false);
         }

@@ -25,6 +25,8 @@
 #include "DataField.h"
 #include "AbstractMesh.h"
 #include "FEMesh.h"
+#include "IGAMesh.h"	 	
+#include "IGAPatchSurface.h"
 #include "Signal.h"
 #include "Message.h"
 #include <stdlib.h>
@@ -80,7 +82,59 @@ void ClientCode::recvMesh(std::string meshName, EMPIRE_Mesh_type meshType) {
             mesh->computeBoundingBox();
             INFO_OUT() << mesh->boundingBox << endl;
         }
-    } else {
+    } else if (meshType == EMPIRE_Mesh_IGAMesh) {
+
+		const int BUFFER_SIZE_MESH = 2;
+		int meshInfo[BUFFER_SIZE_MESH];
+		{ // output to shell
+			HEADING_OUT(3, "ClientCode", "receiving IGA Mesh (" + meshName + ") from [" + name + "]...", infoOut);
+		}
+		serverComm->receiveFromClientBlocking<int>(name, BUFFER_SIZE_MESH, meshInfo);
+
+
+		int numPatches = meshInfo[0];
+		int numControlPoints = meshInfo[1];
+
+		double* globalControlPoints = new double[numControlPoints * 4];
+		int* controlPointID = new int[numControlPoints];
+
+		serverComm->receiveFromClientBlocking<double>(name, numControlPoints * 4, globalControlPoints);
+		serverComm->receiveFromClientBlocking<int>(name, numControlPoints, controlPointID);
+
+		IGAMesh* theIGAMesh = new IGAMesh(meshName, numControlPoints, globalControlPoints, controlPointID);
+
+		const int BUFFER_SIZE_PATCH = 6;
+		int patchInfo[BUFFER_SIZE_PATCH];
+		for (int patchCount = 0; patchCount < numPatches; patchCount++){
+
+			serverComm->receiveFromClientBlocking<int>(name, BUFFER_SIZE_PATCH, patchInfo);
+
+			int pDegree = patchInfo[0];
+			int uNoKnots = patchInfo[1];
+			int qDegree = patchInfo[2];
+			int vNoKnots = patchInfo[3];
+			int uNoControlPoints = patchInfo[4];
+			int vNoControlPoints = patchInfo[5];
+
+			double* uKnotVector = new double[uNoKnots];
+			double* vKnotVector = new double[vNoKnots];
+			int* controlPointNetID = new int[uNoControlPoints * vNoControlPoints];
+
+			serverComm->receiveFromClientBlocking<double>(name, uNoKnots, uKnotVector);
+			serverComm->receiveFromClientBlocking<double>(name, vNoKnots, vKnotVector);
+			serverComm->receiveFromClientBlocking<int>(name, uNoControlPoints * vNoControlPoints, controlPointNetID);
+
+			theIGAMesh->addPatch(pDegree, uNoKnots, uKnotVector, qDegree, vNoKnots, vKnotVector, uNoControlPoints, vNoControlPoints, controlPointNetID);
+
+		}
+
+		{ // output to shell
+			INFO_OUT() << (*theIGAMesh) << endl;
+		}
+
+		nameToMeshMap.insert(pair<string, AbstractMesh*>(meshName, theIGAMesh));
+
+	} else {
         assert(false);
     }
 }

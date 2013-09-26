@@ -50,6 +50,15 @@ void EMPIRE_API_sendMesh(char *name, int numNodes, int numElems, double *nodes, 
     empire->sendMesh(numNodes, numElems, nodes, nodeIDs, numNodesPerElem, elems);
 }
 
+void EMPIRE_API_sendIGAPatch(int _pDegree,	int _uNoKnots, double* _uKnotVector, int _qDegree, int _vNoKnots,
+		double* _vKnotVector, int _uNoControlPoints, int _vNoControlPoints, int* _controlPointNetID) {
+    empire->sendIGAPatch(_pDegree, _uNoKnots, _uKnotVector, _qDegree, _vNoKnots, _vKnotVector, _uNoControlPoints, _vNoControlPoints, _controlPointNetID);
+}
+
+void EMPIRE_API_sendIGAMesh(char *_name, int _numPatches, int _numControlPoints, double* _globalControlPoints, int* _controlPointID){
+	empire->sendIGAMesh(_numPatches, _numControlPoints, _globalControlPoints, _controlPointID);
+}
+
 void EMPIRE_API_sendDataField(char *name, int sizeOfArray, double *dataField) {
     empire->sendDataField(sizeOfArray, dataField);
 }

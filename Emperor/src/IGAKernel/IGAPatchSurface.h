@@ -1,44 +1,27 @@
-/*  Copyright &copy; 2013, TU Muenchen, Chair of Structural Analysis,
- *  Stefan Sicklinger, Tianyang Wang, Munich
- *
- *  All rights reserved.
- *
- *  This file is part of EMPIRE.
- *
- *  EMPIRE is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
- *
- *  EMPIRE is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with EMPIRE.  If not, see http://www.gnu.org/licenses/.
- */
 /***********************************************************************************************//**
- * \file IGAPatch2D.h
- * This file holds the class IGAPatch2D.h
- * \date 21/3/2013
+ * \file IGAPatchSurface.h
+ * This file holds the class IGAPatchSurface.h
+ * \date 28/5/2013
  **************************************************************************************************/
 
-#ifndef IGAPATCH2D_H_
-#define IGAPATCH2D_H_
+#ifndef IGAPatchSurface_H_
+#define IGAPatchSurface_H_
 
 // Inclusion of user defined libraries
-#include "AbstractIGAPatch.h"
+#include "AbstractMesh.h"
 #include "NurbsBasis2D.h"
 #include "IGAControlPoint.h"
+#include <limits>
 
 namespace EMPIRE {
+class DataField;
+class Message;
 
 /********//**
- * \brief class IGAPatch2D is a specialization of the class AbstractIGAPatch used for 2D NURBS or B-Spline patches
+ * \brief class IGAPatchSurface is a specialization of the class AbstractMesh used for IGA Mesh with two parameters like shell elements
  ***********/
 
-class IGAPatch2D: public AbstractIGAPatch {
+class IGAPatchSurface {
 
 protected:
     /// The basis functions of the 2D NURBS patch
@@ -51,13 +34,12 @@ protected:
     int vNoControlPoints;
 
     /// The set of the Control Points of the patch
-    IGAControlPoint* ControlPointNet;
+    IGAControlPoint** ControlPointNet;
 
     /// The constructor and the destructor and the copy constructor
 public:
     /***********************************************************************************************
      * \brief Constructor
-     * \param[in] _ID The id of the IGA 2D patch
      * \param[in] _IDBasis The id of the underlying basis to the IGA 2D patch
      * \param[in] _pDegree The polynomial degree of the IGA 2D patch in the u-direction
      * \param[in] _uNoKnots The number of knots for the knot vector in the u-direction
@@ -70,20 +52,29 @@ public:
      * \param[in] _controlPointNet The set of the Control Points related to the 2D NURBS patch
      * \author Andreas Apostolatos
      ***********/
-    IGAPatch2D(int, int, int, int, double*, int, int, double*, int, int, IGAControlPoint*);
+    IGAPatchSurface(int, int, int, double*, int, int, double*, int, int, IGAControlPoint**);
+
+    /***********************************************************************************************
+     * \brief Constructor
+     * \param[in] _IDBasis The id of the underlying basis to the IGA 2D patch
+     * \param[in] _pDegree The polynomial degree of the IGA 2D patch in the u-direction
+     * \param[in] _uNoKnots The number of knots for the knot vector in the u-direction
+     * \param[in] _uKnotVector The underlying knot vector of the IGA 2D patch in the u-direction
+     * \param[in] _qDegree The polynomial degree of the IGA 2D patch in the v-direction
+     * \param[in] _vNoKnots The number of knots for the knot vector in the v-direction
+     * \param[in] _vKnotVector The underlying knot vector of the IGA 2D patch in the v-direction
+     * \param[in] _uNoControlPoints The number of the Control Points for the 2D NURBS patch in the u-direction
+     * \param[in] _vNoControlPoints The number of the Control Points for the 2D NURBS patch in the v-direction
+     * \param[in] _controlPointNet The set of the Control Points related to the 2D NURBS patch
+     * \author Andreas Apostolatos
+     ***********/
+    IGAPatchSurface(int, int, int, double*, int, int, double*, int, int, double *);
 
     /***********************************************************************************************
      * \brief Destructor
      * \author Andreas Apostolatos
      ***********/
-    ~IGAPatch2D();
-
-    /***********************************************************************************************
-     * \brief The copy constructor
-     * \param[in] _igaPatch2D Constant reference to an object of class IGAPatch2D
-     * \author Andreas Apostolatos
-     ***********/
-    IGAPatch2D(const IGAPatch2D&);
+    ~IGAPatchSurface();
 
     /// Basis related functions
 public:
@@ -97,6 +88,15 @@ public:
      * \author Andreas Apostolatos
      ***********/
     void computeCartesianCoordinates(double*, double, int, double, int);
+
+    /***********************************************************************************************
+     * \brief Returns the Cartesian Coordinates of a point on a NURBS surface whose surface parameters and the local basis functions are given
+     * \param[in/out] _cartesianCoordinates The Cartesian coordinates of the point on the patch whose surface parameters are _uPrm and _vPrm
+     * \param[in] _localBasisFunctions The local basis functions
+     * \compute the knot span Index inside the function. Convenient but in-efficient.
+     * \author Chenshen Wu
+     ***********/
+    void computeCartesianCoordinates(double*, double*);
 
     /***********************************************************************************************
      * \brief Returns the Cartesian Coordinates of a point on a NURBS surface whose surface parameters and the local basis functions are given
@@ -160,13 +160,33 @@ public:
 public:
     /***********************************************************************************************
      * \brief Computes the orthogonal projection of point of the 3D Euclidean space onto the NURBS pacth
-     * \param[out] The flag on whether or not the Newton-Rapson iterations have converged for the defined set of parameters
-     * \param[in/out] _u Given is the initial guess for the Newton-Rapson iterations and returned value is the converged u-surface parameter
-     * \param[in/out] _v Given is the initial guess for the Newton-Rapson iterations and returned value is the converged v-surface parameter
+     * \param[out] The flag on whether or not the Newton-Raphson iterations have converged for the defined set of parameters
+     * \param[in/out] _u Given is the initial guess for the Newton-Raphson iterations and returned value is the converged u-surface parameter
+     * \param[in/out] _v Given is the initial guess for the Newton-Raphson iterations and returned value is the converged v-surface parameter
+     * \param[in/out] _P Given the Cartesian components of the point to be projected on the NURBS patch it is returned the Cartesian components of its orthogonal projection
+     * \param[in/out] _flagConverge Flag indicating whether the Newton iterations have converged true/false
+     * \author Andreas Apostolatos
+     ***********/
+    bool computePointProjectionOnPatch(double&, double&, double*, bool&);
+
+    /***********************************************************************************************
+     * \brief Computes the orthogonal projection of point of the 3D Euclidean space onto the NURBS pacth (overloaded)
+     * \param[out] The flag on whether or not the Newton-Raphson iterations have converged for the defined set of parameters
+     * \param[in/out] _u Given is the initial guess for the Newton-Raphson iterations and returned value is the converged u-surface parameter
+     * \param[in/out] _v Given is the initial guess for the Newton-Raphson iterations and returned value is the converged v-surface parameter
      * \param[in/out] _P Given the Cartesian components of the point to be projected on the NURBS patch it is returned the Cartesian components of its orthogonal projection
      * \author Andreas Apostolatos
      ***********/
     bool computePointProjectionOnPatch(double&, double&, double*);
+
+    /***********************************************************************************************
+     * \brief Find the nearest knot intersection on the patch as an initial guess for the projection
+     * \param[out] _u Given is the u-surface parameter of the nearest knot intersection.
+     * \param[out] _v Given is the v-surface parameter of the nearest knot intersection.
+     * \param[in] _P Given the Cartesian components of the point to be projected on the NURBS patch
+     * \author Chenshen Wu
+     ***********/
+    void findNearestKnotIntersection(double&, double&, double*);
 
     /// Get and set functions
 public:
@@ -194,12 +214,32 @@ public:
         return vNoControlPoints;
     }
 
+    inline int getNoControlPoints() {
+        return uNoControlPoints * vNoControlPoints;
+    }
+
     /***********************************************************************************************
      * \brief Get the Control Points of the patch
      * \author Andreas Apostolatos
      ***********/
-    inline IGAControlPoint* getControlPointNet() {
+    inline IGAControlPoint** getControlPointNet() {
         return ControlPointNet;
+    }
+
+    /***********************************************************************************************
+     * \brief Find know span on u direction
+     * \author Chenshen Wu
+     ***********/
+    inline int findSpanU(double _u) {
+        return getIGABasis()->getUBSplineBasis1D()->findKnotSpan(_u);
+    }
+
+    /***********************************************************************************************
+     * \brief Find know span on v direction
+     * \author Chenshen Wu
+     ***********/
+    inline int findSpanV(double _v) {
+        return getIGABasis()->getVBSplineBasis1D()->findKnotSpan(_v);
     }
 
     /// DEBUGGING functions
@@ -210,16 +250,23 @@ public:
      ***********/
     void printControlPointNet();
 
-    /// The maximum number of Newton-Rapson iterations for the computation of the orthogonal projection of point on the NURBS patch
+    void print();
+
+    /// The maximum number of Newton-Raphson iterations for the computation of the orthogonal projection of point on the NURBS patch
     static const int MAX_NUM_ITERATIONS;
 
     /// Expected number of iterations for convergence for a regular problem set up with small distance between the fluid and the structural mesh
     static const int REGULAR_NUM_ITERATIONS;
 
-    /// The tolerance for the Newton-Rapson iterations for the computation of the orthogonal projection of point on the NURBS patch
+    /// The tolerance for the Newton-Raphson iterations for the computation of the orthogonal projection of point on the NURBS patch
     static const double EPS_ORTHOGONALITY_CONDITION;
+
+    /// The tolerance for the distance of the computed point to the surface
+    static const double EPS_DISTANCE;
 };
+
+Message &operator<<(Message &message, IGAPatchSurface &mesh);
 
 }/* namespace EMPIRE */
 
-#endif /* IGAPATCH2D_H_ */
+#endif /* IGAPatchSurface_H_ */
