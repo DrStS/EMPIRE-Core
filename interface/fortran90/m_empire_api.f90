@@ -8,6 +8,8 @@
 ! 
 !> \author Michael Andre
 !> \date 27/2/2013
+!> \comment Stefan Sicklinger The provided bind mechanism is part of 
+!>                            FORTRAN 2003
 !-----------------------------------------------------------------------
 MODULE m_empire_api
 
