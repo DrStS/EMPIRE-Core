@@ -128,6 +128,7 @@ void ServerCommunication::startListening() {
                     << "is not defined in the input file. Hence, the client will not be connected to the emperor!"
                     << endl;
         }
+        INFO_OUT() << dec;
     }
 }
 
