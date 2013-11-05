@@ -67,7 +67,7 @@ void FEMesh::initElems() {
     elems = new int[elemsArraySize];
     for (int i = 0; i < numElems; i++) {
         int numNodesThisElem = numNodesPerElem[i];
-        if (numNodesThisElem > 4) {
+        if (numNodesThisElem > 3) {
             tobeTriangulated = true;
             break;
         }
@@ -102,7 +102,7 @@ FEMesh *FEMesh::triangulate() {
     int count = 0;
     for (int i = 0; i < numElems; i++) {
         int numNodesThisElem = numNodesPerElem[i];
-        if (numNodesThisElem == 3 || numNodesThisElem == 4) {
+        if (numNodesThisElem == 3) {
             numNodesPerElemTri->push_back(numNodesThisElem);
             for (int j = 0; j < numNodesThisElem; j++)
                 elemsTri->push_back(elems[count + j]);
