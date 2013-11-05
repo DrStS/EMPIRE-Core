@@ -99,6 +99,7 @@ void Emperor::initEnvironment(int *argc, char ***argv) {
         MetaDatabase::init((*argv)[1]);
         ServerCommunication::init(argc, argv);
     }
+    ASCIIART_BLOCK();
     HEADING_OUT(1, "Emperor", "Emperor version " + AuxiliaryParameters::gitSHA1 + " started!", infoOut);
 
     PseudoCodeOutput *pcOutput = new PseudoCodeOutput(MetaDatabase::getSingleton(),

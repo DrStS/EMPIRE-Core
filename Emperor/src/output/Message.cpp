@@ -96,11 +96,11 @@ void Message::writeHeading(int headingLevel, const std::string &className,
     const char I = '|';
     if (headingLevel == 1) {
         numSeperationRows = 3;
-        numCharyColumns = 100;
+        numCharyColumns = 120;
         chary = '#';
     } else if (headingLevel == 2) {
         numSeperationRows = 2;
-        numCharyColumns = 100;
+        numCharyColumns = 120;
         chary = '=';
     } else if (headingLevel == 3) {
         numSeperationRows = 1;
@@ -166,7 +166,6 @@ void Message::writeWarning(const string &className, const string &functionName,
     warningOut() << "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" << endl;
 }
 
-
 void Message::writeError(const string &className, const string &functionName,
         const string &message) {
     errorOut() << endl;
@@ -177,6 +176,31 @@ void Message::writeError(const string &className, const string &functionName,
     errorOut() << "============================================================" << endl;
     errorOut() << "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" << endl;
     exit(EXIT_FAILURE);
+}
+
+void Message::writeASCIIArt() {
+    infoOut()  << "      .   =#+         . . .   .   . .         .   .         . .     .   . . . .       . . . . .     .     .   .     .   " << endl;
+    infoOut()  << "         Xx ==           .           . .   .   .           .   .   .   . .   .         .   . . .   .     . . .   .      " << endl;
+    infoOut()  << ". .       X+ +#+XX.     . . .   . .     .             .   . .     .   .     .             . .   .     .           . .   " << endl;
+    infoOut()  << "         . +x  #=xx  .             .     .     .   .   .       .       .         . .   .     .               . . .      " << endl;
+    infoOut()  << "   .  . +xX =X= X,#=. .   .     . .     .       . .       .           .   .           .   . . . . .   .         .     . " << endl;
+    infoOut()  << "  Xxxx =x. ##.  ;#+.               .   .     . . .     .   . .   . .     .       . . . .             . .     . . . .   ." << endl;
+    infoOut()  << "..#= +#++X= = xxx     . .     .     .     . .             . .   .         .   .     . .       . .     . .     .         " << endl;
+    infoOut()  << "x# xx -#  ;,+#=                .           . .         .     .     . .   .       .   .         .   .   .   .     . . .  " << endl;
+    infoOut()  << " +# -x- . x+-         .   .     .         . .             . . .   .     .   .           .         .   .                 " << endl;
+    infoOut()  << " x#X  X  XX.         .   . . .       . .         .       .         . . .   .       . . .                 . .       . .  " << endl;
+    infoOut()  << "  xX. . . -x=   xx#   . .   . . . .=+-+.          ;=x== . --+-=;=-=--;,   . . x=- . .=+-=;=-=-=-=,.      -+-=;=-=;+;+-=," << endl;
+    infoOut()  << "   -x+     .x#+#x. #=  .   . .    .#,,.# . . .    X;,x#   XX.--+-x-+-=+#+  . #+-x   =#,-=x=x-x-x-=x# .   #.-;+-+=+=+-+=#" << endl;
+    infoOut()  << ".    X#      =X     #x          . -x . .#   .    X+   #   #  x+=x=x+x== xx   #; # . x+ +x;+=+-+=X= ;#   ,X ;#-x++=x=x=x=" << endl;
+    infoOut()  << "      +#.        .+#=        xX#  .# #x X=      ,# #. x   #. #   . .  xx #;  #;.#   -# #.  .   . +X +# . # x=        .  " << endl;
+    infoOut()  << "    .   #x      ,Xx     . .+#+.=# .X =#- #    . # +#; #   #  X    .   -X xx  x- #   +x X- .      ,# +x  .X +x . .   .   " << endl;
+    infoOut()  << "         #x. .   xX,    .#Xx . .,#;# x;# x+. . x+ ++- #   #. #   .   +x. #   #; x  .=# #=-;=-=;=+x -X,   # +X=-+=+-+-x+." << endl;
+    infoOut()  << "        . xX= .   ;xX -x#;    ,x#,.x +,,X #   .# X +- #   #  +x=x=+=x=..#-  .x= # . +x  +-+==.,=+.Xx    ,x  ==+-+=+-=-#=" << endl;
+    infoOut()  << "           .x#      x#x-   .,#x+ . # #-.X.-#  x==X #,.x  .X, x-+=x=x=x+X .   #; X   =X xx+=x=#.=##   .   # +X=-=-=-=-+-." << endl;
+    infoOut()  << ". .     .    +#     .     +x#,    ,X.x+ ;X x  # #  X= #   # .X. , . .       .#= #   +X X-     #+ -#     ,X =+   . .     " << endl;
+    infoOut()  << "     . . .    ;#=  .   .x#+,   . . # X-  #- x# #;  #- x.  X, #               #, X.  =# #,. .   xX  #,    # x+    .      " << endl;
+    infoOut()  << ".   .         . #x    #XX   .     ,x.x+   # #+,#.  X= #   #  X               x= #   +x.x=   .   =x  #-. .x +#,=;-;=,=;=," << endl;
+    infoOut()  << "         .       ;x;=x         .   # #.   .X  X    X. #. .#  # . . .   .   . # .X.  .# #     .    x  #-  # . , ,., ,.- ," << endl;
 }
 
 

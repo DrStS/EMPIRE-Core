@@ -129,12 +129,18 @@ public:
     static void writeWarning(const std::string &className, const std::string &functionName,
             const std::string &message);
     /***********************************************************************************************
-     * \brief rints error with heading and calls exit()
+     * \brief Prints error with heading and calls exit()
      *
      * \author Tianyang Wang, Stefan Sicklinger
      ***********/
     static void writeError(const std::string &className, const std::string &functionName,
             const std::string &message);
+    /***********************************************************************************************
+     * \brief Prints EMPIRE ASCII Art
+     *
+     * \author Stefan Sicklinger
+     ***********/
+    static void writeASCIIArt();
 
 private:
     /// outputLevel enum
@@ -205,5 +211,11 @@ extern Message warningOut;
 #define ERROR_BLOCK_OUT(className,  functionName, message) /*
 */                CRITICAL_OUTPUT /*
 */Message::writeError(className,  functionName, message)
+/**************************************************************************************************!
+  Prints a ASCII Art Block(thread safe)
+***********/
+#define ASCIIART_BLOCK() /*
+*/                CRITICAL_OUTPUT /*
+*/Message::writeASCIIArt()
 } /* namespace EMPIRE */
 #endif /* MESSAGE_H_ */
