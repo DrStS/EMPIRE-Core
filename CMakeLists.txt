@@ -21,6 +21,7 @@
 project (EMPIRE)
 #------------------------------------------------------------------------------------#
 cmake_minimum_required (VERSION 2.8.10)
+enable_language(Fortran OPTIONAL)
 #------------------------------------------------------------------------------------#
 IF(NOT (${CMAKE_SYSTEM_NAME} MATCHES "Linux" AND ${CMAKE_HOST_SYSTEM_PROCESSOR} STREQUAL "x86_64")) 
     MESSAGE(FATAL_ERROR "EMPIRE is supported on Linux x86_64 only")	
@@ -46,6 +47,7 @@ ENDIF()
 #1. Option
 ######################################################################################
 option(USE_INTEL_COMPILERS_AND_MKL "Use Intel Compilers C/C++ and MKL" ON )
+option(BUILD_FORTRAN_CLIENTS       "This builds FORTRAN test clients" OFF )
 ######################################################################################
 #2. Macros
 ######################################################################################
