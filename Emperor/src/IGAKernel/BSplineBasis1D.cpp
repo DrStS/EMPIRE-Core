@@ -11,6 +11,8 @@ using namespace std;
 
 namespace EMPIRE {
 
+const double BSplineBasis1D::EPS_ACCPETEDINTOKNOTSPAN = 1e-14;
+
 BSplineBasis1D::BSplineBasis1D(int _ID = 0, int _pDegree = 0, int _noKnots = 0,
         double* _KnotVector = 0) :
         AbstractBSplineBasis1D(_ID), PDegree(_pDegree), NoKnots(_noKnots) {
@@ -70,6 +72,11 @@ BSplineBasis1D& BSplineBasis1D::operator=(const BSplineBasis1D& _bsplineBasis1D)
 
 int BSplineBasis1D::findKnotSpan(double _uPrm) {
     // Check input
+    if (_uPrm < KnotVector[0] && KnotVector[0] - _uPrm < EPS_ACCPETEDINTOKNOTSPAN)
+        _uPrm = KnotVector[0];
+    if (_uPrm > KnotVector[NoKnots - 1] && _uPrm - KnotVector[NoKnots - 1] < EPS_ACCPETEDINTOKNOTSPAN)
+
+        _uPrm = KnotVector[0];
     if (_uPrm < KnotVector[0] || _uPrm > KnotVector[NoKnots - 1]) {
         cout << endl;
         cout << "Error in BSplineBasis1D::find_knot_span" << endl;

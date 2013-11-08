@@ -37,7 +37,10 @@ void ScalingFilter::filtering() {
     if (IOType == EMPIRE_ConnectionIO_DataField) {
         DataField *inDataField = inputVec[0]->dataField;
         for (int i = 0; i < inDataField->numLocations * inDataField->dimension; i++) {
-            inDataField->data[i] *= factor;
+            if (factor == 0.0)
+                inDataField->data[i] = 0.0;
+            else
+                inDataField->data[i] *= factor;
         }
     } else if (IOType == EMPIRE_ConnectionIO_Signal) {
         Signal *inSignal = inputVec[0]->signal;

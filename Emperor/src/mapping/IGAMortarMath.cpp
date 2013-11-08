@@ -9,6 +9,8 @@ using namespace std;
 namespace EMPIRE {
 namespace IGAMortarMath {
 
+const double EPS_IVERTIBILITYOFSQUAREMATRICES = 1e-14;
+
 IGAPolygonClipper::IGAPolygonClipper(const double _u1, const double _u2, const double _v1,
         const double _v2) {
 
@@ -40,6 +42,13 @@ bool IGAPolygonClipper::clip(const double *_polygonToBeClipped, int _sizePolygon
         polygonToBeClipped[i * 3 + 2] = 0;
     }
     return clipper->clip(polygonToBeClipped, _sizePolygonToBeClipped, _polygonResult);
+}
+
+void computeLinearCombinationValueFromVerticesValues(int _nNodes, int _nValue,
+        const double *_values, const double* _coords, double *_returnValue) {
+    double shapeFuncs[4];
+    computeLowOrderShapeFunc(_nNodes, _coords, shapeFuncs);
+    computeLinearCombination(_nNodes, _nValue, _values, shapeFuncs, _returnValue);
 }
 
 void computeLinearCombination(int _nNodes, int _nValue, const double *_values,
@@ -78,7 +87,7 @@ const double triWeights3[3] = { 0.33333333333333, 0.33333333333333, 0.3333333333
 
 const double triGaussPoints4[8] = { 0.33333333333333, 0.33333333333333, 0.20000000000000,
         0.20000000000000, 0.20000000000000, 0.60000000000000, 0.60000000000000, 0.20000000000000 };
-const double triWeights4[4] = { 0.56250000000000, 0.52083333333333, 0.52083333333333,
+const double triWeights4[4] = { -0.56250000000000, 0.52083333333333, 0.52083333333333,
         0.52083333333333, };
 
 const double triGaussPoints6[12] = { 0.44594849091597, 0.44594849091597, 0.44594849091597,
@@ -247,15 +256,18 @@ bool computeLocalCoordsInTriangle(const double *_coordsTri, const double *_coord
     assert(_coordsTri!=NULL);
     assert(_coordsNode!=NULL);
 
-    double area = computeAreaTriangle(_coordsTri[2] - _coordsTri[0], _coordsTri[3] - _coordsTri[1], 0,
-            _coordsTri[4] - _coordsTri[0], _coordsTri[5] - _coordsTri[1], 0);
-    double area1 = computeAreaTriangle(_coordsTri[2] - _coordsNode[0], _coordsTri[3] - _coordsNode[1], 0,
-            _coordsTri[4] - _coordsNode[0], _coordsTri[5] - _coordsNode[1], 0);
-    double area2 = computeAreaTriangle(_coordsTri[0] - _coordsNode[0], _coordsTri[1] - _coordsNode[1], 0,
-            _coordsTri[4] - _coordsNode[0], _coordsTri[5] - _coordsNode[1], 0);
+    double area = computeAreaTriangle(_coordsTri[2] - _coordsTri[0], _coordsTri[3] - _coordsTri[1],
+            0, _coordsTri[4] - _coordsTri[0], _coordsTri[5] - _coordsTri[1], 0);
+    double area1 = computeAreaTriangle(_coordsTri[2] - _coordsNode[0],
+            _coordsTri[3] - _coordsNode[1], 0, _coordsTri[4] - _coordsNode[0],
+            _coordsTri[5] - _coordsNode[1], 0);
+    double area2 = computeAreaTriangle(_coordsTri[0] - _coordsNode[0],
+            _coordsTri[1] - _coordsNode[1], 0, _coordsTri[4] - _coordsNode[0],
+            _coordsTri[5] - _coordsNode[1], 0);
     _localCoords[0] = area1 / area;
     _localCoords[1] = area2 / area;
-    if (_localCoords[0] < 0 || _localCoords[0] > 1 || _localCoords[1] < 0 || _localCoords[1] > 1)
+    if (_localCoords[0] < 0 || _localCoords[0] > 1 || _localCoords[1] < 0 || _localCoords[1] > 1
+            || _localCoords[0] + _localCoords[1] > 1)
         return false;
     return true;
 }
@@ -337,6 +349,97 @@ bool computeLocalCoordsInQuad(const double *_coordsQuad, const double *_coordsNo
     return true;
 }
 
+bool computeIntersectionBetweenLineAndTriangle(const double *_X, const double* _X0,
+        const double* _n, double* _localCoords) {
+    double A[9];
+    //  A(1:3,1) = X1-X3;
+    for (int i = 0; i < 3; i++)
+        A[i * 3] = _X[i] - _X[i + 6];
+
+    //  A(1:3,2) = X2-X3;
+    for (int i = 0; i < 3; i++)
+        A[i * 3 + 1] = _X[i + 3] - _X[i + 6];
+
+    //  A(1:3,3) = -n;
+    for (int i = 0; i < 3; i++)
+        A[i * 3 + 2] = -_n[i];
+
+    double b[3];
+    // b = X0 - X3
+    b[0] = _X0[0] - _X[6];
+    b[1] = _X0[1] - _X[7];
+    b[2] = _X0[2] - _X[8];
+
+    solve3x3LinearSystem(A, b, EPS_IVERTIBILITYOFSQUAREMATRICES);
+
+    _localCoords[0] = b[0];
+    _localCoords[1] = b[1];
+    if (fabs(_localCoords[0] - 0.0) < EPS_IVERTIBILITYOFSQUAREMATRICES)
+        _localCoords[0] = 0.0;
+    if (fabs(_localCoords[0] - 1.0) < EPS_IVERTIBILITYOFSQUAREMATRICES)
+        _localCoords[0] = 1.0;
+    if (fabs(_localCoords[0] - 0.0) < EPS_IVERTIBILITYOFSQUAREMATRICES)
+        _localCoords[1] = 0.0;
+    if (fabs(_localCoords[0] - 1.0) < EPS_IVERTIBILITYOFSQUAREMATRICES)
+        _localCoords[1] = 1.0;
+
+    if (_localCoords[0] >= 0.0 && _localCoords[0] <= 1.0 && _localCoords[1] >= 0.0
+            && _localCoords[1] <= 1.0)
+        return true;
+    else
+        return false;
+
+}
+
+bool computeIntersectionBetweenLineAndQuad(const double *_X, const double* _X0, const double* _n,
+        double* _localCoords) {
+    double x[3] = { 0.0, 0.0, 0.0 };
+    double f[3];
+    double df[9];
+    for (int i = 0; i < 20; i++) {
+        for (int j = 0; j < 3; j++) {
+            // f = 0.25*((-X1+X2+X3-X4)*x(1)+(-X1-X2+X3+X4)*x(2)+(X1-X2+X3-X4)*x(1)*x(2)+X1+X2+X3+X4)-x(3)*n-X0;
+            f[j] = 0.25
+                    * ((-_X[j] + _X[j + 3] + _X[j + 6] - _X[j + 9]) * x[0]
+                            + (-_X[j] - _X[j + 3] + _X[j + 6] + _X[j + 9]) * x[1]
+                            + (_X[j] - _X[j + 3] + _X[j + 6] - _X[j + 9]) * x[0] * x[1] + _X[j]
+                            + _X[j + 3] + _X[j + 6] + _X[j + 9]) - x[2] * _n[j] - _X0[j];
+            //df = [.25*((-X1+X2+X3-X4)+(X1-X2+X3-X4)*x(2)) 0.25*((-X1-X2+X3+X4)+(X1-X2+X3-X4)*x(1)) -n];
+            df[j * 3] = 0.25
+                    * ((-_X[j] + _X[j + 3] + _X[j + 6] - _X[j + 9])
+                            + (_X[j] - _X[j + 3] + _X[j + 6] - _X[j + 9]) * x[1]);
+            df[j * 3 + 1] = 0.25
+                    * ((-_X[j] - _X[j + 3] + _X[j + 6] + _X[j + 9])
+                            + (_X[j] - _X[j + 3] + _X[j + 6] - _X[j + 9]) * x[0]);
+            df[j * 3 + 2] = -_n[j];
+        }
+        if (sqrt(f[0] * f[0] + f[1] * f[1] + f[2] * f[2]) > 1e-12) {
+            solve3x3LinearSystem(df, f, EPS_IVERTIBILITYOFSQUAREMATRICES);
+            for (int j = 0; j < 3; j++)
+                x[j] -= f[j];
+        } else {
+            _localCoords[0] = x[0];
+            _localCoords[1] = x[1];
+            if (fabs(_localCoords[0] - 0.0) < EPS_IVERTIBILITYOFSQUAREMATRICES)
+                _localCoords[0] = 0.0;
+            if (fabs(_localCoords[0] - 1.0) < EPS_IVERTIBILITYOFSQUAREMATRICES)
+                _localCoords[0] = 1.0;
+            if (fabs(_localCoords[0] - 0.0) < EPS_IVERTIBILITYOFSQUAREMATRICES)
+                _localCoords[1] = 0.0;
+            if (fabs(_localCoords[0] - 1.0) < EPS_IVERTIBILITYOFSQUAREMATRICES)
+                _localCoords[1] = 1.0;
+
+            if (_localCoords[0] >= 0.0 && _localCoords[0] <= 1.0 && _localCoords[1] >= 0.0
+                    && _localCoords[1] <= 1.0)
+                return true;
+            else
+                return false;
+        }
+    }
+    return false;
+
+}
+
 bool solve2x2LinearSystem(const double* _A, double* _b, double _EPS) {
 // A is column major
     double detA = _A[0] * _A[3] - _A[2] * _A[1];
@@ -353,12 +456,41 @@ bool solve2x2LinearSystem(const double* _A, double* _b, double _EPS) {
     return true;
 }
 
+bool solve3x3LinearSystem(const double* _A, double* _b, double _EPS) {
+// A is column major
+    double A[9];
+    double b[3];
+    double detA = det3x3(_A);
+    if (fabs(detA) < _EPS)
+        return false;
+    for (int i = 0; i < 3; i++)
+        b[i] = _b[i];
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 9; j++)
+            A[j] = _A[j];
+        for (int j = 0; j < 3; j++)
+            A[j * 3 + i] = b[j];
+        _b[i] = det3x3(A) / detA;
+    }
+    return true;
+
+}
+
+double det3x3(const double* _A) {
+    return _A[0] * _A[4] * _A[8] + _A[1] * _A[5] * _A[6] + _A[2] * _A[3] * _A[7]
+            - _A[0] * _A[5] * _A[7] - _A[1] * _A[3] * _A[8] - _A[2] * _A[4] * _A[6];
+}
+
 double computeAreaTriangle(double _x1, double _y1, double _z1, double _x2, double _y2, double _z2) {
     double x = _y1 * _z2 - _y2 * _z1;
     double y = _z1 * _x2 - _z2 * _x1;
     double z = _x1 * _y2 - _x2 * _y1;
     return sqrt(x * x + y * y + z * z) / 2;
 
+}
+
+double computeCrossProduct2D(double _x1, double _y1, double _x2, double _y2) {
+    return _x1 * _y2 - _x2 * _y1;
 }
 
 double computePointDistance(double* _x1, double* _x2) {

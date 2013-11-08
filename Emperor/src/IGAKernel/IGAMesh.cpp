@@ -61,6 +61,24 @@ void IGAMesh::addPatch(int _pDegree, int _uNoKnots, double* _uKnotVector, int _q
 //	surfacePatches[surfacePatches.size()-1]->printSelf();
 }
 
+double IGAMesh::computeDisplacementComponent(std::string _dataFieldName, int _patchid, double _u, double _v,
+        int _component) {
+
+    DataField *dataField = getDataFieldByName(_dataFieldName);
+    IGAPatchSurface* igaPatch = surfacePatches[_patchid];
+    int numCP = igaPatch->getNoControlPoints();
+    double* valuesOnCP = new double[numCP];
+    for (int i = 0; i < numCP; i++)
+        valuesOnCP[i] =
+                dataField->data[mapControlPointIDToIndex[igaPatch->getControlPointNet()[i]->getId()]
+                        * 3 + _component];
+    double result = igaPatch->computePostprocessingScalarValue(_u, _v, valuesOnCP);
+
+    delete[] valuesOnCP;
+
+    return result;
+}
+
 void IGAMesh::computeBoundingBox() {
     if (boundingBox.isComputed)
         return;
@@ -104,6 +122,11 @@ void IGAMesh::addDataField(string _dataFieldName, EMPIRE_DataField_location _loc
             _typeOfQuantity);
     nameToDataFieldMap.insert(pair<string, DataField*>(_dataFieldName, dataField));
 
+}
+
+void IGAMesh::print(){
+    for (int i = 0; i < surfacePatches.size(); i++)
+        surfacePatches[i]->print();
 }
 
 Message &operator<<(Message & _message, IGAMesh & _mesh) {
@@ -152,7 +175,7 @@ Message &operator<<(Message & _message, IGAMesh & _mesh) {
                 _message << _mesh.getSurfacePatches()[k]->getControlPointNet()[count]->getX()
                         << ", " << _mesh.getSurfacePatches()[k]->getControlPointNet()[count]->getY()
                         << ", " << _mesh.getSurfacePatches()[k]->getControlPointNet()[count]->getZ()
-                        << "\t";
+                        << "\t \t";
                 count++;
             }
             _message << endl;

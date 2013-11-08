@@ -123,13 +123,24 @@ public:
      * \brief Returns the Cartesian Coordinates of the base vectors at a given pair of surface parameters given the basis functions and their derivatives
      * \param[in/out] _baseVectors The Cartesian coordinates of the base vectors on the patch whose surface parameters are _uPrm and _vPrm
      * \param[in] _localBasisFunctionsAndDerivatives The local basis functions and their derivatives
+     * \param[in] _uKnotSpanIndex The index of the knot span where the parametric coordinates _uPrm lives in
+     * \param[in] _vKnotSpanIndex The index of the knot span where the parametric coordinates _vPrm lives in
+     * \author Andreas Apostolatos
+     ***********/
+    void computeBaseVectors(double* _baseVectors, double* _localBasisFunctionsAndDerivatives,
+            int _uKnotSpanIndex, int _vKnotSpanIndex);
+
+    /***********************************************************************************************
+     * \brief Returns the Cartesian Coordinates of the base vectors at a given pair of surface parameters given the basis functions and their derivatives
+     * \param[in/out] _baseVectors The Cartesian coordinates of the base vectors on the patch whose surface parameters are _uPrm and _vPrm
      * \param[in] _uPrm The parameter on the u-coordinate line
      * \param[in] _uKnotSpanIndex The index of the knot span where the parametric coordinates _uPrm lives in
      * \param[in] _vPrm The parameter on the v-coordinate line
      * \param[in] _vKnotSpanIndex The index of the knot span where the parametric coordinates _vPrm lives in
-     * \author Andreas Apostolatos
+     * \author Chenshen Wu
      ***********/
-    void computeBaseVectors(double*, double*, int, int);
+    void computeBaseVectors(double* _baseVectors, double _uPrm, int _uKnotSpanIndex, double _vPrm,
+            int _vKnotSpanIndex);
 
     /***********************************************************************************************
      * \brief Returns the index of the i-th partial derivative w.r.t. to u , j-th partial derivative w.r.t v of the _componentIndex-th component to the l-th base vector
@@ -180,13 +191,91 @@ public:
     bool computePointProjectionOnPatch(double&, double&, double*);
 
     /***********************************************************************************************
+     * \brief Returns the point on the given NURBS patch boundary which defines an orthogonal projection from the given line to the NURBS boundary
+     * \param[out] The flag on whether or not the Newton-Raphson iterations have converged for the defined set of parameters
+     * \param[in/out] _t The running parameter on the given NURBS patch boundary
+     * \param[in/out] _ratio The ratio between the line segment that is projected on the NURBS patch to the complete line segment
+     * \param[in/out] _distance The orthogonal distance from the NURBS surface to the line segment
+     * \param[in] _P1 The first point of the line segment
+     * \param[in] _P2 The second point of the line segment
+     * \param[in] _edge (0,1,2,3) --> (uRunsvStart,uRunsvEnd,uStartvRuns,uEndvRuns)
+     * \author Chenshen Wu
+     ***********/
+    bool computePointProjectionOnPatchBoundaryOnGivenEdge(double& _t, double& _ratio,
+            double& _distance, double* _P1, double* _P2, int _edge);
+
+    /***********************************************************************************************
+     * \brief Returns the point on the given NURBS patch boundary which defines an orthogonal projection from the given line to the NURBS boundary
+     * \param[out] The flag on whether or not the Newton-Raphson iterations have converged for the defined set of parameters
+     * \param[in/out] _u Given is the initial guess for the Newton-Raphson iterations and returned value is the converged u-surface parameter
+     * \param[in/out] _v Given is the initial guess for the Newton-Raphson iterations and returned value is the converged v-surface parameter
+     * \param[in/out] _ratio The ratio between the line segment that is projected on the NURBS patch to the complete line segment
+     * \param[in/out] _distance The orthogonal distance from the NURBS surface to the line segment
+     * \param[in] _P1 The first point of the line segment
+     * \param[in] _P2 The second point of the line segment
+     * \author Chenshen Wu
+     ***********/
+    bool computePointProjectionOnPatchBoundary(double& _u, double& _v, double& _ratio,
+            double& _distance, double* _P1, double* _P2);
+
+    /***********************************************************************************************
+     * \brief Returns the point on the NURBS patch boundary which is closest to the line segment
+     * \param[out] The flag on whether or not the Newton-Raphson iterations have converged for the defined set of parameters
+     * \param[in/out] _u Given is the initial guess for the Newton-Raphson iterations and returned value is the converged u-surface parameter
+     * \param[in/out] _v Given is the initial guess for the Newton-Raphson iterations and returned value is the converged v-surface parameter
+     * \param[in/out] _distance The distance from the point to the line segment
+     * \param[in] _P1 The first point of the line segment
+     * \param[in] _P2 The second point of the line segment
+     * \param[in] _edge (0,1,2,3) --> (uRunsvStart,uRunsvEnd,uStartvRuns,uEndvRuns)
+     * \author Chenshen Wu
+     ***********/
+    bool computeLineMinimumDistanceToPatchBoundaryOnGivenEdge(double& _t, double& _distance,
+            double* _P1, double* _P2, int _edge);
+
+    /***********************************************************************************************
+     * \brief Returns the point on the NURBS patch boundary which is closest to the line segment
+     * \param[out] The flag on whether or not the Newton-Raphson iterations have converged for the defined set of parameters
+     * \param[in/out] _u Given is the initial guess for the Newton-Raphson iterations and returned value is the converged u-surface parameter
+     * \param[in/out] _v Given is the initial guess for the Newton-Raphson iterations and returned value is the converged v-surface parameter
+     * \param[in/out] _distance The distance from the point to the line segment
+     * \param[in] _P1 The first point of the line segment
+     * \param[in] _P2 The second point of the line segment
+     * \author Chenshen Wu
+     ***********/
+    void computeLineMinimumDistanceToPatchBoundary(double& _u, double& _v, double& _distance,
+            double* _P1, double* _P2);
+
+    /***********************************************************************************************
      * \brief Find the nearest knot intersection on the patch as an initial guess for the projection
-     * \param[out] _u Given is the u-surface parameter of the nearest knot intersection.
-     * \param[out] _v Given is the v-surface parameter of the nearest knot intersection.
+     * \param[in/out] _u Given is the u-surface parameter of the nearest knot intersection.
+     * \param[in/out] _v Given is the v-surface parameter of the nearest knot intersection.
      * \param[in] _P Given the Cartesian components of the point to be projected on the NURBS patch
      * \author Chenshen Wu
      ***********/
     void findNearestKnotIntersection(double&, double&, double*);
+
+    /***********************************************************************************************
+     * \brief Find the nearest knot intersection on the patch as an initial guess for the projection
+     * \param[in/out] _coords The Cartesian coordinates of the point on the patch
+     * \param[in/out] _normal The normal to the patch vector
+     * \param[in] _u Given is the u-surface parameter
+     * \param[in] _v Given is the v-surface parameter
+     * \author Chenshen Wu
+     ***********/
+    void computeCartesianCoordinatesAndNormalVector(double* _coords, double* _normal, double _u,
+            double _v);
+
+    /// Postprocessing functions
+public:
+    /***********************************************************************************************
+     * \brief Returns the approximate value of a field given its values on the Control Points at the specified parametric location
+     * \param[in] _u Given is the u-surface parameter
+     * \param[in] _v Given is the v-surface parameter
+     * \param[in] _valuesOnCP The scalar values on the Control Points
+     * \param[out] The approximate value of the scalar on (_u,_v)
+     * \author Chenshen Wu
+     ***********/
+    double computePostprocessingScalarValue(double _u, double _v, double* _valuesOnCP);
 
     /// Get and set functions
 public:

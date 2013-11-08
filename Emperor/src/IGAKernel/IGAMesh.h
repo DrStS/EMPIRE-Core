@@ -94,6 +94,20 @@ public:
      ***********/
     void computeBoundingBox();
 
+    /// Postprocessing
+public:
+    /***********************************************************************************************
+     * \brief Returns the displacement component at the specified parametric location
+     * \param[in] _dataFieldName name of the data field
+     * \param[in] _patchid The ID of the patch
+     * \param[in] _u The parametric coordinate u
+     * \param[in] _v The parametric coordinate v
+     * \param[in] _component The component of the displacement field (0,1,2)=(x,y,z)
+     * \author Chenshen Wu
+     ***********/
+    double computeDisplacementComponent(std::string _dataFieldName, int _patchid, double _u, double _v,
+            int _component);
+
     /// Get and set functions
 public:
     /***********************************************************************************************
@@ -123,12 +137,12 @@ public:
         return numControlPoints;
     }
 
+    /// DeBug
+public:
     /***********************************************************************************************
-     * \brief Return a pointer to the data field by its name
-     * \param[in] _dataFieldName name of the data field
-     * \author Tianyang Wang
+     * \brief Prints all the patches of the IGAMesh
      ***********/
-    DataField *getDataFieldByName(std::string _dataFieldName);
+    void print();
 };
 
 /***********************************************************************************************

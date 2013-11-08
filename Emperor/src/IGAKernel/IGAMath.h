@@ -54,6 +54,16 @@ double square2normVector(int, double*);
 double dotProduct(int, double*, double*);
 
 /***********************************************************************************************
+* \brief Compute the cross product between two vectors in the 3-D space
+* \param[in/out] _product The product of vector1 and vector 2
+* \param[in] _v1 The 1st vector
+* \param[in] _v2 The 2nd vector
+* \author Chenshen Wu
+***********/
+void crossProduct(double* _product, double* _v1, double* _v2);
+
+/***********************************************************************************************
+
  * \brief Solve a 2x2 linear equation system
  * \param[out] Flag on whether the linear system is solvable up to tolerance EPS or not
  * \param[in/out] _b The right-hand side vector where the solution is also stored, _b = double[2]

@@ -173,6 +173,9 @@ public:
      * \author Andreas Apostolatos
      ***********/
     void printNoBasisFunctions();
+
+    /// The tolerance for accepting a very small number as interior to the knot span
+    static const double EPS_ACCPETEDINTOKNOTSPAN;
 };
 
 }/* namespace EMPIRE */

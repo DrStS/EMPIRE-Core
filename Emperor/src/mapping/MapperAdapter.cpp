@@ -85,7 +85,9 @@ void MapperAdapter::initIGAMortarMapper() {
     assert(meshA->type == EMPIRE_Mesh_IGAMesh);
     assert(meshB->type == EMPIRE_Mesh_FEMesh);
     mapperImpl = new IGAMortarMapper(name,dynamic_cast<IGAMesh *>(meshA),
-				     dynamic_cast<FEMesh *>(meshB));
+                     dynamic_cast<FEMesh *>(meshB),1e-6,7,25);
+    // Tri: 1,3,4,6,7,12,13,16
+    // Quad: 1,4,9,16,25
 }
 
 void MapperAdapter::initNearestNeighborMapper() {
