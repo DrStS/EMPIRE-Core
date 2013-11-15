@@ -267,7 +267,7 @@ public:
 // Make the tests
 CPPUNIT_TEST_SUITE(TestIGAMortarMapperCube);
 
-	CPPUNIT_TEST(testMapping);
+//	CPPUNIT_TEST(testMapping);
 //	CPPUNIT_TEST(testMappingPrint);
 	CPPUNIT_TEST_SUITE_END()
 	;
