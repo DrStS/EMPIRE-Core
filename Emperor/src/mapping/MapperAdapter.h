@@ -60,12 +60,9 @@ public:
     void initMortarMapper(bool oppositeSurfaceNormal, bool dual, bool enforceConsistency);
     /***********************************************************************************************
      * \brief Initialize IGA Mortar Mapper
-     * \param[in] _tolProjectionDistance tolerance of distance for projection
-     * \param[in] _numGPsTriangle number of Gauss points when performs integration on triangle
-     * \param[in] _numGPsQuad number of Gauss points when performs integration on quadrilateral
      * \author Chenshen Wu
      ***********/
-    void initIGAMortarMapper(double tolProjectionDistance, int numGPsTriangle, int numGPsQuad);
+    void initIGAMortarMapper();
     /***********************************************************************************************
      * \brief Initialize NearestNeighborMapper
      * \author Tianyang Wang

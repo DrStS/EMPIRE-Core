@@ -1,10 +1,5 @@
-// User defined libraries
 #include "IGAMortarMath.h"
 #include "MortarMath.h"
-#include "Message.h"
-
-// External libraries
-#include <stdlib.h>
 #include <math.h>
 #include <assert.h>
 #include <iostream>
@@ -68,8 +63,8 @@ void computeLinearCombination(int _nNodes, int _nValue, const double *_values,
 }
 
 void computeLowOrderShapeFunc(int _nNodes, const double *_coords, double *_shapeFuncs) {
-    assert(_coords != NULL);
-    assert(_shapeFuncs != NULL);
+    assert(_coords!=NULL);
+    assert(_shapeFuncs!=NULL);
     if (_nNodes == 3) {
         _shapeFuncs[0] = 1 - _coords[0] - _coords[1];
         _shapeFuncs[1] = _coords[0];
@@ -176,10 +171,8 @@ GaussQuadratureOnTriangle::GaussQuadratureOnTriangle(int _numGaussPoints) :
         weights = triWeights16;
         break;
     default:
-        ERROR_OUT() << "Chosen number of Gauss Points for the integration over triangle = "
-                << numGaussPoints << "does not exist! Possible choices: 1,3,4,6,7,12,13,16."
-                << endl;
-        exit (EXIT_FAILURE);
+        assert(0);
+        break;
     }
 }
 
@@ -253,16 +246,15 @@ GaussQuadratureOnQuad::GaussQuadratureOnQuad(int _numGaussPoints) :
         weights = quadWeights25;
         break;
     default:
-        ERROR_OUT() << "Chosen number of Gauss Points for the integration over quadrilateral = "
-                << numGaussPoints << "does not exist! Possible choices: 1,4,9,16,25." << endl;
-        exit (EXIT_FAILURE);
+        assert(0);
+        break;
     }
 }
 
 bool computeLocalCoordsInTriangle(const double *_coordsTri, const double *_coordsNode,
         double* _localCoords) {
-    assert(_coordsTri != NULL);
-    assert(_coordsNode != NULL);
+    assert(_coordsTri!=NULL);
+    assert(_coordsNode!=NULL);
 
     double area = computeAreaTriangle(_coordsTri[2] - _coordsTri[0], _coordsTri[3] - _coordsTri[1],
             0, _coordsTri[4] - _coordsTri[0], _coordsTri[5] - _coordsTri[1], 0);
@@ -288,8 +280,8 @@ bool computeLocalCoordsInQuad(const double *_coordsQuad, const double *_coordsNo
      * Choose among planes (xy or yz or zx) the one which has the smallest angle
      * with the quad normal.
      */
-    assert(_coordsQuad != NULL);
-    assert(_coordsNode != NULL);
+    assert(_coordsQuad!=NULL);
+    assert(_coordsNode!=NULL);
     double x[4];
     double y[4];
     for (int i = 0; i < 4; i++) {

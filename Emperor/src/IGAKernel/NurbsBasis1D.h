@@ -141,9 +141,14 @@ public:
      ***********/
     void setControlPointWeights(int, double*);
 
+    /// DEBUGGING functions
+public:
+    /***********************************************************************************************
+     * \brief Outputs the Control Points weights of the net
+     * \author Andreas Apostolatos
+     ***********/
+    void printControlPointWeights();
 };
-
-Message &operator<<(Message &message, NurbsBasis1D &nurbsBasis1D);
 
 }/* namespace EMPIRE */
 

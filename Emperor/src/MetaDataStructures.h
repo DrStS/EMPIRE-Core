@@ -92,17 +92,11 @@ struct structMapper {
         bool dual;
         bool enforceConsistency;
     };
-    struct structIGAMortarMapper {
-        double tolProjectionDistance;
-        int numGPsTriangle;
-        int numGPsQuad;
-    };
     std::string name;
     structMeshRef meshRefA;
     structMeshRef meshRefB;
     EMPIRE_Mapper_type type;
     structMortarMapper mortarMapper;
-    structIGAMortarMapper igaMortarMapper;
 };
 
 struct structCouplingAlgorithm {
@@ -141,19 +135,19 @@ struct structFilter {
 };
 
 struct structExtrapolator {
-    struct structGenMSExtrapolator {
-        int numInput;
-        int seqLen;
-        bool sumOutput;
-        double deltaTime;
-        std::vector<double> coefficientDot0;
-        std::vector<double> coefficientDot1;
-        std::vector<double> coefficientDot2;
-        std::vector<double> coefficientOut;
-    };
-    std::string name;
-    EMPIRE_Extrapolator_type type;
-    structGenMSExtrapolator genMSExtrapolator;
+  struct structGenMSExtrapolator {
+    int numInput;
+    int seqLen;
+    bool sumOutput;
+    double deltaTime;
+    std::vector<double> coefficientDot0;
+    std::vector<double> coefficientDot1;
+    std::vector<double> coefficientDot2;
+    std::vector<double> coefficientOut;
+  };
+  std::string name;
+  EMPIRE_Extrapolator_type type;
+  structGenMSExtrapolator genMSExtrapolator;
 };
 
 struct structConnection {

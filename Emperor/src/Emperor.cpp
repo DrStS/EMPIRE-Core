@@ -93,15 +93,14 @@ Emperor::~Emperor() {
 void Emperor::initEnvironment(int *argc, char ***argv) {
     /// Check for command line arguments
     if (*argc != 2) {
-        ERROR_BLOCK_OUT("Emperor", "initEnvironment", "Please provide a valid input file.");
+        ERROR_BLOCK_OUT("Emperor","initEnvironment","Please provide a valid input file.");
     } else {
         /// Generate MetaDatabase in order give it to ServerCommunication::getSingleton()
         MetaDatabase::init((*argv)[1]);
         ServerCommunication::init(argc, argv);
     }
     ASCIIART_BLOCK();
-    HEADING_OUT(1, "Emperor", "Emperor version " + AuxiliaryParameters::gitSHA1 + " started!",
-            infoOut);
+    HEADING_OUT(1, "Emperor", "Emperor version " + AuxiliaryParameters::gitSHA1 + " started!", infoOut);
 
     PseudoCodeOutput *pcOutput = new PseudoCodeOutput(MetaDatabase::getSingleton(),
             "pseudocode.txt");
@@ -268,8 +267,8 @@ void Emperor::initMappers() {
         const structMeshRef &meshRefA = settingMapper.meshRefA;
         const structMeshRef &meshRefB = settingMapper.meshRefB;
 
-        assert(nameToClientCodeMap.find(meshRefA.clientCodeName) != nameToClientCodeMap.end());
-        assert(nameToClientCodeMap.find(meshRefB.clientCodeName) != nameToClientCodeMap.end());
+        assert(nameToClientCodeMap.find(meshRefA.clientCodeName)!=nameToClientCodeMap.end());
+        assert(nameToClientCodeMap.find(meshRefB.clientCodeName)!=nameToClientCodeMap.end());
         AbstractMesh *meshA = nameToClientCodeMap.at(meshRefA.clientCodeName)->getMeshByName(
                 meshRefA.meshName);
         AbstractMesh *meshB = nameToClientCodeMap.at(meshRefB.clientCodeName)->getMeshByName(
@@ -287,10 +286,8 @@ void Emperor::initMappers() {
             mapper->initBarycentricInterpolationMapper();
             nameToMapperMap.insert(pair<string, MapperAdapter*>(name, mapper));
         } else if (settingMapper.type == EMPIRE_IGAMortarMapper) {
-            mapper->initIGAMortarMapper(settingMapper.igaMortarMapper.tolProjectionDistance,
-                    settingMapper.igaMortarMapper.numGPsTriangle,
-                    settingMapper.igaMortarMapper.numGPsQuad);
-            nameToMapperMap.insert(pair<string, MapperAdapter*>(name, mapper));
+            mapper->initIGAMortarMapper();
+	    nameToMapperMap.insert(pair<string, MapperAdapter*>(name, mapper));
         } else {
             assert(false);
         }
@@ -399,7 +396,7 @@ void Emperor::initConnections() {
             AbstractFilter *filter;
             if (settingFilter.type == EMPIRE_MappingFilter) {
                 string mapperName = settingFilter.mappingFilter.mapperName;
-                assert(nameToMapperMap.find(mapperName) != nameToMapperMap.end());
+                assert(nameToMapperMap.find(mapperName)!=nameToMapperMap.end());
                 MapperAdapter *mapper = nameToMapperMap.at(mapperName);
                 filter = new MappingFilter(mapper);
             } else if (settingFilter.type == EMPIRE_CouplingAlgorithmFilter) {
@@ -488,8 +485,8 @@ AbstractCouplingLogic *Emperor::parseStructCouplingLogic(
                 settingCouplingLogic.iterativeCouplingLoop;
         structCouplingLogic::structIterativeCouplingLoop::structConvergenceChecker &settingConvgChecker =
                 settingIterCoupLoop.convergenceChecker;
-        vector < string > &convergenceObservers = settingIterCoupLoop.convergenceObservers;
-        vector < string > &couplingAlgorithmRefs = settingIterCoupLoop.couplingAlgorithmRefs;
+        vector<string> &convergenceObservers = settingIterCoupLoop.convergenceObservers;
+        vector<string> &couplingAlgorithmRefs = settingIterCoupLoop.couplingAlgorithmRefs;
 
         IterativeCouplingLoop *iterativeCouplingLoop = new IterativeCouplingLoop();
         { // convergence checker
@@ -509,7 +506,7 @@ AbstractCouplingLogic *Emperor::parseStructCouplingLogic(
                     relativeTolerance, maxNumOfIterations);
             if (settingConvgChecker.whichRef == EMPIRE_ConvergenceChecker_dataFieldRef) {
                 string clientCodeName = settingConvgChecker.dataFieldRef.clientCodeName;
-                assert(nameToClientCodeMap.find(clientCodeName) != nameToClientCodeMap.end());
+                assert( nameToClientCodeMap.find(clientCodeName) != nameToClientCodeMap.end());
                 string meshName = settingConvgChecker.dataFieldRef.meshName;
                 string dataFieldName = settingConvgChecker.dataFieldRef.dataFieldName;
                 ClientCode *clientCode = nameToClientCodeMap.at(clientCodeName);
@@ -519,7 +516,7 @@ AbstractCouplingLogic *Emperor::parseStructCouplingLogic(
             } else if (settingConvgChecker.whichRef == EMPIRE_ConvergenceChecker_signalRef) {
                 string clientCodeName = settingConvgChecker.signalRef.clientCodeName;
                 string signalName = settingConvgChecker.signalRef.signalName;
-                assert(nameToClientCodeMap.find(clientCodeName) != nameToClientCodeMap.end());
+                assert( nameToClientCodeMap.find(clientCodeName) != nameToClientCodeMap.end());
                 ClientCode *clientCode = nameToClientCodeMap.at(clientCodeName);
                 Signal *signal = clientCode->getSignalByName(signalName);
                 checker->setSignal(signal);
@@ -527,8 +524,7 @@ AbstractCouplingLogic *Emperor::parseStructCouplingLogic(
                     == EMPIRE_ConvergenceChecker_couplingAlgorithmRef) {
                 string couplingAlgName = settingConvgChecker.couplingAlgorithmRef;
                 assert(
-                        nameToCouplingAlgorithmMap.find(couplingAlgName)
-                                != nameToCouplingAlgorithmMap.end());
+                        nameToCouplingAlgorithmMap.find(couplingAlgName) != nameToCouplingAlgorithmMap.end());
                 AbstractCouplingAlgorithm *couplingAlgorithm = nameToCouplingAlgorithmMap.at(
                         couplingAlgName);
                 checker->setCouplingAlgorithm(couplingAlgorithm);
@@ -539,8 +535,7 @@ AbstractCouplingLogic *Emperor::parseStructCouplingLogic(
             int tmpSize = convergenceObservers.size();
             for (int i = 0; i < tmpSize; i++) {
                 assert(
-                        nameToClientCodeMap.find(convergenceObservers[i])
-                                != nameToClientCodeMap.end());
+                        nameToClientCodeMap.find(convergenceObservers[i])!=nameToClientCodeMap.end());
                 ClientCode *clientCodeTmp = nameToClientCodeMap.at(convergenceObservers[i]);
                 iterativeCouplingLoop->addConvergenceObserver(clientCodeTmp);
             }
@@ -549,8 +544,7 @@ AbstractCouplingLogic *Emperor::parseStructCouplingLogic(
             int tmpSize = couplingAlgorithmRefs.size();
             for (int i = 0; i < tmpSize; i++) {
                 assert(
-                        nameToCouplingAlgorithmMap.find(couplingAlgorithmRefs[i])
-                                != nameToCouplingAlgorithmMap.end());
+                        nameToCouplingAlgorithmMap.find(couplingAlgorithmRefs[i])!=nameToCouplingAlgorithmMap.end());
                 AbstractCouplingAlgorithm *couplingAlgorithmTmp = nameToCouplingAlgorithmMap.at(
                         couplingAlgorithmRefs[i]);
                 iterativeCouplingLoop->addCouplingAlgorithm(couplingAlgorithmTmp);
@@ -559,7 +553,7 @@ AbstractCouplingLogic *Emperor::parseStructCouplingLogic(
         { // add dataOutputs
             const vector<string> &dataOutputRefs = settingIterCoupLoop.dataOutputRefs;
             for (int i = 0; i < dataOutputRefs.size(); i++) {
-                assert(nameToDataOutputMap.find(dataOutputRefs[i]) != nameToDataOutputMap.end());
+                assert(nameToDataOutputMap.find(dataOutputRefs[i])!=nameToDataOutputMap.end());
                 DataOutput *dataOutput = nameToDataOutputMap.at(dataOutputRefs[i]);
                 iterativeCouplingLoop->addDataOutput(dataOutput);
             }
@@ -574,8 +568,7 @@ AbstractCouplingLogic *Emperor::parseStructCouplingLogic(
             const vector<string> &extrapolatorRefs = settingTimeStepLoop.extrapolatorRefs;
             for (int i = 0; i < extrapolatorRefs.size(); i++) {
                 assert(
-                        nameToExtrapolatorMap.find(extrapolatorRefs[i])
-                                != nameToExtrapolatorMap.end());
+                        nameToExtrapolatorMap.find(extrapolatorRefs[i])!=nameToExtrapolatorMap.end());
                 AbstractExtrapolator *extrapolator = nameToExtrapolatorMap.at(extrapolatorRefs[i]);
                 timeStepLoop->addExtrapolator(extrapolator);
             }
@@ -583,7 +576,7 @@ AbstractCouplingLogic *Emperor::parseStructCouplingLogic(
         { // add dataOutputs
             const vector<string> &dataOutputRefs = settingTimeStepLoop.dataOutputRefs;
             for (int i = 0; i < dataOutputRefs.size(); i++) {
-                assert(nameToDataOutputMap.find(dataOutputRefs[i]) != nameToDataOutputMap.end());
+                assert(nameToDataOutputMap.find(dataOutputRefs[i])!=nameToDataOutputMap.end());
                 DataOutput *dataOutput = nameToDataOutputMap.at(dataOutputRefs[i]);
                 timeStepLoop->addDataOutput(dataOutput);
             }
@@ -604,7 +597,7 @@ AbstractCouplingLogic *Emperor::parseStructCouplingLogic(
 }
 
 void Emperor::doCoSimulation() {
-    assert(globalCouplingLogic->size() != 0);
+    assert(globalCouplingLogic->size()!=0);
     globalCouplingLogic->doCoupling();
 }
 

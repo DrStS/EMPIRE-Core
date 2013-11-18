@@ -10,7 +10,6 @@
 // Inclusion of user defined libraries
 #include "AbstractBSplineBasis2D.h"
 #include "BSplineBasis1D.h"
-#include "Message.h"
 
 namespace EMPIRE {
 
@@ -155,9 +154,32 @@ public:
 		return vBSplineBasis1D;
 	}
 
-};
+	/// DEBUGGING functions
+public:
+	/***********************************************************************************************
+	 * \brief Prints the polynomial degrees of the B-Spline basis
+	 * \author Andreas Apostolatos
+	 ***********/
+	void printPolynomialDegrees();
 
-Message &operator<<(Message &message, BSplineBasis2D &bSplineBasis2D);
+	/***********************************************************************************************
+	 * \brief Prints the number of knots for both knot vectors
+	 * \author Andreas Apostolatos
+	 ***********/
+	void printNoKnots();
+
+	/***********************************************************************************************
+	 * \brief Prints the knot vectors at each direction
+	 * \author Andreas Apostolatos
+	 ***********/
+	void printKnotVectors();
+
+	/***********************************************************************************************
+	 * \brief Prints the number of basis functions at each direction
+	 * \author Andreas Apostolatos
+	 ***********/
+	void printNoBasisFunctions();
+};
 
 }/* namespace EMPIRE */
 

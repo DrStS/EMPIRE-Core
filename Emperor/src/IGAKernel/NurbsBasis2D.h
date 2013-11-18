@@ -158,9 +158,10 @@ public:
         return IGAControlPointWeights;
     }
 
+    /// DEBUGGING functions
+public:
+    void printControlPointWeights();
 };
-
-Message &operator<<(Message &message, NurbsBasis2D &nurbsBasis2D);
 
 }/* namespace EMPIRE */
 

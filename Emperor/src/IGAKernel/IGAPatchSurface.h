@@ -331,6 +331,16 @@ public:
         return getIGABasis()->getVBSplineBasis1D()->findKnotSpan(_v);
     }
 
+    /// DEBUGGING functions
+public:
+    /***********************************************************************************************
+     * \brief Prints the Control Point net for the 2D NURBS patch
+     * \author Andreas Apostolatos
+     ***********/
+    void printControlPointNet();
+
+    void print();
+
     /// The maximum number of Newton-Raphson iterations for the computation of the orthogonal projection of point on the NURBS patch
     static const int MAX_NUM_ITERATIONS;
 

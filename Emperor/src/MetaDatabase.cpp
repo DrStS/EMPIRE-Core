@@ -65,7 +65,7 @@ MetaDatabase::MetaDatabase(char *inputFileName) {
         fillSettingCouplingLogic();
     } catch (ticpp::Exception& ex) {
         cout << "ERROR Parser: " << ex.what() << endl;
-        exit (EXIT_FAILURE);
+        exit(EXIT_FAILURE);
     }
 }
 
@@ -110,14 +110,14 @@ bool MetaDatabase::checkForClientCodeName(std::string clientName) {
 void MetaDatabase::fillSettingClientCodesVec() {
     assert(settingClientCodeVec.size() == 0);
     ticpp::Element *xmlEMPEROR = inputFile->FirstChildElement("EMPEROR");
-    ticpp::Iterator < Element > xmlClientCode("clientCode");
+    ticpp::Iterator<Element> xmlClientCode("clientCode");
     for (xmlClientCode = xmlClientCode.begin(xmlEMPEROR); xmlClientCode != xmlClientCode.end();
             xmlClientCode++) {
         structClientCode clientCode;
         assert(xmlClientCode->HasAttribute("name"));
         clientCode.name = xmlClientCode->GetAttribute("name");
 
-        ticpp::Iterator < Element > xmlMesh("mesh");
+        ticpp::Iterator<Element> xmlMesh("mesh");
 
         for (xmlMesh = xmlMesh.begin(xmlClientCode.Get()); xmlMesh != xmlMesh.end(); xmlMesh++) {
             structClientCode::structMesh mesh;
@@ -134,7 +134,7 @@ void MetaDatabase::fillSettingClientCodesVec() {
             } else {
                 mesh.type = EMPIRE_Mesh_FEMesh;
             }
-            ticpp::Iterator < Element > xmlDataField("dataField");
+            ticpp::Iterator<Element> xmlDataField("dataField");
             for (xmlDataField = xmlDataField.begin(xmlMesh.Get());
                     xmlDataField != xmlDataField.end(); xmlDataField++) {
                 structClientCode::structMesh::structDataField dataField;
@@ -167,7 +167,7 @@ void MetaDatabase::fillSettingClientCodesVec() {
             clientCode.meshes.push_back(mesh);
         }
 
-        ticpp::Iterator < Element > xmlSignal("signal");
+        ticpp::Iterator<Element> xmlSignal("signal");
         for (xmlSignal = xmlSignal.begin(xmlClientCode.Get()); xmlSignal != xmlSignal.end();
                 xmlSignal++) {
             structClientCode::structSignal signal;
@@ -208,15 +208,15 @@ void MetaDatabase::fillSettingClientCodesVec() {
 }
 
 void MetaDatabase::fillSettingDataOutputVec() {
-    assert(settingDataOutputVec.size() == 0);
+    assert(settingDataOutputVec.size()==0);
     ticpp::Element *xmlEMPEROR = inputFile->FirstChildElement("EMPEROR");
-    ticpp::Iterator < Element > xmlDataOutput("dataOutput");
+    ticpp::Iterator<Element> xmlDataOutput("dataOutput");
     for (xmlDataOutput = xmlDataOutput.begin(xmlEMPEROR); xmlDataOutput != xmlDataOutput.end();
             xmlDataOutput++) {
         structDataOutput dataOutput;
         dataOutput.name = xmlDataOutput->GetAttribute("name");
         dataOutput.interval = xmlDataOutput->GetAttribute<int>("interval");
-        ticpp::Iterator < Element > xmlDataFieldRef("dataFieldRef");
+        ticpp::Iterator<Element> xmlDataFieldRef("dataFieldRef");
         for (xmlDataFieldRef = xmlDataFieldRef.begin(xmlDataOutput.Get());
                 xmlDataFieldRef != xmlDataFieldRef.end(); xmlDataFieldRef++) {
             structDataFieldRef dataFieldRef;
@@ -225,7 +225,7 @@ void MetaDatabase::fillSettingDataOutputVec() {
             dataFieldRef.dataFieldName = xmlDataFieldRef->GetAttribute("dataFieldName");
             dataOutput.dataFieldRefs.push_back(dataFieldRef);
         }
-        ticpp::Iterator < Element > xmlSignalRef("signalRef");
+        ticpp::Iterator<Element> xmlSignalRef("signalRef");
         for (xmlSignalRef = xmlSignalRef.begin(xmlDataOutput.Get());
                 xmlSignalRef != xmlSignalRef.end(); xmlSignalRef++) {
             structSignalRef signalRef;
@@ -240,7 +240,7 @@ void MetaDatabase::fillSettingDataOutputVec() {
 void MetaDatabase::fillSettingMapperVec() {
     assert(settingMapperVec.size() == 0);
     ticpp::Element *xmlEMPEROR = inputFile->FirstChildElement("EMPEROR");
-    ticpp::Iterator < Element > xmlMapper("mapper");
+    ticpp::Iterator<Element> xmlMapper("mapper");
     for (xmlMapper = xmlMapper.begin(xmlEMPEROR); xmlMapper != xmlMapper.end(); xmlMapper++) {
         structMapper mapper;
         mapper.name = xmlMapper->GetAttribute("name");
@@ -271,20 +271,14 @@ void MetaDatabase::fillSettingMapperVec() {
                 mapper.mortarMapper.enforceConsistency = true;
             else if (xmlMortarMapper->GetAttribute("enforceConsistency") == "false")
                 mapper.mortarMapper.enforceConsistency = false;
-            else
+            else 
                 assert(false);
         } else if (xmlMapper->GetAttribute("type") == "nearestNeighborMapper") {
             mapper.type = EMPIRE_NearestNeighborMapper;
         } else if (xmlMapper->GetAttribute("type") == "barycentricInterpolationMapper") {
             mapper.type = EMPIRE_BarycentricInterpolationMapper;
-        } else if (xmlMapper->GetAttribute("type") == "IGAMortarMapper") {
-            mapper.type = EMPIRE_IGAMortarMapper;
-            ticpp::Element *xmlIGAMortar = xmlMapper->FirstChildElement("IGAMortarMapper");
-            mapper.igaMortarMapper.tolProjectionDistance = xmlIGAMortar->GetAttribute<double>(
-                    "tolProjectionDistance");
-            mapper.igaMortarMapper.numGPsTriangle = xmlIGAMortar->GetAttribute<int>(
-                    "numGPsTriangle");
-            mapper.igaMortarMapper.numGPsQuad = xmlIGAMortar->GetAttribute<int>("numGPsQuad");
+        } else if (xmlMapper->GetAttribute("type") == "IGAMortarMapper"){
+        	mapper.type = EMPIRE_IGAMortarMapper;
         } else {
             assert(false);
         }
@@ -295,7 +289,7 @@ void MetaDatabase::fillSettingMapperVec() {
 void MetaDatabase::fillSettingCouplingAlgorithmVec() {
     assert(settingCouplingAlgorithmVec.size() == 0);
     ticpp::Element *xmlEMPEROR = inputFile->FirstChildElement("EMPEROR");
-    ticpp::Iterator < Element > xmlCoupAlg("couplingAlgorithm");
+    ticpp::Iterator<Element> xmlCoupAlg("couplingAlgorithm");
     for (xmlCoupAlg = xmlCoupAlg.begin(xmlEMPEROR); xmlCoupAlg != xmlCoupAlg.end(); xmlCoupAlg++) {
         structCouplingAlgorithm coupAlg;
         coupAlg.name = xmlCoupAlg->GetAttribute("name");
@@ -319,7 +313,7 @@ void MetaDatabase::fillSettingCouplingAlgorithmVec() {
 void MetaDatabase::fillSettingExtrapolatorVec() {
     assert(settingExtrapolatorVec.size() == 0);
     ticpp::Element *xmlEMPEROR = inputFile->FirstChildElement("EMPEROR");
-    ticpp::Iterator < Element > xmlExtrapolator("extrapolator");
+    ticpp::Iterator<Element> xmlExtrapolator("extrapolator");
     for (xmlExtrapolator = xmlExtrapolator.begin(xmlEMPEROR);
             xmlExtrapolator != xmlExtrapolator.end(); xmlExtrapolator++) {
         structExtrapolator extrapolator;
@@ -356,7 +350,7 @@ void MetaDatabase::fillSettingExtrapolatorVec() {
             // zeroth derivative coefficients
             vector<double>& coefficientDot0 = extrapolator.genMSExtrapolator.coefficientDot0;
             coefficientDot0.assign(seqLen, 0.);
-            ticpp::Iterator < Element > xmlCoefficientDot0("coefficientDot0");
+            ticpp::Iterator<Element> xmlCoefficientDot0("coefficientDot0");
             index = 0;
             for (xmlCoefficientDot0 = xmlCoefficientDot0.begin(xmlGenMSExtrapolator);
                     xmlCoefficientDot0 != xmlCoefficientDot0.end(); xmlCoefficientDot0++) {
@@ -370,7 +364,7 @@ void MetaDatabase::fillSettingExtrapolatorVec() {
             if (numInput >= 2) {
                 vector<double>& coefficientDot1 = extrapolator.genMSExtrapolator.coefficientDot1;
                 coefficientDot1.assign(seqLen, 0.);
-                ticpp::Iterator < Element > xmlCoefficientDot1("coefficientDot1");
+                ticpp::Iterator<Element> xmlCoefficientDot1("coefficientDot1");
                 index = 0;
                 for (xmlCoefficientDot1 = xmlCoefficientDot1.begin(xmlGenMSExtrapolator);
                         xmlCoefficientDot1 != xmlCoefficientDot1.end(); xmlCoefficientDot1++) {
@@ -383,7 +377,7 @@ void MetaDatabase::fillSettingExtrapolatorVec() {
                 if (numInput == 3) {
                     vector<double>& coefficientDot2 = extrapolator.genMSExtrapolator.coefficientDot2;
                     coefficientDot2.assign(seqLen, 0.);
-                    ticpp::Iterator < Element > xmlCoefficientDot2("coefficientDot2");
+                    ticpp::Iterator<Element> xmlCoefficientDot2("coefficientDot2");
                     index = 0;
                     for (xmlCoefficientDot2 = xmlCoefficientDot2.begin(xmlGenMSExtrapolator);
                             xmlCoefficientDot2 != xmlCoefficientDot2.end(); xmlCoefficientDot2++) {
@@ -400,7 +394,7 @@ void MetaDatabase::fillSettingExtrapolatorVec() {
             if (sumOutput == "true") {
                 vector<double>& coefficientOut = extrapolator.genMSExtrapolator.coefficientOut;
                 coefficientOut.assign(seqLen, 0.);
-                ticpp::Iterator < Element > xmlCoefficientOut("coefficientOut");
+                ticpp::Iterator<Element> xmlCoefficientOut("coefficientOut");
                 index = 0;
                 for (xmlCoefficientOut = xmlCoefficientOut.begin(xmlGenMSExtrapolator);
                         xmlCoefficientOut != xmlCoefficientOut.end(); xmlCoefficientOut++) {
@@ -420,7 +414,7 @@ void MetaDatabase::fillSettingExtrapolatorVec() {
 void MetaDatabase::fillSettingConnectionVec() {
     assert(settingConnectionVec.size() == 0);
     ticpp::Element *xmlEMPEROR = inputFile->FirstChildElement("EMPEROR");
-    ticpp::Iterator < Element > xmlConnection("connection");
+    ticpp::Iterator<Element> xmlConnection("connection");
     for (xmlConnection = xmlConnection.begin(xmlEMPEROR); xmlConnection != xmlConnection.end();
             xmlConnection++) {
         structConnection connection;
@@ -449,7 +443,7 @@ void MetaDatabase::fillSettingConnectionVec() {
                 assert(false);
             }
         } else {
-            ticpp::Iterator < Element > xmlInput("input");
+            ticpp::Iterator<Element> xmlInput("input");
             for (xmlInput = xmlInput.begin(xmlConnection.Get()); xmlInput != xmlInput.end();
                     xmlInput++) {
                 ticpp::Element *xmlDataFieldRef = xmlInput->FirstChildElement("dataFieldRef",
@@ -474,7 +468,7 @@ void MetaDatabase::fillSettingConnectionVec() {
                     assert(false);
                 }
             }
-            ticpp::Iterator < Element > xmlOutput("output");
+            ticpp::Iterator<Element> xmlOutput("output");
             for (xmlOutput = xmlOutput.begin(xmlConnection.Get()); xmlOutput != xmlOutput.end();
                     xmlOutput++) {
                 ticpp::Element *xmlDataFieldRef = xmlOutput->FirstChildElement("dataFieldRef",
@@ -503,7 +497,7 @@ void MetaDatabase::fillSettingConnectionVec() {
 
         if (xmlConnection->FirstChildElement("sequence", false) != NULL) {
             ticpp::Element *xmlFilters = xmlConnection->FirstChildElement("sequence");
-            ticpp::Iterator < Element > xmlFilter("filter");
+            ticpp::Iterator<Element> xmlFilter("filter");
             for (xmlFilter = xmlFilter.begin(xmlFilters); xmlFilter != xmlFilter.end();
                     xmlFilter++) {
                 structFilter filter;
@@ -534,7 +528,7 @@ void MetaDatabase::fillSettingConnectionVec() {
                         assert(false);
                     }
                 } else {
-                    ticpp::Iterator < Element > xmlInput("input");
+                    ticpp::Iterator<Element> xmlInput("input");
                     for (xmlInput = xmlInput.begin(xmlFilter.Get()); xmlInput != xmlInput.end();
                             xmlInput++) {
                         ticpp::Element *xmlDataFieldRef = xmlInput->FirstChildElement(
@@ -561,7 +555,7 @@ void MetaDatabase::fillSettingConnectionVec() {
                             assert(false);
                         }
                     }
-                    ticpp::Iterator < Element > xmlOutput("output");
+                    ticpp::Iterator<Element> xmlOutput("output");
                     for (xmlOutput = xmlOutput.begin(xmlFilter.Get()); xmlOutput != xmlOutput.end();
                             xmlOutput++) {
                         ticpp::Element *xmlDataFieldRef = xmlOutput->FirstChildElement(
@@ -635,7 +629,7 @@ void parseCouplingLogicBlock(ticpp::Iterator<Element> &xmlCouplingLogicIn,
         couplingLogicIn.timeStepLoop.numTimeSteps = numTimeSteps;
 
         { // add extrapolators
-            ticpp::Iterator < Element > xmlExtrapolatorRef("extrapolatorRef");
+            ticpp::Iterator<Element> xmlExtrapolatorRef("extrapolatorRef");
             for (xmlExtrapolatorRef = xmlExtrapolatorRef.begin(xmlTimeStepLoop);
                     xmlExtrapolatorRef != xmlExtrapolatorRef.end(); xmlExtrapolatorRef++) {
                 string tmpString = xmlExtrapolatorRef->GetAttribute("extrapolatorName");
@@ -644,7 +638,7 @@ void parseCouplingLogicBlock(ticpp::Iterator<Element> &xmlCouplingLogicIn,
         }
 
         { // add dataOutputs
-            ticpp::Iterator < Element > xmlDataOutputRef("dataOutputRef");
+            ticpp::Iterator<Element> xmlDataOutputRef("dataOutputRef");
             for (xmlDataOutputRef = xmlDataOutputRef.begin(xmlTimeStepLoop);
                     xmlDataOutputRef != xmlDataOutputRef.end(); xmlDataOutputRef++) {
                 string dataOutputName = xmlDataOutputRef->GetAttribute("dataOutputName");
@@ -673,16 +667,14 @@ void parseCouplingLogicBlock(ticpp::Iterator<Element> &xmlCouplingLogicIn,
                         xmlDataFieldRef->GetAttribute("meshName");
                 couplingLogicIn.iterativeCouplingLoop.convergenceChecker.dataFieldRef.dataFieldName =
                         xmlDataFieldRef->GetAttribute("dataFieldName");
-            } else if (xmlSignalRef != NULL && xmlDataFieldRef == NULL
-                    && xmlCouplingAlgRef == NULL) {
+            } else if (xmlSignalRef != NULL && xmlDataFieldRef == NULL && xmlCouplingAlgRef == NULL) {
                 couplingLogicIn.iterativeCouplingLoop.convergenceChecker.whichRef =
                         EMPIRE_ConvergenceChecker_signalRef;
                 couplingLogicIn.iterativeCouplingLoop.convergenceChecker.signalRef.clientCodeName =
                         xmlSignalRef->GetAttribute("clientCodeName");
                 couplingLogicIn.iterativeCouplingLoop.convergenceChecker.signalRef.signalName =
                         xmlSignalRef->GetAttribute("signalName");
-            } else if (xmlCouplingAlgRef != NULL && xmlSignalRef == NULL
-                    && xmlDataFieldRef == NULL) {
+            } else if (xmlCouplingAlgRef != NULL && xmlSignalRef == NULL && xmlDataFieldRef == NULL) {
                 couplingLogicIn.iterativeCouplingLoop.convergenceChecker.whichRef =
                         EMPIRE_ConvergenceChecker_couplingAlgorithmRef;
                 couplingLogicIn.iterativeCouplingLoop.convergenceChecker.couplingAlgorithmRef =
@@ -716,7 +708,7 @@ void parseCouplingLogicBlock(ticpp::Iterator<Element> &xmlCouplingLogicIn,
             assert(hasAtleastOne);
         }
         { // add Convergence Observer
-            ticpp::Iterator < Element > xmlConvergenceObserver("convergenceObserver");
+            ticpp::Iterator<Element> xmlConvergenceObserver("convergenceObserver");
             for (xmlConvergenceObserver = xmlConvergenceObserver.begin(xmlIterativeCouplingLoop);
                     xmlConvergenceObserver != xmlConvergenceObserver.end();
                     xmlConvergenceObserver++) {
@@ -728,7 +720,7 @@ void parseCouplingLogicBlock(ticpp::Iterator<Element> &xmlCouplingLogicIn,
         }
 
         { // add coupling algorithm refs
-            ticpp::Iterator < Element > xmlCouplingAlgorithmRef("couplingAlgorithmRef");
+            ticpp::Iterator<Element> xmlCouplingAlgorithmRef("couplingAlgorithmRef");
             for (xmlCouplingAlgorithmRef = xmlCouplingAlgorithmRef.begin(xmlIterativeCouplingLoop);
                     xmlCouplingAlgorithmRef != xmlCouplingAlgorithmRef.end();
                     xmlCouplingAlgorithmRef++) {
@@ -737,7 +729,7 @@ void parseCouplingLogicBlock(ticpp::Iterator<Element> &xmlCouplingLogicIn,
             }
         }
         { // add dataOutputs
-            ticpp::Iterator < Element > xmlDataOutputRef("dataOutputRef");
+            ticpp::Iterator<Element> xmlDataOutputRef("dataOutputRef");
             for (xmlDataOutputRef = xmlDataOutputRef.begin(xmlIterativeCouplingLoop);
                     xmlDataOutputRef != xmlDataOutputRef.end(); xmlDataOutputRef++) {
                 string dataOutputName = xmlDataOutputRef->GetAttribute("dataOutputName");
@@ -756,7 +748,7 @@ void parseCouplingLogicBlock(ticpp::Iterator<Element> &xmlCouplingLogicIn,
     if (xmlCouplingLogicIn->FirstChildElement("sequence", false) != NULL) {
         ticpp::Element *xmlCouplingLogicSequence = xmlCouplingLogicIn->FirstChildElement(
                 "sequence");
-        ticpp::Iterator < Element > xmlCouplingLogic("couplingLogic");
+        ticpp::Iterator<Element> xmlCouplingLogic("couplingLogic");
         for (xmlCouplingLogic = xmlCouplingLogic.begin(xmlCouplingLogicSequence);
                 xmlCouplingLogic != xmlCouplingLogic.end(); xmlCouplingLogic++) {
             structCouplingLogic couplingLogic;
@@ -773,7 +765,7 @@ void MetaDatabase::fillSettingCouplingLogic() {
             inputFile->FirstChildElement("EMPEROR")->FirstChildElement("coSimulation");
     ticpp::Element *xmlCouplingLogicSequence = xmlGlobalCouplingLogic->FirstChildElement(
             "sequence");
-    ticpp::Iterator < Element > xmlCouplingLogic("couplingLogic");
+    ticpp::Iterator<Element> xmlCouplingLogic("couplingLogic");
     for (xmlCouplingLogic = xmlCouplingLogic.begin(xmlCouplingLogicSequence);
             xmlCouplingLogic != xmlCouplingLogic.end(); xmlCouplingLogic++) {
         structCouplingLogic couplingLogic;

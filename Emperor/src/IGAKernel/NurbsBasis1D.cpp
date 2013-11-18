@@ -7,7 +7,6 @@
 // Inclusion of user defined libraries
 #include "NurbsBasis1D.h"
 #include "IGAMath.h"
-#include "Message.h"
 
 using namespace std;
 
@@ -18,8 +17,13 @@ NurbsBasis1D::NurbsBasis1D(int _ID = 0, int _pDegree = 0, int _noKnots = 0, doub
         BSplineBasis1D(_ID, _pDegree, _noKnots, _KnotVector), NoControlPoints(_noControlPoints) {
 
     if (_noControlPoints != _noKnots - _pDegree - 1) {
-        ERROR_OUT() << " in NurbsBasis1D::NurbsBasis1D" << endl;
-        ERROR_OUT() << "The Number of Control Points, the number of knots and the polynomial degree do not match" << endl;
+        cout << endl;
+        cout << "Error in NurbsBasis1D::NurbsBasis1D" << endl;
+        cout
+                << "The Number of Control Points, the number of knots and the polynomial degree do not match"
+                << endl;
+        cout << endl;
+        cout << endl;
         exit(-1);
     }
 
@@ -96,9 +100,13 @@ void NurbsBasis1D::computeLocalBasisFunctionsAndDerivativesInefficient(double** 
     assert(_basisFctsAndDerivs!=NULL);
 
     if (_derivDegree == 0) {
-        ERROR_OUT() << " in function NurbsBasis1D::computeLocalBasisFunctionsAndDerivatives" << endl;
-        ERROR_OUT() << "Asked for NURBS derivatives of order _derivDegree = " << _derivDegree << endl;
-        ERROR_OUT() << "Alternatively use function NurbsBasis1D::computeLocalBasisFunctions" << endl;
+        cout << endl;
+        cout << endl;
+        cout << "Error in function NurbsBasis1D::computeLocalBasisFunctionsAndDerivatives" << endl;
+        cout << "Asked for NURBS derivatives of order _derivDegree = " << _derivDegree << endl;
+        cout << "Alternatively use function NurbsBasis1D::computeLocalBasisFunctions" << endl;
+        cout << endl;
+        cout << endl;
         exit(-1);
     } else if (_derivDegree == 1 || _derivDegree == 2) {
 
@@ -156,9 +164,13 @@ void NurbsBasis1D::computeLocalBasisFunctionsAndDerivativesInefficient(double** 
             delete[] BSplineBasisFunctionsAndDerivs[i];
         delete[] BSplineBasisFunctionsAndDerivs;
     } else if (_derivDegree > 2) {
-        ERROR_OUT() << "Error in function NurbsBasis1D::computeLocalBasisFunctionsAndDerivatives" << endl;
-        ERROR_OUT() << "Asked for NURBS derivatives of order _derivDegree = " << _derivDegree
+        cout << endl;
+        cout << endl;
+        cout << "Error in function NurbsBasis1D::computeLocalBasisFunctionsAndDerivatives" << endl;
+        cout << "Asked for NURBS derivatives of order _derivDegree = " << _derivDegree
                 << "which have not yet implemented" << endl;
+        cout << endl;
+        cout << endl;
         exit(-1);
     }
 }
@@ -183,9 +195,13 @@ void NurbsBasis1D::computeLocalBasisFunctionsAndDerivativesInefficient(double* _
     assert(_basisFctsAndDerivs!=NULL);
 
     if (_derivDegree == 0) {
-        ERROR_OUT() << "Error in function NurbsBasis1D::computeLocalBasisFunctionsAndDerivatives" << endl;
-        ERROR_OUT() << "Asked for NURBS derivatives of order _derivDegree = " << _derivDegree << endl;
-        ERROR_OUT() << "Alternatively use function NurbsBasis1D::computeLocalBasisFunctions" << endl;
+        cout << endl;
+        cout << endl;
+        cout << "Error in function NurbsBasis1D::computeLocalBasisFunctionsAndDerivatives" << endl;
+        cout << "Asked for NURBS derivatives of order _derivDegree = " << _derivDegree << endl;
+        cout << "Alternatively use function NurbsBasis1D::computeLocalBasisFunctions" << endl;
+        cout << endl;
+        cout << endl;
         exit(-1);
     } else if (_derivDegree == 1 || _derivDegree == 2) {
 
@@ -243,9 +259,13 @@ void NurbsBasis1D::computeLocalBasisFunctionsAndDerivativesInefficient(double* _
         delete[] BSplineBasisFunctionsAndDerivs;
 
     } else if (_derivDegree > 2) {
-        ERROR_OUT() << "Error in function NurbsBasis1D::computeLocalBasisFunctionsAndDerivatives" << endl;
-        ERROR_OUT() << "Asked for NURBS derivatives of order _derivDegree = " << _derivDegree
+        cout << endl;
+        cout << endl;
+        cout << "Error in function NurbsBasis1D::computeLocalBasisFunctionsAndDerivatives" << endl;
+        cout << "Asked for NURBS derivatives of order _derivDegree = " << _derivDegree
                 << "which have not yet implemented" << endl;
+        cout << endl;
+        cout << endl;
         exit(-1);
     }
 }
@@ -433,8 +453,14 @@ void NurbsBasis1D::setControlPointWeights(int _noControlPoints, double* _control
 
     if (_noControlPoints != this->computeNoBasisFunctions()) {
 
-        ERROR_OUT() << "Error in NurbsBasis1D::setControlPointNet" << endl;
-        ERROR_OUT() << "The assigned number of Control Points does not match with the number of basis functions!" << endl;
+        cout << endl;
+        cout << endl;
+        cout << "Error in NurbsBasis1D::setControlPointNet" << endl;
+        cout
+                << "The assigned number of Control Points does not match with the number of basis functions!"
+                << endl;
+        cout << endl;
+        cout << endl;
         exit(-1);
     }
 
@@ -444,22 +470,18 @@ void NurbsBasis1D::setControlPointWeights(int _noControlPoints, double* _control
     ControlPointWeights = _controlPointWeights;
 }
 
-Message &operator<<(Message &message, NurbsBasis1D &nurbsBasis1D) {
+void NurbsBasis1D::printControlPointWeights() {
 
-    message << "\t+" << "NurbsBasis1D: " << endl;
-    message << "\t\t+" << "PDegree = " << nurbsBasis1D.getPolynomialDegree() << endl;
-    message << "\t\t+" << "NoKnots = " << nurbsBasis1D.getNoKnots() << endl;
-    message << "\t\t+" << "KnotVector = [\t";
-    for (int i = 0; i < nurbsBasis1D.getNoKnots(); i++) {
-        message << nurbsBasis1D.getKnotVector()[i] << "\t";
+    cout << endl;
+    cout << "---------------------------------------------" << endl;
+    cout << "Debugging information in class NurbsBasis1D" << endl;
+    cout << "NurbsBasis1D::ControlPointWeights" << endl;
+    cout << endl;
+    for (int i = 0; i < NoControlPoints; i++) {
+        cout << "CP " << i << ": " << ControlPointWeights[i] << endl;
     }
-    message << "\t\t+" << "ControlPointWeights = [\t";
-    for (int i = 0; i < nurbsBasis1D.getNoControlPoints(); i++) {
-        message << "CP " << i << ": " << nurbsBasis1D.getControlPointWeights()[i] << endl;
-    }
-    message << "]" << endl;
-    message() << "\t+" << "---------------------------------" << endl;
-    return message;
+    cout << "_____________________________________________" << endl;
+    cout << endl;
 }
 
 }/* namespace EMPIRE */

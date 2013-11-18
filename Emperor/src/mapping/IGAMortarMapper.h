@@ -152,8 +152,7 @@ public:
     void printCouplingMatrices();
 
     /// unit test class
-    friend class TestIGAMortarMapperTube;
-    friend class TestIGAMortarMapperMultiPatch;
+    friend class TestIGAMortarMapper;
 };
 }
 

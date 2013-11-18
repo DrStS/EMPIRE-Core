@@ -33,8 +33,13 @@ IGAPatchSurface::IGAPatchSurface(int _IDBasis, int _pDegree, int _uNoKnots, doub
     bool vcondition = _vNoControlPoints != _vNoKnots - _qDegree - 1;
 
     if (ucondition || vcondition) {
-        ERROR_OUT() << " in IGAPatchSurface::IGAPatchSurface" << endl;
-        ERROR_OUT() << "Number of Control Points, number of knots and polynomial degree do not match!" << endl;
+        cout << endl;
+        cout << endl;
+        cout << "Error in IGAPatchSurface::IGAPatchSurface" << endl;
+        cout << "Number of Control Points, number of knots and polynomial degree do not match!"
+                << endl;
+        cout << endl;
+        cout << endl;
         exit(-1);
     }
 
@@ -83,8 +88,13 @@ IGAPatchSurface::IGAPatchSurface(int _IDBasis, int _pDegree, int _uNoKnots, doub
     bool vcondition = _vNoControlPoints != _vNoKnots - _qDegree - 1;
 
     if (ucondition || vcondition) {
-        ERROR_OUT() << " in IGAPatchSurface::IGAPatchSurface" << endl;
-        ERROR_OUT() << "Number of Control Points, number of knots and polynomial degree do not match!" << endl;
+        cout << endl;
+        cout << endl;
+        cout << "Error in IGAPatchSurface::IGAPatchSurface" << endl;
+        cout << "Number of Control Points, number of knots and polynomial degree do not match!"
+                << endl;
+        cout << endl;
+        cout << endl;
         exit(-1);
     }
 
@@ -116,9 +126,7 @@ IGAPatchSurface::IGAPatchSurface(int _IDBasis, int _pDegree, int _uNoKnots, doub
 }
 
 IGAPatchSurface::~IGAPatchSurface() {
-
-	delete IGABasis;
-	delete[] ControlPointNet;
+//	delete IGABasis;
 
 }
 
@@ -480,10 +488,17 @@ int IGAPatchSurface::indexDerivativeBaseVector(int _derivDegree, int _uDerivInde
 
     // Read input
     if (_uDerivIndex + _vDerivIndex > _derivDegree) {
-        ERROR_OUT() << "in IGAPatchSurface::indexDerivativeBaseVector" << endl;
-        ERROR_OUT() << "It has been requested the " << _uDerivIndex << "-th partial derivative w.r.t. u and the " << _vDerivIndex << "-th partial derivative w.r.t. v of the base vectors but " << endl;
-        ERROR_OUT() << "the maximum absolute derivative selected is of " << _derivDegree << "-th order" << endl;
-        exit(-1);
+        cout << endl;
+        cout << endl;
+        cout << "Error in IGAPatchSurface::indexDerivativeBaseVector" << endl;
+        cout << "It has been requested the " << _uDerivIndex
+                << "-th partial derivative w.r.t. u and" << endl;
+        cout << "the " << _vDerivIndex << "-th partial derivative w.r.t. v of the base vectors but "
+                << endl;
+        cout << "the maximum absolute derivative selected is of " << _derivDegree << "-th order"
+                << endl;
+        cout << endl;
+        cout << endl;
     }
 
     // Number of tangent base vectors
@@ -822,10 +837,14 @@ bool IGAPatchSurface::computePointProjectionOnPatch(double& _u, double& _v, doub
 
         // Check if the equation system has been successfully solved
         if (!flagLinearSystem) {
-            ERROR_OUT() << "Error in IGAPatchSurface::computePointProjectionOnPatch" << endl;
-            ERROR_OUT() << "The 2x2 equation system to find the updates of the surface parameters" << endl;
-            ERROR_OUT() << "for the orthogonal projection of a point on the NURBS patch has been" << endl;
-            ERROR_OUT() << "detected not solvable up to tolerance" << EPS << endl;
+            cout << endl;
+            cout << endl;
+            cout << "Error in IGAPatchSurface::computePointProjectionOnPatch" << endl;
+            cout << "The 2x2 equation system to find the updates of the surface parameters" << endl;
+            cout << "for the orthogonal projection of a point on the NURBS patch has been" << endl;
+            cout << "detected not solvable up to tolerance" << EPS << endl;
+            cout << endl;
+            cout << endl;
             exit(-1);
         }
 
@@ -850,21 +869,29 @@ bool IGAPatchSurface::computePointProjectionOnPatch(double& _u, double& _v, doub
         dv -= _v;
     }
 
-////     3. Check whether maximum number of iterations has been reached and if yes return 0 to the flag (non-converged iterations)
+    // 3. Check whether maximum number of iterations has been reached and if yes return 0 to the flag (non-converged iterations)
 //    if (counter > MAX_NUM_ITERATIONS) {
 //        flagNewtonRaphson = 0;
 //        if (du * du + dv * dv < 1e-10) {
-//            WARNING_BLOCK_OUT("IGAPatchSurface", "computePointProjectionOnPatch", "Newton-Raphson iterations converged to a non-projection point!");
-//            WARNING_OUT() << "(U, V) : (" << _u << " , " << _v << ")" << endl;
+//            cout << "Warning in function IGAPatchSurface::computePointProjectionOnPatch " << endl;
+//            cout << "Newton-Raphson iterations converged to a non-projection point" << endl;
+//            cout << "(U, V) : (" << _u << " , " << _v << ")" << endl;
 //
 //        } else {
-//            ERROR_OUT() << " in function IGAPatchSurface::computePointProjectionOnPatch" << endl;
-//            ERROR_OUT() << "Newton-Raphson iterations did not converge up to iteration number:  " << MAX_NUM_ITERATIONS << endl;
-//            ERROR_OUT() << "Point: (" << _P[0] << "," << _P[1] << "," << _P[2] << ")" << endl;
+//            cout << endl;
+//            cout << "Error in function IGAPatchSurface::computePointProjectionOnPatch" << endl;
+//            cout << "Newton-Raphson iterations did not converge up to iteration number:  "
+//                    << MAX_NUM_ITERATIONS << endl;
+//            cout << "Point: (" << _P[0] << "," << _P[1] << "," << _P[2] << ")" << endl;
+//            cout << endl;
+////			exit(-1);
 //        }
 //    } else if (counter > REGULAR_NUM_ITERATIONS) {
-//        WARNING_OUT() << " in IGAPatchSurface::computePointProjectionOnPatch" << endl;
-//        WARNING_OUT() << "Number of iterations for the Newton-Raphson algorithm to converge:  " << counter - 1 << endl;
+//        cout << endl;
+//        cout << "Warning in function IGAPatchSurface::computePointProjectionOnPatch" << endl;
+//        cout << "Number of iterations for the Newton-Raphson algorithm to converge:  "
+//                << counter - 1 << endl;
+//        cout << endl;
 //    }
 
     // 4. Function appendix (Clear the memory from the dynamically allocated variables and return the flag on convergence)
@@ -1452,6 +1479,58 @@ void IGAPatchSurface::computeCartesianCoordinatesAndNormalVector(double* _coords
     _normal[2] = baseVec[0] * baseVec[4] - baseVec[1] * baseVec[3];
 }
 
+void IGAPatchSurface::printControlPointNet() {
+
+    cout << endl;
+    cout << "---------------------------------------------" << endl;
+    cout << "Debugging information in class IGAPatchSurface" << endl;
+    cout << endl;
+    cout << "IGAPatchSurface::uNoControlPoints = " << getUNoControlPoints() << endl;
+    cout << "IGAPatchSurface::vNoControlPoints = " << getVNoControlPoints() << endl;
+    cout << endl;
+    for (int i = 0; i < getUNoControlPoints() * getVNoControlPoints(); i++)
+        cout << "CP " << ControlPointNet[i]->getId() << ": ( " << ControlPointNet[i]->getX()
+                << " , " << ControlPointNet[i]->getY() << " , " << ControlPointNet[i]->getZ()
+                << " ) --Weight--> " << ControlPointNet[i]->getW() << endl;
+    ;
+    cout << "_____________________________________________" << endl;
+    cout << endl;
+}
+
+void IGAPatchSurface::print() {
+
+    cout << "\t\tpDegree:  " << IGABasis->getUBSplineBasis1D()->getPolynomialDegree() << endl;
+    cout << "\t\tqDegree:  " << IGABasis->getVBSplineBasis1D()->getPolynomialDegree() << endl;
+
+    cout << "\t\tKnots Vector U: \t";
+    for (int i = 0; i < IGABasis->getUBSplineBasis1D()->getNoKnots(); i++)
+        cout << IGABasis->getUBSplineBasis1D()->getKnotVector()[i] << "  ";
+    cout << endl;
+
+    cout << "\t\tKnots Vector V: \t";
+    for (int i = 0; i < IGABasis->getVBSplineBasis1D()->getNoKnots(); i++)
+        cout << IGABasis->getVBSplineBasis1D()->getKnotVector()[i] << "  ";
+    cout << endl;
+
+    cout << "\t\t" << "number of control points U: " << uNoControlPoints << endl;
+    cout << "\t\t" << "number of control points V: " << vNoControlPoints << endl;
+
+    cout << "\t\tControl Points Net: " << endl;
+    int count = 0;
+    for (int j = 0; j < vNoControlPoints; j++) {
+        cout << "\t\t";
+        for (int i = 0; i < uNoControlPoints; i++) {
+            cout << ControlPointNet[count]->getId() << ":" << ControlPointNet[count]->getX() << ", "
+                    << ControlPointNet[count]->getY() << ", " << ControlPointNet[count]->getZ()
+                    << "  " << ControlPointNet[count]->getW() << "\t";
+            count++;
+        }
+        cout << endl;
+    }
+
+    cout << "\t" << "---------------------------------" << endl;
+}
+
 Message &operator<<(Message &message, IGAPatchSurface &mesh) {
 //	message << "\t" << "IGA Patch name: " << mesh.name << endl;
 
@@ -1475,9 +1554,9 @@ Message &operator<<(Message &message, IGAPatchSurface &mesh) {
 
     message << "\t\tControl Points Net: " << endl;
     int count = 0;
-    for (int j = 0; j < mesh.getVNoControlPoints(); j++) {
-        message << "\t\t";
-        for (int i = 0; i < mesh.getUNoControlPoints(); i++) {
+    for (int i = 0; i < mesh.getUNoControlPoints(); i++) {
+        cout << "\t\t";
+        for (int j = 0; j < mesh.getVNoControlPoints(); j++) {
             message << mesh.getControlPointNet()[count]->getX() << ", "
                     << mesh.getControlPointNet()[count]->getY() << ", "
                     << mesh.getControlPointNet()[count]->getZ() << "\t";
