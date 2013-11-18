@@ -155,13 +155,13 @@ public:
 		int numNodes = 6;
 		int numElems = 2;
 		theFEMesh = new FEMesh("Fluid", numNodes, numElems);
-		theFEMesh->initElems();
 		theFEMesh->numNodesPerElem[0] = 4;
+		theFEMesh->numNodesPerElem[1] = 4;
+		theFEMesh->initElems();
 		theFEMesh->elems[0] = 1;
 		theFEMesh->elems[1] = 2;
 		theFEMesh->elems[2] = 4;
 		theFEMesh->elems[3] = 3;
-		theFEMesh->numNodesPerElem[1] = 4;
 		theFEMesh->elems[4] = 3;
 		theFEMesh->elems[5] = 4;
 		theFEMesh->elems[6] = 6;
@@ -267,7 +267,7 @@ public:
 // Make the tests
 CPPUNIT_TEST_SUITE(TestIGAMortarMapperCube);
 
-//	CPPUNIT_TEST(testMapping);
+	CPPUNIT_TEST(testMapping);
 //	CPPUNIT_TEST(testMappingPrint);
 	CPPUNIT_TEST_SUITE_END()
 	;
@@ -275,4 +275,4 @@ CPPUNIT_TEST_SUITE(TestIGAMortarMapperCube);
 ;
 
 } /* namespace EMPIRE */
-CPPUNIT_TEST_SUITE_REGISTRATION(EMPIRE::TestIGAMortarMapperCube);
+//CPPUNIT_TEST_SUITE_REGISTRATION(EMPIRE::TestIGAMortarMapperCube);

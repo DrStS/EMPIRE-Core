@@ -21,20 +21,18 @@ IGAMesh::IGAMesh(std::string _name, int _numControlPoints, double* _globalContro
                 _numControlPoints) {
 
     for (int i = 0; i < numControlPoints; i++) {
-        globalControlPoints.push_back(
-                new IGAControlPoint(controlPointID[i], &_globalControlPoints[i * 4]));
+        globalControlPoints.push_back(new IGAControlPoint(controlPointID[i], &_globalControlPoints[i * 4]));
         mapControlPointIDToIndex.insert(pair<int, int>(controlPointID[i], i));
     }
 
 }
 
 IGAMesh::~IGAMesh() {
-
     for (int i = 0; i < globalControlPoints.size(); i++)
         delete globalControlPoints[i];
     for (int i = 0; i < surfacePatches.size(); i++)
         delete surfacePatches[i];
-
+    delete[] controlPointID;
 }
 
 void IGAMesh::addPatch(int _pDegree, int _uNoKnots, double* _uKnotVector, int _qDegree,
@@ -50,15 +48,15 @@ void IGAMesh::addPatch(int _pDegree, int _uNoKnots, double* _uKnotVector, int _q
 
     for (int i = 0; i < numCPs; i++) {
 
-        assert(
-                mapControlPointIDToIndex.find(_controlPointNetID[i]) != mapControlPointIDToIndex.end());
+        assert(mapControlPointIDToIndex.find(_controlPointNetID[i]) != mapControlPointIDToIndex.end());
         cpNet[i] = globalControlPoints[mapControlPointIDToIndex[_controlPointNetID[i]]];
     }
 
     surfacePatches.push_back(
             new IGAPatchSurface(IDBasis, _pDegree, _uNoKnots, _uKnotVector, _qDegree, _vNoKnots,
                     _vKnotVector, _uNoControlPoints, _vNoControlPoints, cpNet));
-//	surfacePatches[surfacePatches.size()-1]->printSelf();
+
+    delete[] _controlPointNetID;
 }
 
 double IGAMesh::computeDisplacementComponent(std::string _dataFieldName, int _patchid, double _u, double _v,
@@ -124,11 +122,6 @@ void IGAMesh::addDataField(string _dataFieldName, EMPIRE_DataField_location _loc
 
 }
 
-void IGAMesh::print(){
-    for (int i = 0; i < surfacePatches.size(); i++)
-        surfacePatches[i]->print();
-}
-
 Message &operator<<(Message & _message, IGAMesh & _mesh) {
     _message << "\t" << "IGA Mesh name: " << _mesh.name << endl;
 
@@ -170,7 +163,7 @@ Message &operator<<(Message & _message, IGAMesh & _mesh) {
         _message << "\t\t\tControl Points Net: " << endl;
         int count = 0;
         for (int i = 0; i < _mesh.getSurfacePatches()[k]->getUNoControlPoints(); i++) {
-            cout << "\t\t\t";
+            _message << "\t\t\t";
             for (int j = 0; j < _mesh.getSurfacePatches()[k]->getVNoControlPoints(); j++) {
                 _message << _mesh.getSurfacePatches()[k]->getControlPointNet()[count]->getX()
                         << ", " << _mesh.getSurfacePatches()[k]->getControlPointNet()[count]->getY()

@@ -7,6 +7,7 @@
 // Inclusion of user defined libraries
 #include "NurbsBasis2D.h"
 #include "IGAMath.h"
+#include "Message.h"
 
 using namespace std;
 
@@ -24,14 +25,8 @@ NurbsBasis2D::NurbsBasis2D(int _ID = 0, int _pDegree = 0, int _noKnotsU = 0, dou
     bool vcondition = vNoBasisFnc
             != vBSplineBasis1D->getNoKnots() - vBSplineBasis1D->getPolynomialDegree() - 1;
     if (ucondition || vcondition) {
-        cout << endl;
-        cout << endl;
-        cout << "Error in NurbsBasis2D::NurbsBasis2D" << endl;
-        cout
-                << "The number of Control Points, the polynomial degrees and the knot vectors do not match"
-                << endl;
-        cout << endl;
-        cout << endl;
+        ERROR_OUT() << "Error in NurbsBasis2D::NurbsBasis2D" << endl;
+        ERROR_OUT() << "The number of Control Points, the polynomial degrees and the knot vectors do not match" << endl;
         exit(-1);
     }
 
@@ -172,40 +167,25 @@ void NurbsBasis2D::computeLocalBasisFunctionsAndDerivativesInefficient(double** 
 
     // Read and check input
     if (_maxMixDerivOrd > max(_derivDegreeU, _derivDegreeV) + 1) {
-        cout << endl;
-        cout << endl;
-        cout << "Error in NurbsBasis2D::computeLocalBasisFunctionsAndDerivatives" << endl;
-        cout << "Requested order of partial derivatives du: " << _derivDegreeU << " and dv: "
-                << _derivDegreeV << endl;
-        cout << "but requested maximal order of the mixed derivatives is dudv: " << _maxMixDerivOrd
-                << endl;
-        cout << "which is not possible" << endl;
-        cout << endl;
-        cout << endl;
+        ERROR_OUT() << " in NurbsBasis2D::computeLocalBasisFunctionsAndDerivatives" << endl;
+        ERROR_OUT() << "Requested order of partial derivatives du: " << _derivDegreeU << " and dv: " << _derivDegreeV
+         << " but requested maximal order of the mixed derivatives is dudv: " << _maxMixDerivOrd
+         << "which is not possible" << endl;
         exit(-1);
     }
     if (_derivDegreeU == 0 && _derivDegreeV == 0) {
-        cout << endl;
-        cout << endl;
-        cout << "Error in NurbsBasis2D::computeLocalBasisFunctionsAndDerivatives" << endl;
-        cout << "Requested order of partial derivatives du: " << _derivDegreeU << " and dv: "
+        ERROR_OUT() << " in NurbsBasis2D::computeLocalBasisFunctionsAndDerivatives" << endl;
+        ERROR_OUT() << "Requested order of partial derivatives du: " << _derivDegreeU << " and dv: "
                 << _derivDegreeV << endl;
-        cout << "For this purpose no derivatives need to be computed, use function:" << endl;
-        cout << "NurbsBasis2D::computeLocalBasisFunctions instead" << endl;
-        cout << endl;
-        cout << endl;
+        ERROR_OUT() << "For this purpose no derivatives need to be computed, use function:"
+         << "NurbsBasis2D::computeLocalBasisFunctions instead" << endl;
         exit(-1);
     }
     if (_derivDegreeU > 2 || _derivDegreeV > 2) {
-        cout << endl;
-        cout << endl;
-        cout << "Error in NurbsBasis2D::computeLocalBasisFunctionsAndDerivatives" << endl;
-        cout << "Requested order of partial derivatives du: " << _derivDegreeU << " and dv: "
-                << _derivDegreeV << endl;
-        cout << "but current implementation handles only up to second order derivatives" << endl;
-        cout << "at each parametric coordinate" << endl;
-        cout << endl;
-        cout << endl;
+        ERROR_OUT() << "Error in NurbsBasis2D::computeLocalBasisFunctionsAndDerivatives" << endl;
+        ERROR_OUT() << "Requested order of partial derivatives du: " << _derivDegreeU << " and dv: "
+                << _derivDegreeV << "but current implementation handles only up to second order derivatives" <<
+                "at each parametric coordinate" << endl;
         exit(-1);
     }
 
@@ -468,40 +448,25 @@ void NurbsBasis2D::computeLocalBasisFunctionsAndDerivativesInefficient(double* _
 
     // Read and check input
     if (_maxMixDerivOrd > max(_derivDegreeU, _derivDegreeV) + 1) {
-        cout << endl;
-        cout << endl;
-        cout << "Error in NurbsBasis2D::computeLocalBasisFunctionsAndDerivatives" << endl;
-        cout << "Requested order of partial derivatives du: " << _derivDegreeU << " and dv: "
-                << _derivDegreeV << endl;
-        cout << "but requested maximal order of the mixed derivatives is dudv: " << _maxMixDerivOrd
-                << endl;
-        cout << "which is not possible" << endl;
-        cout << endl;
-        cout << endl;
+        ERROR_OUT() << "Error in NurbsBasis2D::computeLocalBasisFunctionsAndDerivatives" << endl;
+        ERROR_OUT() << "Requested order of partial derivatives du: " << _derivDegreeU << " and dv: "
+                << _derivDegreeV << "but requested maximal order of the mixed derivatives is dudv: " << _maxMixDerivOrd
+                << "which is not possible" << endl;
         exit(-1);
     }
     if (_derivDegreeU == 0 && _derivDegreeV == 0) {
-        cout << endl;
-        cout << endl;
-        cout << "Error in NurbsBasis2D::computeLocalBasisFunctionsAndDerivatives" << endl;
-        cout << "Requested order of partial derivatives du: " << _derivDegreeU << " and dv: "
+        ERROR_OUT() << "Error in NurbsBasis2D::computeLocalBasisFunctionsAndDerivatives" << endl;
+        ERROR_OUT() << "Requested order of partial derivatives du: " << _derivDegreeU << " and dv: "
                 << _derivDegreeV << endl;
-        cout << "For this purpose no derivatives need to be computed, use function:" << endl;
-        cout << "NurbsBasis2D::computeLocalBasisFunctions instead" << endl;
-        cout << endl;
-        cout << endl;
+        ERROR_OUT() << "For this purpose no derivatives need to be computed, use function:"
+                << "NurbsBasis2D::computeLocalBasisFunctions instead" << endl;
         exit(-1);
     }
     if (_derivDegreeU > 2 || _derivDegreeV > 2) {
-        cout << endl;
-        cout << endl;
-        cout << "Error in NurbsBasis2D::computeLocalBasisFunctionsAndDerivatives" << endl;
-        cout << "Requested order of partial derivatives du: " << _derivDegreeU << " and dv: "
-                << _derivDegreeV << endl;
-        cout << "but current implementation handles only up to second order derivatives" << endl;
-        cout << "at each parametric coordinate" << endl;
-        cout << endl;
-        cout << endl;
+        ERROR_OUT() << "Error in NurbsBasis2D::computeLocalBasisFunctionsAndDerivatives" << endl;
+        ERROR_OUT() << "Requested order of partial derivatives du: " << _derivDegreeU << " and dv: "
+                << _derivDegreeV << "but current implementation handles only up to second order derivatives"
+                << "at each parametric coordinate" << endl;
         exit(-1);
     }
 
@@ -988,15 +953,37 @@ void NurbsBasis2D::computeLocalBasisFunctionsAndDerivatives(double* _basisFctsAn
     delete[] denominatorFct;
 }
 
-void NurbsBasis2D::printControlPointWeights() {
-    cout << endl;
-    cout << "---------------------------------------------------------------" << endl;
-    cout << "Debugging information in class NurbsBasis2D::IGAControlPointNet" << endl;
-    for (int i = 0; i < vNoBasisFnc * uNoBasisFnc; i++) {
-        cout << "CP " << "i weight -- " << IGAControlPointWeights[i] << " -->" << endl;
+Message &operator<<(Message &message, NurbsBasis2D &nurbsBasis2D) {
+    message << "\t" << "NurbsBasis2D: " << endl;
+
+    message << "\t\tpDegree:  " << nurbsBasis2D.getUBSplineBasis1D()->getPolynomialDegree() << endl;
+    message << "\t\tqDegree:  " << nurbsBasis2D.getVBSplineBasis1D()->getPolynomialDegree() << endl;
+
+    message << "\t\tKnots Vector U: [\t";
+    for (int i = 0; i < nurbsBasis2D.getUBSplineBasis1D()->getNoKnots(); i++)
+        message << nurbsBasis2D.getUBSplineBasis1D()->getKnotVector()[i] << "\t";
+    message << "]" << endl;
+
+    message << "\t\tKnots Vector V: [\t";
+    for (int i = 0; i < nurbsBasis2D.getVBSplineBasis1D()->getNoKnots(); i++)
+        message << nurbsBasis2D.getVBSplineBasis1D()->getKnotVector()[i] << "\t";
+    message << "]" << endl;
+
+    message << "\t\tControl Points Net: " << endl;
+    int count = 0;
+    for (int j = 0; j < nurbsBasis2D.getVNoBasisFnc(); j++) {
+        ERROR_OUT() << "\t\t";
+        for (int i = 0; i < nurbsBasis2D.getUNoBasisFnc(); i++) {
+            int Index = i * nurbsBasis2D.getVNoBasisFnc() + j;
+            message << nurbsBasis2D.getIGAControlPointWeights()[Index] << "\t";
+            count++;
+        }
+        message << endl;
     }
-    cout << "_______________________________________________________________" << endl;
-    cout << endl;
+
+    message() << "\t" << "---------------------------------" << endl;
+    return message;
 }
+
 
 }/* namespace EMPIRE */

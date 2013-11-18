@@ -81,13 +81,12 @@ void MapperAdapter::initMortarMapper(bool oppositeSurfaceNormal, bool dual,
             b->nodeIDs, b->elems, oppositeSurfaceNormal, dual, enforceConsistency);
 }
 
-void MapperAdapter::initIGAMortarMapper() {
+void MapperAdapter::initIGAMortarMapper(double _tolProjectionDistance, int _numGPsTriangle,
+        int _numGPsQuad) {
     assert(meshA->type == EMPIRE_Mesh_IGAMesh);
     assert(meshB->type == EMPIRE_Mesh_FEMesh);
-    mapperImpl = new IGAMortarMapper(name,dynamic_cast<IGAMesh *>(meshA),
-                     dynamic_cast<FEMesh *>(meshB),1e-6,7,25);
-    // Tri: 1,3,4,6,7,12,13,16
-    // Quad: 1,4,9,16,25
+    mapperImpl = new IGAMortarMapper(name, dynamic_cast<IGAMesh *>(meshA),
+            dynamic_cast<FEMesh *>(meshB), _tolProjectionDistance, _numGPsTriangle, _numGPsQuad);
 }
 
 void MapperAdapter::initNearestNeighborMapper() {
@@ -130,71 +129,71 @@ void MapperAdapter::consistentMapping(const DataField *fieldA, DataField *fieldB
 
     assert(mapperImpl != NULL);
 
-	assert(meshB->type == EMPIRE_Mesh_FEMesh);
-	FEMesh *feMeshB = dynamic_cast<FEMesh *>(meshB);
+    assert(meshB->type == EMPIRE_Mesh_FEMesh);
+    FEMesh *feMeshB = dynamic_cast<FEMesh *>(meshB);
 
-	assert(fieldA->dimension == fieldB->dimension);
-	assert(fieldB->numLocations == feMeshB->numNodes);
-	assert(fieldA->typeOfQuantity == EMPIRE_DataField_field);
-	assert(fieldB->typeOfQuantity == EMPIRE_DataField_field);
+    assert(fieldA->dimension == fieldB->dimension);
+    assert(fieldB->numLocations == feMeshB->numNodes);
+    assert(fieldA->typeOfQuantity == EMPIRE_DataField_field);
+    assert(fieldB->typeOfQuantity == EMPIRE_DataField_field);
 
-	if (meshA->type == EMPIRE_Mesh_FEMesh) {
-		FEMesh *feMeshA = dynamic_cast<FEMesh *>(meshA);
-		assert(fieldA->numLocations == feMeshA->numNodes);
-	} else if (meshA->type == EMPIRE_Mesh_IGAMesh) {
-		IGAMesh *IGAMehsA = dynamic_cast<IGAMesh *>(meshA);
-		assert(fieldA->numLocations == IGAMehsA->getNumControlPoints());
-	} else {
-		assert(0);
-	}
+    if (meshA->type == EMPIRE_Mesh_FEMesh) {
+        FEMesh *feMeshA = dynamic_cast<FEMesh *>(meshA);
+        assert(fieldA->numLocations == feMeshA->numNodes);
+    } else if (meshA->type == EMPIRE_Mesh_IGAMesh) {
+        IGAMesh *IGAMehsA = dynamic_cast<IGAMesh *>(meshA);
+        assert(fieldA->numLocations == IGAMehsA->getNumControlPoints());
+    } else {
+        assert(0);
+    }
 
-	double *fieldADOFi = new double[fieldA->numLocations];
-	double *fieldBDOFi = new double[fieldB->numLocations];
-	int numDOFs = fieldA->dimension;
-	for (int i = 0; i < numDOFs; i++) {
-		for (int j = 0; j < fieldA->numLocations; j++)
-			fieldADOFi[j] = fieldA->data[j * numDOFs + i];
-		mapperImpl->consistentMapping(fieldADOFi, fieldBDOFi);
-		for (int j = 0; j < fieldB->numLocations; j++)
-			fieldB->data[j * numDOFs + i] = fieldBDOFi[j];
-	}
-	delete[] fieldADOFi;
-	delete[] fieldBDOFi;
+    double *fieldADOFi = new double[fieldA->numLocations];
+    double *fieldBDOFi = new double[fieldB->numLocations];
+    int numDOFs = fieldA->dimension;
+    for (int i = 0; i < numDOFs; i++) {
+        for (int j = 0; j < fieldA->numLocations; j++)
+            fieldADOFi[j] = fieldA->data[j * numDOFs + i];
+        mapperImpl->consistentMapping(fieldADOFi, fieldBDOFi);
+        for (int j = 0; j < fieldB->numLocations; j++)
+            fieldB->data[j * numDOFs + i] = fieldBDOFi[j];
+    }
+    delete[] fieldADOFi;
+    delete[] fieldBDOFi;
 
 }
 
-void MapperAdapter::conservativeMapping(const DataField *fieldB,DataField *fieldA) {
-	assert(mapperImpl != NULL);
+void MapperAdapter::conservativeMapping(const DataField *fieldB, DataField *fieldA) {
+    assert(mapperImpl != NULL);
 
-	assert(meshB->type == EMPIRE_Mesh_FEMesh);
-	FEMesh *feMeshB = dynamic_cast<FEMesh *>(meshB);
-	assert(fieldA->dimension == fieldB->dimension);
-	assert(fieldB->numLocations == feMeshB->numNodes);
-	assert(fieldA->typeOfQuantity == EMPIRE_DataField_fieldIntegral);
-	assert(fieldB->typeOfQuantity == EMPIRE_DataField_fieldIntegral);
+    assert(meshB->type == EMPIRE_Mesh_FEMesh);
+    FEMesh *feMeshB = dynamic_cast<FEMesh *>(meshB);
+    assert(fieldA->dimension == fieldB->dimension);
+    assert(fieldB->numLocations == feMeshB->numNodes);
+    assert(fieldA->typeOfQuantity == EMPIRE_DataField_fieldIntegral);
+    assert(fieldB->typeOfQuantity == EMPIRE_DataField_fieldIntegral);
 
-	if (meshA->type == EMPIRE_Mesh_FEMesh) {
-		FEMesh *feMeshA = dynamic_cast<FEMesh *>(meshA);
-		assert(fieldA->numLocations == feMeshA->numNodes);
-	} else if (meshA->type == EMPIRE_Mesh_IGAMesh) {
-		IGAMesh *IGAMeshA = dynamic_cast<IGAMesh *>(meshA);
-		assert(fieldA->numLocations == IGAMeshA->getNumControlPoints());
-	} else {
-		assert(0);
-	}
+    if (meshA->type == EMPIRE_Mesh_FEMesh) {
+        FEMesh *feMeshA = dynamic_cast<FEMesh *>(meshA);
+        assert(fieldA->numLocations == feMeshA->numNodes);
+    } else if (meshA->type == EMPIRE_Mesh_IGAMesh) {
+        IGAMesh *IGAMeshA = dynamic_cast<IGAMesh *>(meshA);
+        assert(fieldA->numLocations == IGAMeshA->getNumControlPoints());
+    } else {
+        assert(0);
+    }
 
-	double *fieldADOFi = new double[fieldA->numLocations];
-	double *fieldBDOFi = new double[fieldB->numLocations];
-	int numDOFs = fieldA->dimension;
-	for (int i = 0; i < numDOFs; i++) {
-		for (int j = 0; j < fieldB->numLocations; j++)
-			fieldBDOFi[j] = fieldB->data[j * numDOFs + i];
-		mapperImpl->conservativeMapping(fieldBDOFi, fieldADOFi);
-		for (int j = 0; j < fieldA->numLocations; j++)
-			fieldA->data[j * numDOFs + i] = fieldADOFi[j];
-	}
-	delete[] fieldADOFi;
-	delete[] fieldBDOFi;
+    double *fieldADOFi = new double[fieldA->numLocations];
+    double *fieldBDOFi = new double[fieldB->numLocations];
+    int numDOFs = fieldA->dimension;
+    for (int i = 0; i < numDOFs; i++) {
+        for (int j = 0; j < fieldB->numLocations; j++)
+            fieldBDOFi[j] = fieldB->data[j * numDOFs + i];
+        mapperImpl->conservativeMapping(fieldBDOFi, fieldADOFi);
+        for (int j = 0; j < fieldA->numLocations; j++)
+            fieldA->data[j * numDOFs + i] = fieldADOFi[j];
+    }
+    delete[] fieldADOFi;
+    delete[] fieldBDOFi;
 
 }
 
