@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- EMPIRE input file -->
+<EMPIRE>
+	<code name="ping">
+		<type>signal</type>
+	</code>
+	<general>
+		<portFile>server.port</portFile>
+		<verbosity>DEBUG</verbosity>
+		<runTimeModifiableUserDefinedText></runTimeModifiableUserDefinedText>
+	</general>
+	<userDefined>
+		<myMessage>Servus</myMessage>
+	</userDefined>
+</EMPIRE>
