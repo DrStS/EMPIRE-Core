@@ -108,6 +108,22 @@ private:
 	 * \author Stefan Sicklinger
 	 ***********/
 	void fillServerPortFile();
+    /***********************************************************************************************
+     * \brief Fill the map fillVerbosity
+     * \author Stefan Sicklinger
+     ***********/
+    void fillVerbosity();
+    /***********************************************************************************************
+     * \brief Fill the map fillServerPortFile
+     * \author Stefan Sicklinger
+     ***********/
+    void fillrunTimeModifiableUserDefinedText();
+    /***********************************************************************************************
+     * \brief Compare two string case insensitive
+     * \return true or false
+     * \author Stefan Sicklinger
+     ***********/
+    bool CompareStringInsensitive(std::string strFirst, std::string strSecond);
 	/// The singleton of this class
 	static ClientMetaDatabase* clientMetaDatabase;
 	///Object of the tinyxml++ parser
@@ -116,6 +132,10 @@ private:
 	std::string serverPortFile;
 	///String for ClientName (Name of this client)
 	std::string clientName;
+	///boolean ifgetUserDefinedText is runTimeModifiable
+	bool runTimeModifiableUserDefinedText;
+    /// verbosity
+    std::string verbosity;
 };
 
 } /* namespace EMPIRE */
