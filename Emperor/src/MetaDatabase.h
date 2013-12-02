@@ -115,7 +115,7 @@ private:
      ***********/
     void fillServerPortFile();
     /***********************************************************************************************
-     * \brief Fill the map fillServerPortFile
+     * \brief Fill the map fillVerbosity
      * \author Stefan Sicklinger
      ***********/
     void fillVerbosity();
