@@ -125,11 +125,15 @@ struct structFilter {
     struct structScalingFilter {
         double factor;
     };
+    struct structSetFilter {
+        std::vector<double> value;
+    };
     EMPIRE_DataFieldFilter_type type;
     structMappingFilter mappingFilter;
     structCouplingAlgorithmFilter couplingAlgorithmFilter;
     structExtrapolatingFilter extrapolatingFilter;
     structScalingFilter scalingFilter;
+    structSetFilter setFilter;
     std::vector<structConnectionIO> inputs;
     std::vector<structConnectionIO> outputs;
 };

@@ -1,8 +1,30 @@
+/*  Copyright &copy; 2013, TU Muenchen, Chair of Structural Analysis,
+ *  Stefan Sicklinger, Tianyang Wang, Andreas Apostolatos, Munich
+ *
+ *  All rights reserved.
+ *
+ *  This file is part of EMPIRE.
+ *
+ *  EMPIRE is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  EMPIRE is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with EMPIRE.  If not, see http://www.gnu.org/licenses/.
+ */
 // User defined libraries
 #include "IGAMath.h"
 
 // External libraries
 #include <math.h>
+#include <assert.h>
+#include <stdlib.h>
 
 using namespace std;
 
@@ -216,6 +238,21 @@ double dotProduct(int _length, double* _vecI, double* _vecJ) {
     return dotProduct;
 }
 
+void crossProduct(double* _product, double* _v1, double* _v2) {
+    // Check input
+    assert(_product != NULL);
+    assert(_v1 != NULL);
+    assert(_v2 != NULL);
+
+    // Compute the cross product using the permutation tensor
+    _product[0] = _v1[1] * _v2[2] - _v1[2] * _v2[1];
+    _product[1] = _v1[2] * _v2[0] - _v1[0] * _v2[2];
+    _product[2] = _v1[0] * _v2[1] - _v1[1] * _v2[0];
+
+    // No return value
+    return;
+}
+
 bool solve2x2linearSystem(double* _b, double* _A) {
     /*
      * Solves a 2x2 linear equation system and stores the solution into the given right-hand side vector
@@ -230,11 +267,11 @@ bool solve2x2linearSystem(double* _b, double* _A) {
 
     // Check the tolerance criterion
     if (fabs(detA) < EPS * fabs(det0))
-        return false;
+    return false;
     if (fabs(detA) < EPS * fabs(det1))
-        return false;
+    return false;
     if (detA == 0)
-        return false;
+    return false;
 
     // Return the solution to the right-hand side vector
     _b[0] = det0 / detA;

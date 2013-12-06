@@ -1,3 +1,23 @@
+/*  Copyright &copy; 2013, TU Muenchen, Chair of Structural Analysis,
+ *  Stefan Sicklinger, Tianyang Wang, Andreas Apostolatos, Munich
+ *
+ *  All rights reserved.
+ *
+ *  This file is part of EMPIRE.
+ *
+ *  EMPIRE is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  EMPIRE is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with EMPIRE.  If not, see http://www.gnu.org/licenses/.
+ */
 /******************************************************************************//**
  * \file IGAMortarMapper.h
  * The header file of class IGAMortarMapper.
@@ -62,15 +82,27 @@ private:
     /// The parametric coordinates of the projected nodes on the surface
     std::vector<std::map<int, double*> > *projectedCoords;
 
+    /// Tolerance up to which projection is trusted
+    double disTol;
+
+    /// number of Gauss points used for computing triangle element
+    int numGPsTri;
+
+    /// number of Gauss points used for computing quad element
+    int numGPsQuad;
+
 public:
     /***********************************************************************************************
      * \brief Constructor
      * \param[in] _name The name of the mapper
      * \param[in] _meshIGA The IGAMesh
      * \param[in] _meshFE The FEMesh
+     * \param[in] _disTol Tolerance up to which projection is trusted
+     * \param[in] _numGPsTri The number of Gauss points used for computing triangle element
+     * \param[in] _numGPsQuad The number of Gauss points used for computing quad element
      * \author Chenshen Wu
      ***********/
-    IGAMortarMapper(std::string _name, IGAMesh *_meshIGA, FEMesh *_meshFE);
+    IGAMortarMapper(std::string _name, IGAMesh *_meshIGA, FEMesh *_meshFE, double _disTol, int _numGPsTri, int _numGPsQuad);
 
     /***********************************************************************************************
      * \brief Destructor Chenshen Wu
@@ -94,6 +126,13 @@ public:
      * \author Chenshen Wu
      ***********/
     void computeCouplingMatrices();
+
+    /***********************************************************************************************
+     * \brief Computes coupling matrices in the given patch for the element which is split into more than one patches
+     * \author Chenshen Wu
+     ***********/
+    void computeCouplingMatricesInPatch(IGAPatchSurface* _thePatch, int _numNodesInPatch, double* _elementInPatchIGA,
+           double* _elementInPatchFE, int _elemCount, int _nShapeFuncsFE);
 
     /***********************************************************************************************
      * \brief Integrate the element coupling matrices and assemble them to the global one
@@ -131,15 +170,6 @@ public:
      * \author Chenshen Wu
      ***********/
     void printCouplingMatrices();
-
-    /// Tolerance up to which projection is trusted
-    const static double disTol = 1e-6;
-
-    /// number of Gauss points used for computing triangle element
-    static const int numGPsTri = 6;
-
-    /// number of Gauss points used for computing quad element
-    static const int numGPsQuad = 25;
 
     /// unit test class
     friend class TestIGAMortarMapper;

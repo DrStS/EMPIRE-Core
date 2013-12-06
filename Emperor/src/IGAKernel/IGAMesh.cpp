@@ -1,3 +1,23 @@
+/*  Copyright &copy; 2013, TU Muenchen, Chair of Structural Analysis,
+ *  Stefan Sicklinger, Tianyang Wang, Andreas Apostolatos, Munich
+ *
+ *  All rights reserved.
+ *
+ *  This file is part of EMPIRE.
+ *
+ *  EMPIRE is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  EMPIRE is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with EMPIRE.  If not, see http://www.gnu.org/licenses/.
+ */
 // Inclusion of standard libraries
 #include <iostream>
 #include <stdlib.h>
@@ -61,6 +81,24 @@ void IGAMesh::addPatch(int _pDegree, int _uNoKnots, double* _uKnotVector, int _q
 //	surfacePatches[surfacePatches.size()-1]->printSelf();
 }
 
+double IGAMesh::computeDisplacementComponent(std::string _dataFieldName, int _patchid, double _u, double _v,
+        int _component) {
+
+    DataField *dataField = getDataFieldByName(_dataFieldName);
+    IGAPatchSurface* igaPatch = surfacePatches[_patchid];
+    int numCP = igaPatch->getNoControlPoints();
+    double* valuesOnCP = new double[numCP];
+    for (int i = 0; i < numCP; i++)
+        valuesOnCP[i] =
+                dataField->data[mapControlPointIDToIndex[igaPatch->getControlPointNet()[i]->getId()]
+                        * 3 + _component];
+    double result = igaPatch->computePostprocessingScalarValue(_u, _v, valuesOnCP);
+
+    delete[] valuesOnCP;
+
+    return result;
+}
+
 void IGAMesh::computeBoundingBox() {
     if (boundingBox.isComputed)
         return;
@@ -104,6 +142,11 @@ void IGAMesh::addDataField(string _dataFieldName, EMPIRE_DataField_location _loc
             _typeOfQuantity);
     nameToDataFieldMap.insert(pair<string, DataField*>(_dataFieldName, dataField));
 
+}
+
+void IGAMesh::print(){
+    for (int i = 0; i < surfacePatches.size(); i++)
+        surfacePatches[i]->print();
 }
 
 Message &operator<<(Message & _message, IGAMesh & _mesh) {
@@ -152,7 +195,7 @@ Message &operator<<(Message & _message, IGAMesh & _mesh) {
                 _message << _mesh.getSurfacePatches()[k]->getControlPointNet()[count]->getX()
                         << ", " << _mesh.getSurfacePatches()[k]->getControlPointNet()[count]->getY()
                         << ", " << _mesh.getSurfacePatches()[k]->getControlPointNet()[count]->getZ()
-                        << "\t";
+                        << "\t \t";
                 count++;
             }
             _message << endl;

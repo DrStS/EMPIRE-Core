@@ -18,41 +18,40 @@
  *  You should have received a copy of the GNU General Public License
  *  along with EMPIRE.  If not, see http://www.gnu.org/licenses/.
  */
-#include "ScalingFilter.h"
+#include "SetFilter.h"
 #include "DataField.h"
 #include "Signal.h"
 #include "ConnectionIO.h"
 
 namespace EMPIRE {
 
-ScalingFilter::ScalingFilter(double _factor) :
-        AbstractFilter(), factor(_factor) {
+SetFilter::SetFilter(std::vector<double> _value) :
+        AbstractFilter(), value(_value) {
 }
 
-ScalingFilter::~ScalingFilter() {
+SetFilter::~SetFilter() {
 }
 
-void ScalingFilter::filtering() {
+void SetFilter::filtering() {
     EMPIRE_ConnectionIO_Type IOType = inputVec[0]->type;
     if (IOType == EMPIRE_ConnectionIO_DataField) {
+    	assert(false); // Not yet implemented for fields
         DataField *inDataField = inputVec[0]->dataField;
-        for (int i = 0; i < inDataField->numLocations * inDataField->dimension; i++) {
-            if (factor == 0.0)
-                inDataField->data[i] = 0.0;
-            else
-                inDataField->data[i] *= factor;
-        }
+        /*for (int i = 0; i < inDataField->numLocations * inDataField->dimension; i++) {
+            inDataField->data[i] = value;
+        }*/
     } else if (IOType == EMPIRE_ConnectionIO_Signal) {
         Signal *inSignal = inputVec[0]->signal;
+        assert(inSignal->size==value.size());
         for (int i = 0; i < inSignal->size; i++) {
-            inSignal->array[i] *= factor;
+            inSignal->array[i] = value[i];
         }
     } else {
         assert(false);
     }
 }
 
-void ScalingFilter::init() {
+void SetFilter::init() {
     assert(inputVec.size() == 1);
     assert(outputVec.size() == 1);
     assert(inputVec[0]->type == outputVec[0]->type);

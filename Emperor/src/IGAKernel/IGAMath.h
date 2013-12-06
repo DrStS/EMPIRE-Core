@@ -1,3 +1,23 @@
+/*  Copyright &copy; 2013, TU Muenchen, Chair of Structural Analysis,
+ *  Stefan Sicklinger, Tianyang Wang, Andreas Apostolatos, Munich
+ *
+ *  All rights reserved.
+ *
+ *  This file is part of EMPIRE.
+ *
+ *  EMPIRE is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  EMPIRE is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with EMPIRE.  If not, see http://www.gnu.org/licenses/.
+ */
 /******************************************************************************//**
  * \file IGAMath.h
  * The header file of math functions for mortar isogeometric mapping and for the basis functions
@@ -54,6 +74,16 @@ double square2normVector(int, double*);
 double dotProduct(int, double*, double*);
 
 /***********************************************************************************************
+* \brief Compute the cross product between two vectors in the 3-D space
+* \param[in/out] _product The product of vector1 and vector 2
+* \param[in] _v1 The 1st vector
+* \param[in] _v2 The 2nd vector
+* \author Chenshen Wu
+***********/
+void crossProduct(double* _product, double* _v1, double* _v2);
+
+/***********************************************************************************************
+
  * \brief Solve a 2x2 linear equation system
  * \param[out] Flag on whether the linear system is solvable up to tolerance EPS or not
  * \param[in/out] _b The right-hand side vector where the solution is also stored, _b = double[2]

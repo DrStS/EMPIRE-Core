@@ -75,6 +75,7 @@ enum EMPIRE_DataFieldFilter_type {
     EMPIRE_CouplingAlgorithmFilter,
     EMPIRE_LocationFilter,
     EMPIRE_ScalingFilter,
+    EMPIRE_SetFilter,
     EMPIRE_ExtrapolatingFilter
 };
 

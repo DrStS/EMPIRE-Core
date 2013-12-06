@@ -1,3 +1,23 @@
+/*  Copyright &copy; 2013, TU Muenchen, Chair of Structural Analysis,
+ *  Stefan Sicklinger, Tianyang Wang, Andreas Apostolatos, Munich
+ *
+ *  All rights reserved.
+ *
+ *  This file is part of EMPIRE.
+ *
+ *  EMPIRE is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  EMPIRE is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with EMPIRE.  If not, see http://www.gnu.org/licenses/.
+ */
 /***********************************************************************************************//**
  * \file IGAMesh.h
  * This file holds the class IGAMesh.h
@@ -94,6 +114,20 @@ public:
      ***********/
     void computeBoundingBox();
 
+    /// Postprocessing
+public:
+    /***********************************************************************************************
+     * \brief Returns the displacement component at the specified parametric location
+     * \param[in] _dataFieldName name of the data field
+     * \param[in] _patchid The ID of the patch
+     * \param[in] _u The parametric coordinate u
+     * \param[in] _v The parametric coordinate v
+     * \param[in] _component The component of the displacement field (0,1,2)=(x,y,z)
+     * \author Chenshen Wu
+     ***********/
+    double computeDisplacementComponent(std::string _dataFieldName, int _patchid, double _u, double _v,
+            int _component);
+
     /// Get and set functions
 public:
     /***********************************************************************************************
@@ -123,12 +157,12 @@ public:
         return numControlPoints;
     }
 
+    /// DeBug
+public:
     /***********************************************************************************************
-     * \brief Return a pointer to the data field by its name
-     * \param[in] _dataFieldName name of the data field
-     * \author Tianyang Wang
+     * \brief Prints all the patches of the IGAMesh
      ***********/
-    DataField *getDataFieldByName(std::string _dataFieldName);
+    void print();
 };
 
 /***********************************************************************************************

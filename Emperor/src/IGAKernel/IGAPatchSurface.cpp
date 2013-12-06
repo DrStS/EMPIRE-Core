@@ -1,8 +1,29 @@
+/*  Copyright &copy; 2013, TU Muenchen, Chair of Structural Analysis,
+ *  Stefan Sicklinger, Tianyang Wang, Andreas Apostolatos, Munich
+ *
+ *  All rights reserved.
+ *
+ *  This file is part of EMPIRE.
+ *
+ *  EMPIRE is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  EMPIRE is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with EMPIRE.  If not, see http://www.gnu.org/licenses/.
+ */
 // Inclusion of standard libraries
 #include <iostream>
 #include <stdlib.h>
 #include <math.h>
 #include <assert.h>
+#include <limits>
 
 // Inclusion of user defined libraries
 #include "IGAPatchSurface.h"
@@ -127,6 +148,56 @@ IGAPatchSurface::IGAPatchSurface(int _IDBasis, int _pDegree, int _uNoKnots, doub
 IGAPatchSurface::~IGAPatchSurface() {
 //	delete IGABasis;
 
+}
+
+double IGAPatchSurface::computePostprocessingScalarValue(double _u, double _v, double* _valuesOnCP) {
+    /*
+     *  Returns the Cartesian coordinates of a point on the 2D IGA patch whose surface parameters are _uPrm and _vPrm.
+     *  The coordinates of the point are assumed on the 3D space that is _cartesianCoordinates = [X Y Z]
+     */
+
+    // Read input
+    assert(_valuesOnCP!=NULL);
+
+    int spanU = IGABasis->getUBSplineBasis1D()->findKnotSpan(_u);
+    int spanV = IGABasis->getVBSplineBasis1D()->findKnotSpan(_v);
+
+    // Compute the local basis functions in the vicinity of the point
+    int pDegree = IGABasis->getUBSplineBasis1D()->getPolynomialDegree();
+    int qDegree = IGABasis->getVBSplineBasis1D()->getPolynomialDegree();
+    int noLocalBasisFunctions = (pDegree + 1) * (qDegree + 1);
+    double* localBasisFunctions = new double[noLocalBasisFunctions];
+
+    IGABasis->computeLocalBasisFunctions(localBasisFunctions, _u, spanU, _v, spanV);
+
+    // Initialize the Control Point index
+    int CPindex = 0;
+
+    // Initialize a basis functions counter
+    int counter_basis = 0;
+
+    double result = 0.0;
+
+    // Loop over all the non-zero contributions
+    for (int j = 0; j <= qDegree; j++) {
+        for (int i = 0; i <= pDegree; i++) {
+
+            // Update the correct index for the Control Points in 2D. Pattern A[i][j] = V[i*m+j]
+            CPindex = (spanU - pDegree + i) * vNoControlPoints
+                    + (spanV - qDegree + j);
+
+            //
+            result += localBasisFunctions[counter_basis] * _valuesOnCP[CPindex];
+
+            // Update basis function's counter
+            counter_basis++;
+        }
+    }
+
+    // Free the memory from the heap
+    delete[] localBasisFunctions;
+
+    return result;
 }
 
 void IGAPatchSurface::computeCartesianCoordinates(double* _cartesianCoordinates, double _uPrm,
@@ -406,6 +477,27 @@ void IGAPatchSurface::computeBaseVectors(double* _baseVectors,
     }
 }
 
+void IGAPatchSurface::computeBaseVectors(double* _baseVectors, double _u, int _spanU, double _v,
+        int _spanV) {
+
+    // Get the polynomial degree of the basis in each direction
+    int pDegree = IGABasis->getUBSplineBasis1D()->getPolynomialDegree();
+    int qDegree = IGABasis->getVBSplineBasis1D()->getPolynomialDegree();
+    int noLocalBasisFunctions = (pDegree + 1) * (qDegree + 1);
+
+    // Derivative order of the basis functions needed for the computation of the base vectors
+    int derivDegree = 1;
+
+    // Compute the local basis functions and their derivatives
+    double* localBasisFunctionsAndDerivatives = new double[(derivDegree + 1) * (derivDegree + 2)
+            * noLocalBasisFunctions / 2];
+    IGABasis->computeLocalBasisFunctionsAndDerivatives(localBasisFunctionsAndDerivatives,
+            derivDegree, _u, _spanU, _v, _spanV);
+
+    // Compute the base vectors at the given surface parameters
+    computeBaseVectors(_baseVectors, localBasisFunctionsAndDerivatives, _spanU, _spanV);
+}
+
 int IGAPatchSurface::indexDerivativeBaseVector(int _derivDegree, int _uDerivIndex, int _vDerivIndex,
         int _componentIndex, int _baseVecIndex) {
     /*
@@ -586,11 +678,6 @@ bool IGAPatchSurface::computePointProjectionOnPatch(double& _u, double& _v, doub
     // 1. Read input and initialize the data
     // Read input
     assert(_P!=NULL);
-
-//	cout << "initial u: " << _u << endl;
-//	cout << "initial v: " << _v << endl;
-//	cout << "Cartesian Coordinate: " << _P[0] << ", " << _P[1] << ", " << _P[2]
-//			<< endl;
 
     // Initialize the flag to true
     bool flagNewtonRaphson = true;
@@ -803,29 +890,29 @@ bool IGAPatchSurface::computePointProjectionOnPatch(double& _u, double& _v, doub
     }
 
     // 3. Check whether maximum number of iterations has been reached and if yes return 0 to the flag (non-converged iterations)
-    if (counter > MAX_NUM_ITERATIONS) {
-        flagNewtonRaphson = 0;
-        if (du * du + dv * dv < 1e-10) {
-            cout << "Warning in function IGAPatchSurface::computePointProjectionOnPatch " << endl;
-            cout << "Newton-Raphson iterations converged to a non-projection point" << endl;
-            cout << "(U, V) : (" << _u << " , " << _v << ")" << endl;
-
-        } else {
-            cout << endl;
-            cout << "Error in function IGAPatchSurface::computePointProjectionOnPatch" << endl;
-            cout << "Newton-Raphson iterations did not converge up to iteration number:  "
-                    << MAX_NUM_ITERATIONS << endl;
-            cout << "Point: (" << _P[0] << "," << _P[1] << "," << _P[2] << ")" << endl;
-            cout << endl;
-//			exit(-1);
-        }
-    } else if (counter > REGULAR_NUM_ITERATIONS) {
-        cout << endl;
-        cout << "Warning in function IGAPatchSurface::computePointProjectionOnPatch" << endl;
-        cout << "Number of iterations for the Newton-Raphson algorithm to converge:  "
-                << counter - 1 << endl;
-        cout << endl;
-    }
+//    if (counter > MAX_NUM_ITERATIONS) {
+//        flagNewtonRaphson = 0;
+//        if (du * du + dv * dv < 1e-10) {
+//            cout << "Warning in function IGAPatchSurface::computePointProjectionOnPatch " << endl;
+//            cout << "Newton-Raphson iterations converged to a non-projection point" << endl;
+//            cout << "(U, V) : (" << _u << " , " << _v << ")" << endl;
+//
+//        } else {
+//            cout << endl;
+//            cout << "Error in function IGAPatchSurface::computePointProjectionOnPatch" << endl;
+//            cout << "Newton-Raphson iterations did not converge up to iteration number:  "
+//                    << MAX_NUM_ITERATIONS << endl;
+//            cout << "Point: (" << _P[0] << "," << _P[1] << "," << _P[2] << ")" << endl;
+//            cout << endl;
+////			exit(-1);
+//        }
+//    } else if (counter > REGULAR_NUM_ITERATIONS) {
+//        cout << endl;
+//        cout << "Warning in function IGAPatchSurface::computePointProjectionOnPatch" << endl;
+//        cout << "Number of iterations for the Newton-Raphson algorithm to converge:  "
+//                << counter - 1 << endl;
+//        cout << endl;
+//    }
 
     // 4. Function appendix (Clear the memory from the dynamically allocated variables and return the flag on convergence)
     // Clear the memory on the heap
@@ -848,6 +935,503 @@ bool IGAPatchSurface::computePointProjectionOnPatch(double& _u, double& _v, doub
 
     // Compute the closest point projection using the Newton-Rapshon algorithm
     return computePointProjectionOnPatch(_u, _v, _P, tmp);
+}
+
+bool IGAPatchSurface::computePointProjectionOnPatchBoundaryOnGivenEdge(double& _t, double& _ratio,
+        double& _distance, double* _P1, double* _P2, int _edge) {
+
+    assert(_P1!=NULL);
+    assert(_P2!=NULL);
+
+    bool flagNewtonRaphson = true;
+
+    // Initialize number of spatial dimensions
+    int dim = 3;
+
+    // Initialize the distance vector
+    double distanceVec[3];
+    double directionVecSurface[3];
+    double directionVecLine[3];
+    double directionVecOrthogonal[3];
+    for (int i = 0; i < dim; i++)
+        directionVecLine[i] = _P2[i] - _P1[i];
+    double product1[3];
+    double product2[3];
+    double product3[3];
+
+    // Initialize the base vectors and their derivatives
+    double G1[3];
+    double G2[3];
+    double H11[3];
+    double H22[3];
+    double H12[3];
+
+    // Initialize Jacobian matrix
+    double df;
+
+    // Initialize right-hand side solution vector
+    double f;
+
+    // Initialize the knot span indices
+    int uKnotSpan = 0;
+    int vKnotSpan = 0;
+
+    // The NURBS polynomial degrees
+    int pDegree = IGABasis->getUBSplineBasis1D()->getPolynomialDegree();
+    int qDegree = IGABasis->getVBSplineBasis1D()->getPolynomialDegree();
+
+    // The lengths of the knot vectors to the NURBS patch
+    int lengthUKnotVct = IGABasis->getUBSplineBasis1D()->getNoKnots();
+    int lengthVKnotVct = IGABasis->getVBSplineBasis1D()->getNoKnots();
+
+    // Local number of basis functions
+    int noLocalBasisFcts = (pDegree + 1) * (qDegree + 1);
+
+    // Initialize the Newton-Raphson iteration counter
+    int counter = 0;
+
+    // Number of derivatives needed for the basis functions (cause also 1st derivatives of the base vectors are needed for the Newton-Raphson iterations)
+    int derivDegreeBasis = 2;
+
+    // The number of the base vectors
+    int noBaseVcts = 2;
+
+    // Initialize the array of the NURBS basis functions and their derivatives
+    double* basisFctsAndDerivs = new double[(derivDegreeBasis + 1) * (derivDegreeBasis + 2)
+            * noLocalBasisFcts / 2];
+
+    // Number of derivatives for the base vectors
+    int derivDegreeBaseVcts = derivDegreeBasis - 1;
+
+    // Initialize the array of the base vectors and their derivatives
+    double* baseVecAndDerivs = new double[(derivDegreeBaseVcts + 1) * (derivDegreeBaseVcts + 2)
+            * dim * noBaseVcts / 2];
+
+    int direction;
+    double u;
+    double v;
+    switch (_edge) {
+    case 0:
+        u = _t;
+        v = IGABasis->getVBSplineBasis1D()->getKnotVector()[0];
+        direction = 0;
+        break;
+    case 1:
+        u = _t;
+        v = IGABasis->getVBSplineBasis1D()->getKnotVector()[lengthVKnotVct - 1];
+        direction = 0;
+        break;
+    case 2:
+        u = IGABasis->getUBSplineBasis1D()->getKnotVector()[0];
+        v = _t;
+        direction = 1;
+        break;
+    case 3:
+        u = IGABasis->getUBSplineBasis1D()->getKnotVector()[lengthUKnotVct - 1];
+        v = _t;
+        direction = 1;
+        break;
+    }
+
+    double P0[3];
+
+    // 2. Loop over all the Newton-Raphson iterations
+    while (counter <= MAX_NUM_ITERATIONS) {
+
+        // 2i. Update the iteration counter
+        counter++;
+
+        // 2ii. Find the span of the given surface parameters
+        uKnotSpan = IGABasis->getUBSplineBasis1D()->findKnotSpan(u);
+        vKnotSpan = IGABasis->getVBSplineBasis1D()->findKnotSpan(v);
+
+        // 2iii. Compute the NURBS basis functions and their derivatives at current (_u,_v) pair of surface parameters
+        IGABasis->computeLocalBasisFunctionsAndDerivatives(basisFctsAndDerivs, derivDegreeBasis, u,
+                uKnotSpan, v, vKnotSpan);
+
+        // 2iv. Compute the base vectors at current (_u,_v) pair of surface parameters
+        computeBaseVectorsAndDerivatives(baseVecAndDerivs, basisFctsAndDerivs, derivDegreeBaseVcts,
+                uKnotSpan, vKnotSpan);
+
+        // 2v. Compute the Cartesian components of the point on the surface
+        computeCartesianCoordinates(P0, basisFctsAndDerivs, derivDegreeBasis, uKnotSpan, vKnotSpan);
+
+        // 2vi. Compute the distance vector between the vector to be projected and the estimated one
+        for (int i = 0; i < dim; i++) {
+            distanceVec[i] = P0[i] - _P1[i];
+            G1[i] = baseVecAndDerivs[indexDerivativeBaseVector(derivDegreeBaseVcts, 0, 0, i, 0)];
+            G2[i] = baseVecAndDerivs[indexDerivativeBaseVector(derivDegreeBaseVcts, 0, 0, i, 1)];
+            H11[i] = baseVecAndDerivs[indexDerivativeBaseVector(derivDegreeBaseVcts, 1, 0, i, 0)];
+            H22[i] = baseVecAndDerivs[indexDerivativeBaseVector(derivDegreeBaseVcts, 0, 1, i, 1)];
+            H12[i] = baseVecAndDerivs[indexDerivativeBaseVector(derivDegreeBaseVcts, 0, 1, i, 0)];
+        }
+
+        crossProduct(directionVecSurface, G1, G2);
+        crossProduct(directionVecOrthogonal, directionVecLine, directionVecSurface);
+        f = dotProduct(dim, distanceVec, directionVecOrthogonal);
+
+        if (direction == 0) {
+            crossProduct(product1, H11, G2);
+            crossProduct(product2, G1, H12);
+            df = dotProduct(dim, G1, directionVecOrthogonal);
+        } else {
+            crossProduct(product1, H12, G2);
+            crossProduct(product2, G1, H22);
+            df = dotProduct(dim, G2, directionVecOrthogonal);
+        }
+
+        for (int i = 0; i < dim; i++)
+            product1[i] += product2[i];
+
+        crossProduct(product3, directionVecLine, product1);
+
+        df += dotProduct(dim, distanceVec, product3);
+
+        if (direction == 0)
+            u -= f / df;
+        else
+            v -= f / df;
+
+        if (fabs(f / df) < 1e-13)
+            break;
+
+        // 2vii. Check and modify the surface parameters if they stay out of their knot spans
+        if (u > IGABasis->getUBSplineBasis1D()->getKnotVector()[lengthUKnotVct - 1])
+            u = IGABasis->getUBSplineBasis1D()->getKnotVector()[lengthUKnotVct - 1];
+        if (u < IGABasis->getUBSplineBasis1D()->getKnotVector()[0])
+            u = IGABasis->getUBSplineBasis1D()->getKnotVector()[0];
+        if (v > IGABasis->getVBSplineBasis1D()->getKnotVector()[lengthVKnotVct - 1])
+            v = IGABasis->getVBSplineBasis1D()->getKnotVector()[lengthVKnotVct - 1];
+        if (v < IGABasis->getVBSplineBasis1D()->getKnotVector()[0])
+            v = IGABasis->getVBSplineBasis1D()->getKnotVector()[0];
+    }
+
+    // 3. Check whether maximum number of iterations has been reached and if yes return 0 to the flag (non-converged iterations)
+    if (counter > MAX_NUM_ITERATIONS)
+        flagNewtonRaphson = false;
+
+    if (direction == 0)
+        _t = u;
+    else
+        _t = v;
+
+    double length = sqrt(square2normVector(dim, directionVecSurface));
+    for (int i = 0; i < dim; i++)
+        directionVecSurface[i] /= length;
+
+    double h10 = dotProduct(dim, distanceVec, directionVecSurface);
+    double h12 = dotProduct(dim, directionVecLine, directionVecSurface);
+
+    for (int i = 0; i < dim; i++) {
+        distanceVec[i] -= h10 * directionVecSurface[i];
+        directionVecLine[i] -= h12 * directionVecSurface[i];
+    }
+
+    double len10 = dotProduct(dim, distanceVec, directionVecLine);
+    double len12 = dotProduct(dim, directionVecLine, directionVecLine);
+    _ratio = len10 / len12;
+
+    double P00[3];
+    for (int i = 0; i < dim; i++) {
+        P00[i] = _P1[i] * (1 - _ratio) + _P2[i] * _ratio;
+        P00[i] -= P0[i];
+    }
+    _distance = sqrt(square2normVector(dim, P00));
+
+    // 4. Function appendix (Clear the memory from the dynamically allocated variables and return the flag on convergence)
+    // Clear the memory on the heap
+    delete[] basisFctsAndDerivs;
+    delete[] baseVecAndDerivs;
+
+    // Return the flag
+    return flagNewtonRaphson;
+
+}
+
+bool IGAPatchSurface::computePointProjectionOnPatchBoundary(double& _u, double& _v, double& _ratio,
+        double& _distance, double* _P1, double* _P2) {
+    double u1 = _u;
+    double v1 = _v;
+    double t;
+    double distance = numeric_limits<double>::max();
+    double div = 0.0;
+    bool isConverged = false;
+    _distance = numeric_limits<double>::max();
+
+    // Loop over all the edges of the NURBS patch (for tensor product surfaces there are 4 edges)
+    for (int edge = 0; edge < 4; edge++) {
+
+        // Find the fixed and the running parameter on the patch boundary
+        if (edge == 0 or edge == 1)
+            t = u1;
+        else
+            t = v1;
+
+        // Compute point projection from the line to the NURBS patch boundary
+        isConverged = computePointProjectionOnPatchBoundaryOnGivenEdge(t, div, distance, _P1, _P2,
+                edge);
+
+        if (isConverged)
+            if (distance < _distance && div >= 0.0 && div <= 1.0) {
+
+                _distance = distance;
+                _ratio = div;
+                switch (edge) {
+                case 0:
+                    _u = t;
+                    _v = IGABasis->getVBSplineBasis1D()->getKnotVector()[0];
+                    break;
+                case 1:
+                    _u = t;
+                    _v =
+                            IGABasis->getVBSplineBasis1D()->getKnotVector()[IGABasis->getVBSplineBasis1D()->getNoKnots()
+                                    - 1];
+                    break;
+                case 2:
+                    _u = IGABasis->getUBSplineBasis1D()->getKnotVector()[0];
+                    _v = t;
+                    break;
+                case 3:
+                    _u =
+                            IGABasis->getUBSplineBasis1D()->getKnotVector()[IGABasis->getUBSplineBasis1D()->getNoKnots()
+                                    - 1];
+                    _v = t;
+                    break;
+                }
+            }
+    }
+
+    if (_distance == numeric_limits<double>::max())
+        return false;
+    else if (_ratio >= 0.0 && _ratio <= 1.0) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+bool IGAPatchSurface::computeLineMinimumDistanceToPatchBoundaryOnGivenEdge(double& _t,
+        double& _distance, double* _P1, double* _P2, int _edge) {
+
+    assert(_P1!=NULL);
+    assert(_P2!=NULL);
+
+    bool flagNewtonRaphson = true;
+
+    // Initialize number of spatial dimensions
+    int noSpatialDimensions = 3;
+
+    // Initialize the distance vector
+    double distanceVector01[3];
+    double distanceVector02[3];
+    double distanceVector12[3];
+    double product1[3];
+    double product2[3];
+    double product3[3];
+
+    // Initialize the base vectors and their derivatives
+    double baseVec[3];
+    double dBaseVec[3];
+
+    // Initialize Jacobian matrix
+    double df;
+
+    // Initialize right-hand side solution vector
+    double f;
+
+    // Initialize the knot span indices
+    int uKnotSpan = 0;
+    int vKnotSpan = 0;
+
+    // The NURBS polynomial degrees
+    int pDegree = IGABasis->getUBSplineBasis1D()->getPolynomialDegree();
+    int qDegree = IGABasis->getVBSplineBasis1D()->getPolynomialDegree();
+
+    // The lengths of the knot vectors to the NURBS patch
+    int lengthUKnotVct = IGABasis->getUBSplineBasis1D()->getNoKnots();
+    int lengthVKnotVct = IGABasis->getVBSplineBasis1D()->getNoKnots();
+
+    // Local number of basis functions
+    int noLocalBasisFcts = (pDegree + 1) * (qDegree + 1);
+
+    // Initialize the Newton-Raphson iteration counter
+    int counter = 0;
+
+    // Number of derivatives needed for the basis functions (cause also 1st derivatives of the base vectors are needed for the Newton-Raphson iterations)
+    int derivDegreeBasis = 2;
+
+    // The number of the base vectors
+    int noBaseVcts = 2;
+
+    // Initialize the array of the IGA basis functions and their derivatives
+    double* basisFctsAndDerivs = new double[(derivDegreeBasis + 1) * (derivDegreeBasis + 2)
+            * noLocalBasisFcts / 2];
+
+    // Number of derivatives for the base vectors
+    int derivDegreeBaseVcts = derivDegreeBasis - 1;
+
+    // Initialize the array of the base vectors and their derivatives
+    double* baseVecAndDerivs = new double[(derivDegreeBaseVcts + 1) * (derivDegreeBaseVcts + 2)
+            * noSpatialDimensions * noBaseVcts / 2];
+
+    int direction;
+    double u;
+    double v;
+    switch (_edge) {
+    case 0:
+        u = _t;
+        v = IGABasis->getVBSplineBasis1D()->getKnotVector()[0];
+        direction = 0;
+        break;
+    case 1:
+        u = _t;
+        v = IGABasis->getVBSplineBasis1D()->getKnotVector()[lengthVKnotVct - 1];
+        direction = 0;
+        break;
+    case 2:
+        u = IGABasis->getUBSplineBasis1D()->getKnotVector()[0];
+        v = _t;
+        direction = 1;
+        break;
+    case 3:
+        u = IGABasis->getUBSplineBasis1D()->getKnotVector()[lengthUKnotVct - 1];
+        v = _t;
+        direction = 1;
+        break;
+    }
+
+    double P0[3];
+
+    // 2. Loop over all the Newton-Raphson iterations
+    while (counter <= MAX_NUM_ITERATIONS) {
+
+        // 2i. Update the iteration counter
+        counter++;
+
+        // 2ii. Find the span of the given surface parameters
+        uKnotSpan = IGABasis->getUBSplineBasis1D()->findKnotSpan(u);
+        vKnotSpan = IGABasis->getVBSplineBasis1D()->findKnotSpan(v);
+
+        // 2iii. Compute the IGA basis functions and their derivatives at current (_u,_v) pair of surface parameters
+        IGABasis->computeLocalBasisFunctionsAndDerivatives(basisFctsAndDerivs, derivDegreeBasis, u,
+                uKnotSpan, v, vKnotSpan);
+
+        computeBaseVectorsAndDerivatives(baseVecAndDerivs, basisFctsAndDerivs, derivDegreeBaseVcts,
+                uKnotSpan, vKnotSpan);
+
+        // 2iv. Compute the Cartesian components of the point on the surface
+        computeCartesianCoordinates(P0, basisFctsAndDerivs, derivDegreeBasis, uKnotSpan, vKnotSpan);
+
+        // 2v. Compute the distance vector between the vector to be projected and the estimated one
+        for (int i = 0; i < noSpatialDimensions; i++) {
+            distanceVector01[i] = P0[i] - _P1[i];
+            distanceVector02[i] = P0[i] - _P2[i];
+            distanceVector12[i] = _P1[i] - _P2[i];
+            baseVec[i] = baseVecAndDerivs[indexDerivativeBaseVector(derivDegreeBaseVcts, 0, 0, i,
+                    direction)];
+            dBaseVec[i] = baseVecAndDerivs[indexDerivativeBaseVector(derivDegreeBaseVcts,
+                    1 - direction, direction, i, direction)];
+        }
+
+        crossProduct(product1, baseVec, distanceVector12);
+        crossProduct(product2, dBaseVec, distanceVector12);
+        crossProduct(product3, distanceVector01, distanceVector02);
+        f = dotProduct(noSpatialDimensions, product1, product3);
+        df = dotProduct(noSpatialDimensions, product2, product3)
+                + dotProduct(noSpatialDimensions, product1, product1);
+
+        if (direction == 0)
+            u -= f / df;
+        else
+            v -= f / df;
+
+        if (fabs(f / df) < 1e-13)
+            break;
+
+        // 2xvi. Check and modify the surface parameters if they stay out of their knot spans
+        if (u > IGABasis->getUBSplineBasis1D()->getKnotVector()[lengthUKnotVct - 1])
+            u = IGABasis->getUBSplineBasis1D()->getKnotVector()[lengthUKnotVct - 1];
+        if (u < IGABasis->getUBSplineBasis1D()->getKnotVector()[0])
+            u = IGABasis->getUBSplineBasis1D()->getKnotVector()[0];
+        if (v > IGABasis->getVBSplineBasis1D()->getKnotVector()[lengthVKnotVct - 1])
+            v = IGABasis->getVBSplineBasis1D()->getKnotVector()[lengthVKnotVct - 1];
+        if (v < IGABasis->getVBSplineBasis1D()->getKnotVector()[0])
+            v = IGABasis->getVBSplineBasis1D()->getKnotVector()[0];
+    }
+
+    // 3. Check whether maximum number of iterations has been reached and if yes return 0 to the flag (non-converged iterations)
+    if (counter > MAX_NUM_ITERATIONS)
+        flagNewtonRaphson = false;
+
+    if (direction == 0)
+        _t = u;
+    else
+        _t = v;
+
+    _distance = sqrt(square2normVector(noSpatialDimensions, product3))
+            / sqrt(square2normVector(noSpatialDimensions, distanceVector12));
+
+    // 4. Function appendix (Clear the memory from the dynamically allocated variables and return the flag on convergence)
+    // Clear the memory on the heap
+    delete[] basisFctsAndDerivs;
+    delete[] baseVecAndDerivs;
+
+    // Return the flag
+    return flagNewtonRaphson;
+
+}
+
+void IGAPatchSurface::computeLineMinimumDistanceToPatchBoundary(double& _u, double& _v,
+        double& _distance, double* _P1, double* _P2) {
+    double u1 = _u;
+    double v1 = _v;
+    double t;
+    double distance = numeric_limits<double>::max();
+    bool isConverged = false;
+    _distance = distance;
+
+    // Loop over all the edges of the NURBS patch (for tensor product surfaces there are 4 edges)
+    for (int edge = 0; edge < 4; edge++) {
+
+        // Find the running and the fixed parameter on the NURBS boundary
+        if (edge == 0 or edge == 1)
+            t = u1;
+        else
+            t = v1;
+
+        // Compute point projection from the line to the NURBS patch boundary
+        isConverged = computeLineMinimumDistanceToPatchBoundaryOnGivenEdge(t, distance, _P1, _P2,
+                edge);
+
+        if (distance < _distance) {
+
+            _distance = distance;
+            switch (edge) {
+            case 0:
+                _u = t;
+                _v = IGABasis->getVBSplineBasis1D()->getKnotVector()[0];
+                break;
+            case 1:
+                _u = t;
+                _v =
+                        IGABasis->getVBSplineBasis1D()->getKnotVector()[IGABasis->getVBSplineBasis1D()->getNoKnots()
+                                - 1];
+                break;
+            case 2:
+                _u = IGABasis->getUBSplineBasis1D()->getKnotVector()[0];
+                _v = t;
+                break;
+            case 3:
+                _u =
+                        IGABasis->getUBSplineBasis1D()->getKnotVector()[IGABasis->getUBSplineBasis1D()->getNoKnots()
+                                - 1];
+                ;
+                _v = t;
+                break;
+            }
+        }
+
+    }
 }
 
 void IGAPatchSurface::findNearestKnotIntersection(double& _u, double& _v, double* _P) {
@@ -893,7 +1477,26 @@ void IGAPatchSurface::findNearestKnotIntersection(double& _u, double& _v, double
             }
 
         }
+}
 
+void IGAPatchSurface::computeCartesianCoordinatesAndNormalVector(double* _coords, double* _normal,
+        double _u, double _v) {
+
+    // The knot spans
+    int spanU = IGABasis->getUBSplineBasis1D()->findKnotSpan(_u);
+    int spanV = IGABasis->getVBSplineBasis1D()->findKnotSpan(_v);
+
+    // Compute the Cartesian coordinates of (_u,_v)
+    computeCartesianCoordinates(_coords, _u, spanU, _v, spanV);
+
+    // Compute the base vectors
+    double baseVec[6];
+    computeBaseVectors(baseVec, _u, spanU, _v, spanV);
+
+    // Compute the cross product of the surface base vectors to get the surface normal
+    _normal[0] = baseVec[1] * baseVec[5] - baseVec[2] * baseVec[4];
+    _normal[1] = baseVec[2] * baseVec[3] - baseVec[0] * baseVec[5];
+    _normal[2] = baseVec[0] * baseVec[4] - baseVec[1] * baseVec[3];
 }
 
 void IGAPatchSurface::printControlPointNet() {
@@ -934,9 +1537,9 @@ void IGAPatchSurface::print() {
 
     cout << "\t\tControl Points Net: " << endl;
     int count = 0;
-    for (int i = 0; i < uNoControlPoints; i++) {
+    for (int j = 0; j < vNoControlPoints; j++) {
         cout << "\t\t";
-        for (int j = 0; j < vNoControlPoints; j++) {
+        for (int i = 0; i < uNoControlPoints; i++) {
             cout << ControlPointNet[count]->getId() << ":" << ControlPointNet[count]->getX() << ", "
                     << ControlPointNet[count]->getY() << ", " << ControlPointNet[count]->getZ()
                     << "  " << ControlPointNet[count]->getW() << "\t";

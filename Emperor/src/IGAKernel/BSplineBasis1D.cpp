@@ -1,3 +1,23 @@
+/*  Copyright &copy; 2013, TU Muenchen, Chair of Structural Analysis,
+ *  Stefan Sicklinger, Tianyang Wang, Andreas Apostolatos, Munich
+ *
+ *  All rights reserved.
+ *
+ *  This file is part of EMPIRE.
+ *
+ *  EMPIRE is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  EMPIRE is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with EMPIRE.  If not, see http://www.gnu.org/licenses/.
+ */
 // Inclusion of standard libraries
 #include <iostream>
 #include <stdlib.h>
@@ -10,6 +30,8 @@
 using namespace std;
 
 namespace EMPIRE {
+
+const double BSplineBasis1D::EPS_ACCPETEDINTOKNOTSPAN = 1e-14;
 
 BSplineBasis1D::BSplineBasis1D(int _ID = 0, int _pDegree = 0, int _noKnots = 0,
         double* _KnotVector = 0) :
@@ -70,6 +92,11 @@ BSplineBasis1D& BSplineBasis1D::operator=(const BSplineBasis1D& _bsplineBasis1D)
 
 int BSplineBasis1D::findKnotSpan(double _uPrm) {
     // Check input
+    if (_uPrm < KnotVector[0] && KnotVector[0] - _uPrm < EPS_ACCPETEDINTOKNOTSPAN)
+        _uPrm = KnotVector[0];
+    if (_uPrm > KnotVector[NoKnots - 1] && _uPrm - KnotVector[NoKnots - 1] < EPS_ACCPETEDINTOKNOTSPAN)
+
+        _uPrm = KnotVector[0];
     if (_uPrm < KnotVector[0] || _uPrm > KnotVector[NoKnots - 1]) {
         cout << endl;
         cout << "Error in BSplineBasis1D::find_knot_span" << endl;
