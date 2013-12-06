@@ -44,10 +44,14 @@ ClientCommunication::ClientCommunication() {
 
     portFile.open((const char*) (ClientMetaDatabase::getSingleton()->getServerPortFile().c_str()));
     MPI_Initialized(&isMpiInitCalledByClient);
+	myRank = -1;
+    MPI_Comm_rank(MPI_COMM_WORLD, &myRank);
     if (!isMpiInitCalledByClient) {
         MPI_Init(NULL, NULL);
     } else {
-        cout << "EMPIRE_INFO: Client has already called MPI_Init." << endl;
+	    if (myRank == 0) {
+			cout << "EMPIRE_INFO: Client has already called MPI_Init." << endl;
+		}
     }
     isMpiCallLegal = 1;
 }
@@ -58,8 +62,6 @@ ClientCommunication::~ClientCommunication() {
 void ClientCommunication::connect() {
     MPI_Status status;
     int connectionSuccessful = 0;
-    int myRank = -1;
-    MPI_Comm_rank(MPI_COMM_WORLD, &myRank);
     if (portFile.is_open()) {
         getline(portFile, portName);
         portFile.close();
@@ -93,8 +95,10 @@ void ClientCommunication::connect() {
 }
 
 void ClientCommunication::disconnect() {
+
     if (isMpiCallLegal) {
-        int size;
+        int size; 
+		if (myRank == 0) {
         cout << "EMPIRE_INFO: Disconnect from Emperor" << endl;
         MPI_Comm_size(MPI_COMM_WORLD, &size);
         cout << "EMPIRE_INFO: COMM size MPI_COMM_WORLD: " << size << endl;
@@ -103,10 +107,11 @@ void ClientCommunication::disconnect() {
         MPI_Comm_remote_size(server, &size);
         cout << "EMPIRE_INFO: COMM size remote server: " << size << endl;
         MPI_Comm_disconnect(&server);
+		}
         if (!isMpiInitCalledByClient) {
             MPI_Finalize();
         }
     }
-}
+
 
 } /* namespace EMPIRE */
