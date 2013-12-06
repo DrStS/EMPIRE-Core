@@ -45,10 +45,11 @@ ClientCommunication::ClientCommunication() {
     portFile.open((const char*) (ClientMetaDatabase::getSingleton()->getServerPortFile().c_str()));
     MPI_Initialized(&isMpiInitCalledByClient);
 	myRank = -1;
-    MPI_Comm_rank(MPI_COMM_WORLD, &myRank);
     if (!isMpiInitCalledByClient) {
         MPI_Init(NULL, NULL);
+		MPI_Comm_rank(MPI_COMM_WORLD, &myRank);
     } else {
+	    MPI_Comm_rank(MPI_COMM_WORLD, &myRank);
 	    if (myRank == 0) {
 			cout << "EMPIRE_INFO: Client has already called MPI_Init." << endl;
 		}
