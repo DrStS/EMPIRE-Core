@@ -96,22 +96,23 @@ void ClientCommunication::connect() {
 
 void ClientCommunication::disconnect() {
 
-    if (isMpiCallLegal) {
-        int size; 
+	if (isMpiCallLegal) {
 		if (myRank == 0) {
-        cout << "EMPIRE_INFO: Disconnect from Emperor" << endl;
-        MPI_Comm_size(MPI_COMM_WORLD, &size);
-        cout << "EMPIRE_INFO: COMM size MPI_COMM_WORLD: " << size << endl;
-        MPI_Comm_size(server, &size);
-        cout << "EMPIRE_INFO: COMM size server: " << size << endl;
-        MPI_Comm_remote_size(server, &size);
-        cout << "EMPIRE_INFO: COMM size remote server: " << size << endl;
-        MPI_Comm_disconnect(&server);
+			int size;
+			cout << "EMPIRE_INFO: Disconnect from Emperor" << endl;
+			MPI_Comm_size(MPI_COMM_WORLD, &size);
+			cout << "EMPIRE_INFO: COMM size MPI_COMM_WORLD: " << size << endl;
+			MPI_Comm_size(server, &size);
+			cout << "EMPIRE_INFO: COMM size server: " << size << endl;
+			MPI_Comm_remote_size(server, &size);
+			cout << "EMPIRE_INFO: COMM size remote server: " << size << endl;
+			MPI_Comm_disconnect(&server);
 		}
-        if (!isMpiInitCalledByClient) {
-            MPI_Finalize();
-        }
-    }
+		if (!isMpiInitCalledByClient) {
+			MPI_Finalize();
+		}
+	}
 
+}
 
 } /* namespace EMPIRE */
