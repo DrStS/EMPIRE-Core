@@ -287,7 +287,7 @@ void MetaDatabase::fillSettingMapperVec() {
 			assert(false);
 		}
 		settingMapperVec.push_back(mapper);
-    }
+	}
 }
 
 void MetaDatabase::fillSettingCouplingAlgorithmVec() {
