@@ -125,8 +125,8 @@ public:
      * \param[in] _component The component of the displacement field (0,1,2)=(x,y,z)
      * \author Chenshen Wu
      ***********/
-    double computeDisplacementComponent(std::string _dataFieldName, int _patchid, double _u, double _v,
-            int _component);
+    double computeDisplacementComponent(std::string _dataFieldName, int _patchid, double _u,
+            double _v, int _component);
 
     /// Get and set functions
 public:
@@ -140,12 +140,30 @@ public:
     }
 
     /***********************************************************************************************
+     * \brief Get the control points
+     * \param[out] A container vector of type std::vector<IGAPatchSurface*>
+     * \author Chenshen Wu
+     ***********/
+    inline std::vector<IGAControlPoint*> getGlobalControlPoints() {
+        return globalControlPoints;
+    }
+
+    /***********************************************************************************************
      * \brief Get the map of the global ID of the Control Points to the Index of its array controlPointID
      * \param[out] The map of the global ID of the Control Points to the Index of its array
      * \author Chenshen Wu
      ***********/
     inline std::map<int, int> getMapControlPointIDToIndex() {
         return mapControlPointIDToIndex;
+    }
+
+    /***********************************************************************************************
+     * \brief Get the control points id
+     * \param[out] A container vector of type std::vector<IGAPatchSurface*>
+     * \author Chenshen Wu
+     ***********/
+    inline int* getControlPointsID() {
+        return controlPointID;
     }
 
     /***********************************************************************************************
@@ -157,16 +175,10 @@ public:
         return numControlPoints;
     }
 
-    /// DeBug
-public:
-    /***********************************************************************************************
-     * \brief Prints all the patches of the IGAMesh
-     ***********/
-    void print();
 };
 
 /***********************************************************************************************
- * \brief Allows for nice debug output later
+ * \brief Allows for nice debug output
  * \author Chenshen Wu
  ***********/
 Message &operator<<(Message &message, IGAMesh &mesh);

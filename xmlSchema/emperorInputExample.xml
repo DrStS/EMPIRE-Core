@@ -83,6 +83,16 @@
 			<meshRef clientCodeName="OpenFOAM" meshName="myMesh1" />
 		</meshB>
 	</mapper>
+	<mapper name="IGAMortar1" type="IGAMortarMapper">	  
+		<IGAMortarMapper tolProjectionDistance = "1e-6" numGPsTriangle="16" numGPsQuad="25" />
+		<meshA>
+			<meshRef clientCodeName="carat" meshName="myMesh1" />
+		</meshA>
+		<meshB>
+			<meshRef clientCodeName="OpenFOAM" meshName="myMesh1" />
+		</meshB>
+	</mapper>
+	
 
 	<!-- ================ define couplingAlgorithms ================================== -->
 	<couplingAlgorithm type="aitken" name="aitken">
