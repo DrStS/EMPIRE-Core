@@ -255,30 +255,34 @@ void MetaDatabase::fillSettingMapperVec() {
 		if (xmlMapper->GetAttribute("type") == "mortarMapper") {
 			mapper.type = EMPIRE_MortarMapper;
 			ticpp::Element *xmlMortarMapper = xmlMapper->FirstChildElement("mortarMapper");
-			if (xmlMortarMapper->GetAttribute("oppositeSurfaceNormal") == "true")
-				mapper.mortarMapper.oppositeSurfaceNormal = true;
-			else if (xmlMortarMapper->GetAttribute("oppositeSurfaceNormal") == "false")
-				mapper.mortarMapper.oppositeSurfaceNormal = false;
-			else
-				assert(false);
-			if (xmlMortarMapper->GetAttribute("dual") == "true")
-				mapper.mortarMapper.dual = true;
-			else if (xmlMortarMapper->GetAttribute("dual") == "false")
-				mapper.mortarMapper.dual = false;
-			else
-				assert(false);
-			if (xmlMortarMapper->GetAttribute("enforceConsistency") == "true")
-				mapper.mortarMapper.enforceConsistency = true;
-			else if (xmlMortarMapper->GetAttribute("enforceConsistency") == "false")
-				mapper.mortarMapper.enforceConsistency = false;
-			else
-				assert(false);
+		if (xmlMortarMapper->GetAttribute("oppositeSurfaceNormal") == "true")
+			mapper.mortarMapper.oppositeSurfaceNormal = true;
+		else if (xmlMortarMapper->GetAttribute("oppositeSurfaceNormal") == "false")
+			mapper.mortarMapper.oppositeSurfaceNormal = false;
+		else
+			assert(false);
+		if (xmlMortarMapper->GetAttribute("dual") == "true")
+			mapper.mortarMapper.dual = true;
+		else if (xmlMortarMapper->GetAttribute("dual") == "false")
+			mapper.mortarMapper.dual = false;
+		else
+			assert(false);
+		if (xmlMortarMapper->GetAttribute("enforceConsistency") == "true")
+			mapper.mortarMapper.enforceConsistency = true;
+		else if (xmlMortarMapper->GetAttribute("enforceConsistency") == "false")
+			mapper.mortarMapper.enforceConsistency = false;
+		else 
+			assert(false);
 		} else if (xmlMapper->GetAttribute("type") == "nearestNeighborMapper") {
 			mapper.type = EMPIRE_NearestNeighborMapper;
 		} else if (xmlMapper->GetAttribute("type") == "barycentricInterpolationMapper") {
 			mapper.type = EMPIRE_BarycentricInterpolationMapper;
 		} else if (xmlMapper->GetAttribute("type") == "IGAMortarMapper"){
 			mapper.type = EMPIRE_IGAMortarMapper;
+			ticpp::Element *xmlIGAMortar = xmlMapper->FirstChildElement("IGAMortarMapper");
+			mapper.igaMortarMapper.tolProjectionDistance = xmlIGAMortar->GetAttribute<double>("tolProjectionDistance");
+			mapper.igaMortarMapper.numGPsTriangle = xmlIGAMortar->GetAttribute<int>("numGPsTriangle");
+			mapper.igaMortarMapper.numGPsQuad = xmlIGAMortar->GetAttribute<int>("numGPsQuad");
 		} else {
 			assert(false);
 		}

@@ -178,10 +178,13 @@ public:
         return IGAControlPointWeights;
     }
 
-    /// DEBUGGING functions
-public:
-    void printControlPointWeights();
 };
+
+/***********************************************************************************************
+ * \brief Allows for nice debug output
+ * \author Chenshen Wu
+ ***********/
+Message &operator<<(Message &message, NurbsBasis2D &nurbsBasis2D);
 
 }/* namespace EMPIRE */
 

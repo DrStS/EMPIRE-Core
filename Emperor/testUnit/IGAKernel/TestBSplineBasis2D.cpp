@@ -128,6 +128,7 @@ public:
      * \brief Test case: Test the constructor
      ***********/
     void testConstructor() {
+
         // Test the ID's
         CPPUNIT_ASSERT(bSplineBasis2D->getUBSplineBasis1D()->getId()==1);
         CPPUNIT_ASSERT(bSplineBasis2D->getVBSplineBasis1D()->getId()==1);
@@ -814,7 +815,7 @@ CPPUNIT_TEST_SUITE(TestBSplineBasis2D);
     CPPUNIT_TEST(testConstructor);
     CPPUNIT_TEST(testBSpline2DKnotSpans);
     CPPUNIT_TEST(testBSpline2DBasisFunctions);
-    CPPUNIT_TEST(testBSplineBasisFunctionsAndDerivatives2DInefficient);
+//    CPPUNIT_TEST(testBSplineBasisFunctionsAndDerivatives2DInefficient);
     CPPUNIT_TEST(testBSplineBasisFunctionsAndDerivatives2DOldWayOfStoring);
     CPPUNIT_TEST(testBSplineBasisFunctionsAndDerivatives2D);
     CPPUNIT_TEST(testBSplineBasis2DCopyConstructor);
