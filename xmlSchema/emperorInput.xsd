@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<schema xmlns="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.example.org/emperorInput"
-	elementFormDefault="qualified" xmlns:tns="http://www.example.org/emperorInput">
+<schema xmlns="http://www.w3.org/2001/XMLSchema" targetNamespace="EmperorInput"
+	elementFormDefault="qualified" xmlns:tns="EmperorInput">
 	<!-- REMARK: * The schema is a kind of language. A tutorial can be found 
 		at http://www.w3.org/TR/xmlschema-0/. * There are different ways to define 
 		a schema file which specifies the xml input file, but it is recommanded to 
