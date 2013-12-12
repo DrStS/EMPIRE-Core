@@ -195,6 +195,7 @@
 			</filter>
 		</sequence>
 	</connection>
+	
 
 	<connection name="transfer signal1">
 		<input>
@@ -212,7 +213,23 @@
 					<signalRef clientCodeName="pong" signalName="signal1" />
 				</output>
 			</filter>
+			<filter type="scalingFilter">
+				<inputAndOutput>
+					<signalRef clientCodeName="pong" signalName="signal1" />
+				</inputAndOutput>
+				<scalingFilter factor="-1.0" />
+			</filter>
 		</sequence>
+	</connection>
+    <connection name="set initial value">
+		<sequence>
+			<filter type="setFilter">
+				<inputAndOutput>
+					<signalRef clientCodeName="generatorUnit" signalName="forcesRotorMoment" />
+				</inputAndOutput>
+				<setFilter value="0.0 1.0 2.0" />
+	        </filter>
+	   </sequence>
 	</connection>
 	<!-- ================ define coSimulation process ================================ -->
 	<coSimulation>

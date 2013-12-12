@@ -18,8 +18,8 @@
  *  You should have received a copy of the GNU General Public License
  *  along with EMPIRE.  If not, see http://www.gnu.org/licenses/.
  */
-#ifndef SCALINGFILTER_H_
-#define SCALINGFILTER_H_
+#ifndef SETFILTER_H_
+#define SETFILTER_H_
 
 #include "AbstractFilter.h"
 #include <assert.h>
@@ -27,36 +27,36 @@
 
 namespace EMPIRE {
 /********//**
- * \brief Class ScalingFilter scales signals and fields by a constant factor
- * \author Tianyang Wang
+ * \brief Class SetFilter sets signals and fields to a constant value
+ * \author Stefan Sicklinger
  ***********/
-class ScalingFilter : public AbstractFilter {
+class SetFilter : public AbstractFilter {
 public:
     /***********************************************************************************************
      * \brief Constructor
-     * \param[in] _factor for scaling
-     * \author Tianyang Wang
+     * \param[in] _value to set the signal/datafield to
+     * \author Stefan Sicklinger
      ***********/
-    ScalingFilter(double _factor);
+    SetFilter(std::vector<double> _value);
     /***********************************************************************************************
      * \brief Destructor
-     * \author Tianyang Wang
+     * \author Stefan Sicklinger
      ***********/
-    virtual ~ScalingFilter();
+    virtual ~SetFilter();
     /***********************************************************************************************
      * \brief Filtering
-     * \author Tianyang Wang
+     * \author Stefan Sicklinger
      ***********/
     void filtering();
     /***********************************************************************************************
      * \brief Initialize data according to the inputs and outputs
-     * \author Tianyang Wang
+     * \author Stefan Sicklinger
      ***********/
     void init();
 private:
-    /// scaling factor
-    double factor;
+    /// values for all entries
+    std::vector<double> value;
 };
 
 } /* namespace EMPIRE */
-#endif /* SCALINGFILTER_H_ */
+#endif /* SETFILTER_H_ */

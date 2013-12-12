@@ -60,6 +60,7 @@
 			<enumeration value="locationFilter"></enumeration>
 			<enumeration value="copyFilter"></enumeration>
 			<enumeration value="scalingFilter"></enumeration>
+			<enumeration value="setFilter"></enumeration>
 		</restriction>
 	</simpleType>
 
@@ -368,6 +369,12 @@
 				<element name="scalingFilter" maxOccurs="1" minOccurs="0">
 					<complexType>
 						<attribute name="factor" type="double" use="required">
+						</attribute>
+					</complexType>
+				</element>
+				<element name="setFilter" maxOccurs="1" minOccurs="0">
+					<complexType>
+						<attribute name="value" type="string" use="required">
 						</attribute>
 					</complexType>
 				</element>
