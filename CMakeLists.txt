@@ -71,6 +71,8 @@ macro_ensure_out_of_source_build("In source build is not allowed for ${PROJECT_N
 IF (${USE_INTEL_COMPILERS_AND_MKL})
   SET (CMAKE_C_COMPILER "mpiicc")
   SET (CMAKE_CXX_COMPILER "mpiicpc")
+  #SET (MKL_INCLUDE_DIR "")
+  #SET (MKL_LIB_DIR     "")
   find_package(MKL REQUIRED)
   #Let the source code know
   add_definitions(-DUSE_INTEL_MKL)
