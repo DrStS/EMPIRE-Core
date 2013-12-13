@@ -1,0 +1,111 @@
+/*  Copyright &copy; 2013, TU Muenchen, Chair of Structural Analysis,
+ *  Stefan Sicklinger, Tianyang Wang, Andreas Apostolatos, Munich
+ *
+ *  All rights reserved.
+ *
+ *  This file is part of EMPIRE.
+ *
+ *  EMPIRE is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  EMPIRE is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with EMPIRE.  If not, see http://www.gnu.org/licenses/.
+ */
+#include <string>
+#include <fstream>
+#include <iostream>
+#include <sstream>
+#include <list>
+#include <map>
+#include <assert.h>
+#include <vector>
+#include "stdlib.h"
+
+#include "MatlabIGAFileIO.h"
+#include "IGAMesh.h"
+#include "IGAPatchSurface.h"
+#include "BSplineBasis2D.h"
+#include "BSplineBasis1D.h"
+#include "IGAControlPoint.h"
+#include "DataField.h"
+
+using namespace std;
+namespace EMPIRE {
+namespace MatlabIGAFileIO {
+/********//**
+ * \brief Class Node stores node data
+ ***********/
+
+void writeIGAMesh(IGAMesh* igaMesh) {
+    // Matlab visualization
+    ofstream myfile;
+    myfile.open("ControlPoints");
+    myfile.precision(14);
+    myfile << std::dec;
+    int* CPsID = igaMesh->getControlPointsID();
+    vector<IGAControlPoint*> CPs = igaMesh->getGlobalControlPoints();
+
+    for (int i = 0; i < igaMesh->getNumControlPoints(); i++) {
+        myfile << i + 1 << " " << CPsID[i] << " ";
+        myfile << CPs[i]->getX() << " " << CPs[i]->getY() << "  " << CPs[i]->getY() << " "
+                << CPs[i]->getW() << "\n";
+    }
+    myfile.close();
+
+    myfile.open("SurfacePatches");
+    myfile.precision(14);
+    myfile << std::dec;
+
+    std::vector<IGAPatchSurface*> surfacePatches = igaMesh->getSurfacePatches();
+    int numPatches = surfacePatches.size();
+    IGAPatchSurface* patch;
+    for (int patchCount = 0; patchCount < numPatches; patchCount++) {
+        patch = surfacePatches[patchCount];
+        myfile << "%% Patch: " << patchCount + 1 << endl;
+        myfile << "surfacePatch(" << patchCount + 1 << ").p = " << patch->getIGABasis()->getUBSplineBasis1D()->getPolynomialDegree() << ";" << endl;
+        myfile << "surfacePatch(" << patchCount + 1 << ").q = " << patch->getIGABasis()->getVBSplineBasis1D()->getPolynomialDegree() << ";" << endl;
+        myfile << "surfacePatch(" << patchCount + 1 << ").knotU = [";
+
+        for (int i = 0; i < patch->getIGABasis()->getUBSplineBasis1D()->getNoKnots(); i++)
+            myfile << patch->getIGABasis()->getUBSplineBasis1D()->getKnotVector()[i] << "  ";
+        myfile << "];" << endl;
+        myfile << "surfacePatch(" << patchCount + 1 << ").knotV = [";
+        for (int i = 0; i < patch->getIGABasis()->getVBSplineBasis1D()->getNoKnots(); i++)
+            myfile << patch->getIGABasis()->getVBSplineBasis1D()->getKnotVector()[i] << "  ";
+        myfile << "];" << endl;
+
+        myfile << "surfacePatch(" << patchCount + 1 << ").CPID = [";
+        for (int i = 0; i < patch->getNoControlPoints(); i++)
+            myfile << patch->getControlPointNet()[i]->getId() << " ";
+        myfile << "];" << endl;
+    }
+
+    myfile.close();
+
+    const char * fileNameTmp = "displacements";
+    myfile.open(fileNameTmp);
+    myfile.close();
+
+}
+
+void writeDisplacementOnCPs(string _dataFieldName, int _step, DataField* _dataField) {
+    ofstream myfile;
+    if (!_dataFieldName.compare("displacements")) {
+        myfile.open(_dataFieldName.c_str(), ios::app);
+        myfile.precision(14);
+        myfile << std::dec;
+        myfile << "    " << _step << "\n";
+        for (int i = 0; i < _dataField->numLocations * 3; i++)
+            myfile << _dataField->data[i] << "\n";
+        myfile.close();
+    }
+}
+} /* namespace GiDFileIO */
+} /* namespace EMPIRE */

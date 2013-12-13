@@ -25,6 +25,7 @@
 #include <iostream>
 #include <string>
 #include <math.h>
+#include "Message.h"
 
 // Inclusion of user-defined libraries
 #include "BSplineBasis1D.h"
@@ -118,6 +119,8 @@ public:
      * \brief Test case: Test the constructor
      ***********/
     void testConstructor() {
+
+//        DEBUG_OUT() << *bSplineBasis1D;
         CPPUNIT_ASSERT(bSplineBasis1D->getId()==1);
         CPPUNIT_ASSERT(bSplineBasis1D->getPolynomialDegree()==3);
         CPPUNIT_ASSERT(bSplineBasis1D->getNoKnots()==14);

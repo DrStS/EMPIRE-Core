@@ -25,6 +25,7 @@
 #include<assert.h>
 
 // Inclusion of user defined libraries
+#include "Message.h"
 #include "BSplineBasis1D.h"
 
 using namespace std;
@@ -43,24 +44,16 @@ BSplineBasis1D::BSplineBasis1D(int _ID = 0, int _pDegree = 0, int _noKnots = 0,
 
     for (int i = 1; i < PDegree + 1; i++) {
         if (KnotVector[i] != KnotVector[0]) {
-            cout << endl;
-            cout << "Error in BSplineBasis1D::BSplineBasis1D" << endl;
-            cout << "p+1 first knots are not the same but knot vector is expected to be open"
-                    << endl;
-            cout << endl;
-            cout << endl;
-            exit(-1);
+            ERROR_OUT("in BSplineBasis1D::BSplineBasis1D");
+            ERROR_OUT("p+1 first knots are not the same but knot vector is expected to be open");
+            exit(EXIT_FAILURE);
         }
     }
     for (int i = NoKnots - 2; i >= NoKnots - PDegree; i--) {
         if (KnotVector[i] != KnotVector[NoKnots - 1]) {
-            cout << endl;
-            cout << "Error in BSplineBasis1D::BSplineBasis1D" << endl;
-            cout << "p+1 last knots are not the same but knot vector is expected to be open"
-                    << endl;
-            cout << endl;
-            cout << endl;
-            exit(-1);
+            ERROR_OUT("in BSplineBasis1D::BSplineBasis1D");
+            ERROR_OUT("p+1 last knots are not the same but knot vector is expected to be open");
+            exit(EXIT_FAILURE);
         }
     }
 }
@@ -90,6 +83,12 @@ BSplineBasis1D& BSplineBasis1D::operator=(const BSplineBasis1D& _bsplineBasis1D)
     return *this;
 }
 
+BSplineBasis1D::~BSplineBasis1D() {
+
+    delete[] KnotVector;
+
+}
+
 int BSplineBasis1D::findKnotSpan(double _uPrm) {
     // Check input
     if (_uPrm < KnotVector[0] && KnotVector[0] - _uPrm < EPS_ACCPETEDINTOKNOTSPAN)
@@ -98,12 +97,9 @@ int BSplineBasis1D::findKnotSpan(double _uPrm) {
 
         _uPrm = KnotVector[0];
     if (_uPrm < KnotVector[0] || _uPrm > KnotVector[NoKnots - 1]) {
-        cout << endl;
-        cout << "Error in BSplineBasis1D::find_knot_span" << endl;
-        cout << "Given parameter is outside of the knot span" << endl;
-        cout << endl;
-        cout << endl;
-        exit(-1);
+        ERROR_OUT("in BSplineBasis1D::BSplineBasis1D");
+        ERROR_OUT("Given parameter is outside of the knot span");
+        exit(EXIT_FAILURE);
     }
 
     // Compute the number of basis functions
@@ -420,44 +416,19 @@ void BSplineBasis1D::setKnotVector(int _noKnots, double* _knotVector) {
     KnotVector = _knotVector;
 }
 
-void BSplineBasis1D::printPolynomialDegree() {
-    cout << endl;
-    cout << "---------------------------------------------" << endl;
-    cout << "Debugging information in class BSplineBasis1D" << endl;
-    cout << "BSplineBasis1D::PDegree = " << PDegree << endl;
-    cout << "_____________________________________________" << endl;
-    cout << endl;
-}
 
-void BSplineBasis1D::printNoKnots() {
-    cout << endl;
-    cout << "---------------------------------------------" << endl;
-    cout << "Debugging information in class BSplineBasis1D" << endl;
-    cout << "BSplineBasis1D::NoKnots = " << NoKnots << endl;
-    cout << "_____________________________________________" << endl;
-    cout << endl;
-}
+Message &operator<<(Message &message, BSplineBasis1D &bSplineBasis1D) {
 
-void BSplineBasis1D::printKnotVector() {
-    cout << endl;
-    cout << "---------------------------------------------" << endl;
-    cout << "Debugging information in class BSplineBasis1D" << endl;
-    cout << "BSplineBasis1D::KnotVector = [\t";
-    for (int i = 0; i < NoKnots; i++) {
-        cout << KnotVector[i] << "\t";
+    message << "\t+" << "BSplineBasis1D: " << endl;
+    message << "\t\t+" << "PDegree = " << bSplineBasis1D.getPolynomialDegree() << endl;
+    message << "\t\t+" << "NoKnots = " << bSplineBasis1D.getNoKnots() << endl;
+    message << "\t\t+" << "KnotVector = [\t";
+    for (int i = 0; i < bSplineBasis1D.getNoKnots(); i++) {
+        message << bSplineBasis1D.getKnotVector()[i] << "\t";
     }
-    cout << "]" << endl;
-    cout << "_____________________________________________" << endl;
-    cout << endl;
-}
-
-void BSplineBasis1D::printNoBasisFunctions() {
-    cout << endl;
-    cout << "---------------------------------------------" << endl;
-    cout << "Debugging information in class BSplineBasis1D" << endl;
-    cout << "BSplineBasis1D::NoBasisFunctions = " << computeNoBasisFunctions() << endl;
-    cout << "_____________________________________________" << endl;
-    cout << endl;
+    message << "]" << endl;
+    message() << "\t+" << "---------------------------------" << endl;
+    return message;
 }
 
 }/* namespace EMPIRE */

@@ -92,11 +92,17 @@ struct structMapper {
         bool dual;
         bool enforceConsistency;
     };
+    struct structIGAMortarMapper{
+        double tolProjectionDistance;
+        int numGPsTriangle;
+        int numGPsQuad;
+    };
     std::string name;
     structMeshRef meshRefA;
     structMeshRef meshRefB;
     EMPIRE_Mapper_type type;
     structMortarMapper mortarMapper;
+    structIGAMortarMapper igaMortarMapper;
 };
 
 struct structCouplingAlgorithm {
