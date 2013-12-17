@@ -70,7 +70,6 @@ void Empire::sendMesh(int numNodes, int numElems, double *nodes, int *nodeIDs, i
 }
 
 void Empire::sendIGAMesh(int _numPatches, int _numControlPoints, double* _globalControlPoints, int* _controlPointID){
-	cout << "Sending IGA Mesh......................" << endl;
 	const int BUFFER_SIZE = 2;
 	int meshInfo[BUFFER_SIZE] = { _numPatches, _numControlPoints};
 	ClientCommunication::getSingleton()->sendToServerBlocking<int>(BUFFER_SIZE,meshInfo);
@@ -80,7 +79,6 @@ void Empire::sendIGAMesh(int _numPatches, int _numControlPoints, double* _global
 
 void Empire::sendIGAPatch(int _pDegree,	int _uNoKnots, double* _uKnotVector, int _qDegree, int _vNoKnots,
 		double* _vKnotVector, int _uNoControlPoints, int _vNoControlPoints, int* _controlPointNetID) {
-	cout << "sendIGAPatch....................." << endl;
     const int BUFFER_SIZE = 6;
     int meshInfo[BUFFER_SIZE] = { _pDegree, _uNoKnots, _qDegree, _vNoKnots,_uNoControlPoints, _vNoControlPoints };
     ClientCommunication::getSingleton()->sendToServerBlocking<int>(BUFFER_SIZE,meshInfo);

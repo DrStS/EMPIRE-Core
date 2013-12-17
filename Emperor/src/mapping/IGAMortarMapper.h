@@ -1,3 +1,23 @@
+/*  Copyright &copy; 2013, TU Muenchen, Chair of Structural Analysis,
+ *  Stefan Sicklinger, Tianyang Wang, Andreas Apostolatos, Munich
+ *
+ *  All rights reserved.
+ *
+ *  This file is part of EMPIRE.
+ *
+ *  EMPIRE is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  EMPIRE is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with EMPIRE.  If not, see http://www.gnu.org/licenses/.
+ */
 /******************************************************************************//**
  * \file IGAMortarMapper.h
  * The header file of class IGAMortarMapper.
@@ -82,15 +102,17 @@ public:
      * \param[in] _numGPsQuad The number of Gauss points used for computing quad element
      * \author Chenshen Wu
      ***********/
-    IGAMortarMapper(std::string _name, IGAMesh *_meshIGA, FEMesh *_meshFE, double _disTol, int _numGPsTri, int _numGPsQuad);
+    IGAMortarMapper(std::string _name, IGAMesh *_meshIGA, FEMesh *_meshFE, double _disTol,
+            int _numGPsTri, int _numGPsQuad);
 
     /***********************************************************************************************
-     * \brief Destructor Chenshen Wu
+     * \brief Destructor
+     * \author Chenshen Wu
      ***********/
     virtual ~IGAMortarMapper();
 
     /***********************************************************************************************
-     * \brief Initialization of the element freedom tables
+     * \brief Initializes of the element freedom tables
      * \author Chenshen Wu
      ***********/
     void initTables();
@@ -102,20 +124,27 @@ public:
     void projectPointsToSurface();
 
     /***********************************************************************************************
-     * \brief Compute matrices C_NN and C_NR
+     * \brief Computes matrices C_NN and C_NR
      * \author Chenshen Wu
      ***********/
     void computeCouplingMatrices();
 
     /***********************************************************************************************
-     * \brief Computes coupling matrices in the given patch for the element which is split into more than one patches
+     * \brief Computes the coupling matrices in the given patch for the element
+     * \param[in] _thePatch The NURBS patch
+     * \param[in] _numNodesInPatch No. of nodes of the clipped by patch projected element
+     * \param[in] _elementInPatchIGA The projected surface parameters on the NURBS patch of the clipped by patch projected element
+     * \param[in] _elementInPatchFE The vertices of the clipped by patch projected element
+     * \param[in] _elemCount The id of the unclipped element
+     * \param[in] _nShapeFuncsFE The number of shape functions for the unclipped element
      * \author Chenshen Wu
      ***********/
-    void computeCouplingMatricesInPatch(IGAPatchSurface* _thePatch, int _numNodesInPatch, double* _elementInPatchIGA,
-           double* _elementInPatchFE, int _elemCount, int _nShapeFuncsFE);
+    void computeCouplingMatrices4ClippedByPatchProjectedElement(IGAPatchSurface* _thePatch,
+            int _numNodesInPatch, double* _elementInPatchIGA, double* _elementInPatchFE,
+            int _elemCount, int _nShapeFuncsFE);
 
     /***********************************************************************************************
-     * \brief Integrate the element coupling matrices and assemble them to the global one
+     * \brief Integrates the element coupling matrices and assemble them to the global one
      * \param[in] _igaPatchSurface The patch to compute the coupling matrices for
      * \param[in] _numNodes The number of nodes of the clipped polygon
      * \param[in] _polygonIGA The resulting from the clipping polygon at each knot span in the NURBS space
@@ -130,29 +159,30 @@ public:
             int _spanU, int _spanV, double* _polygonFE, int _elementIndex, int _nShapeFuncsFE);
 
     /***********************************************************************************************
-     * \brief Do consistent mapping from IGA to FE (map displacements)
-     * \param[in] fieldIGA is the input data
-     * \param[out] fieldFE is the output data
+     * \brief Performs consistent mapping from IGA to FE (map displacements)
+     * \param[in] _fieldIGA is the input data
+     * \param[in/out] _fieldFE is the output data
      * \author Chenshen Wu
      ***********/
-    void consistentMapping(const double *fieldIGA, double *fieldFE);
+    void consistentMapping(const double* _fieldIGA, double* _fieldFE);
 
     /***********************************************************************************************
-     * \brief Do conservative mapping from FE to IGA (map forces)
-     * \param[in] fieldFE is the input data
-     * \param[out] fieldIGA is the output data
+     * \brief Performs conservative mapping from FE to IGA (map forces)
+     * \param[in] _fieldFE is the input data
+     * \param[out] _fieldIGA is the output data
      * \author Chenshen Wu
      ***********/
-    void conservativeMapping(const double *fieldFE, double *fieldIGA);
+    void conservativeMapping(const double* _fieldFE, double* _fieldIGA);
 
     /***********************************************************************************************
-     * \brief Print both coupling matrices C_NN and C_NR
+     * \brief Prints both coupling matrices C_NN and C_NR
      * \author Chenshen Wu
      ***********/
     void printCouplingMatrices();
 
-    /// unit test class
-    friend class TestIGAMortarMapper;
+    /// Unit test class
+    friend class TestIGAMortarMapperTube;
+    friend class TestIGAMortarMapperMultiPatch;
 };
 }
 

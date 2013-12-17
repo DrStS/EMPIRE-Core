@@ -1,3 +1,23 @@
+/*  Copyright &copy; 2013, TU Muenchen, Chair of Structural Analysis,
+ *  Stefan Sicklinger, Tianyang Wang, Andreas Apostolatos, Munich
+ *
+ *  All rights reserved.
+ *
+ *  This file is part of EMPIRE.
+ *
+ *  EMPIRE is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  EMPIRE is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with EMPIRE.  If not, see http://www.gnu.org/licenses/.
+ */
 // inclusion of standard libraries   (only if really necessary here in *.h)
 #include "cppunit/TestFixture.h"
 #include "cppunit/TestAssert.h"
@@ -906,9 +926,9 @@ CPPUNIT_TEST_SUITE(TestNurbsBasis2D);
     CPPUNIT_TEST(testConstructor);
     CPPUNIT_TEST(testNurbs2DKnotSpans);
     CPPUNIT_TEST(testNurbs2DBasisFunctions);
-    CPPUNIT_TEST(testNurbsBasisFunctionsAndDerivatives2DInefficientTest1);
+//    CPPUNIT_TEST(testNurbsBasisFunctionsAndDerivatives2DInefficientTest1);
     CPPUNIT_TEST(testNurbsBasisFunctionsAndDerivatives2DTest1);
-    CPPUNIT_TEST(testNurbsBasisFunctionsAndDerivatives2DInefficientTest2);
+//    CPPUNIT_TEST(testNurbsBasisFunctionsAndDerivatives2DInefficientTest2);
     CPPUNIT_TEST(testNurbsBasisFunctionsAndDerivatives2DTest2);
     CPPUNIT_TEST(testNurbsBasis2DCopyConstructor);
 // CPPUNIT_TEST(testBSplineBasis2DCopyAssignment);

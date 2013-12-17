@@ -1,8 +1,31 @@
+/*  Copyright &copy; 2013, TU Muenchen, Chair of Structural Analysis,
+ *  Stefan Sicklinger, Tianyang Wang, Andreas Apostolatos, Munich
+ *
+ *  All rights reserved.
+ *
+ *  This file is part of EMPIRE.
+ *
+ *  EMPIRE is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  EMPIRE is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with EMPIRE.  If not, see http://www.gnu.org/licenses/.
+ */
+#include <assert.h>
+#include <math.h>
+#include <iostream>
+#include "stdlib.h"
+
 #include "IGAMortarMath.h"
 #include "MortarMath.h"
-#include <math.h>
-#include <assert.h>
-#include <iostream>
+#include "Message.h"
 
 using namespace std;
 
@@ -113,15 +136,25 @@ const double triWeights12[12] = { 0.11678627572638, 0.11678627572638, 0.11678627
         0.05084490637021, 0.05084490637021, 0.05084490637021, 0.08285107561837, 0.08285107561837,
         0.08285107561837, 0.08285107561837, 0.08285107561837, 0.08285107561837 };
 
-const double triGaussPoints13[26] = { 0.33333333333333, 0.33333333333333, 0.26034596607904,
-        0.26034596607904, 0.26034596607904, 0.47930806784192, 0.47930806784192, 0.26034596607904,
-        0.06513010290222, 0.06513010290222, 0.06513010290222, 0.86973979419557, 0.86973979419557,
-        0.06513010290222, 0.31286549600487, 0.63844418856981, 0.63844418856981, 0.04869031542532,
-        0.04869031542532, 0.31286549600487, 0.63844418856981, 0.31286549600487, 0.31286549600487,
-        0.04869031542532, 0.04869031542532, 0.63844418856981 };
-const double triWeights13[13] = { -0.14957004446768, 0.17561525743321, 0.17561525743321,
-        0.17561525743321, 0.05334723560884, 0.05334723560884, 0.05334723560884, 0.07711376089026,
-        0.07711376089026, 0.07711376089026, 0.07711376089026, 0.07711376089026, 0.07711376089026 };
+const double triGaussPoints13[26] = { 0.33333333333333, 0.33333333333333,
+        0.26034596607904, 0.26034596607904,
+        0.26034596607904, 0.47930806784192,
+        0.47930806784192, 0.26034596607904,
+
+        0.06513010290222, 0.06513010290222,
+        0.06513010290222, 0.86973979419557,
+        0.86973979419557, 0.06513010290222,
+
+        0.31286549600487, 0.63844418856981,
+        0.63844418856981, 0.04869031542532,
+        0.04869031542532, 0.31286549600487,
+        0.63844418856981, 0.31286549600487,
+        0.31286549600487, 0.04869031542532,
+        0.04869031542532, 0.63844418856981 };
+const double triWeights13[13] = { -0.14957004446768,
+        0.17561525743321, 0.17561525743321, 0.17561525743321,
+        0.05334723560884, 0.05334723560884, 0.05334723560884,
+        0.07711376089026, 0.07711376089026, 0.07711376089026, 0.07711376089026, 0.07711376089026, 0.07711376089026 };
 
 const double triGaussPoints16[32] = { 0.33333333333333, 0.33333333333333, 0.45929258829272,
         0.45929258829272, 0.45929258829272, 0.08141482341455, 0.08141482341455, 0.45929258829272,
@@ -171,8 +204,9 @@ GaussQuadratureOnTriangle::GaussQuadratureOnTriangle(int _numGaussPoints) :
         weights = triWeights16;
         break;
     default:
-        assert(0);
-        break;
+        ERROR_OUT()<<"Number of Gauss Points for Triangle = " << numGaussPoints << "doesn't exist! Please choose from 1,3,4,6,7,12,13,16." << endl;
+        exit(EXIT_FAILURE);
+
     }
 }
 
@@ -246,8 +280,8 @@ GaussQuadratureOnQuad::GaussQuadratureOnQuad(int _numGaussPoints) :
         weights = quadWeights25;
         break;
     default:
-        assert(0);
-        break;
+        ERROR_OUT()<<"Number of Gauss Points for Quadrilateral = " << numGaussPoints << "doesn't exist! Please choose from 1,4,9,16,25." << endl;
+        exit(EXIT_FAILURE);
     }
 }
 

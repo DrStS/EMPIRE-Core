@@ -1,3 +1,23 @@
+/*  Copyright &copy; 2013, TU Muenchen, Chair of Structural Analysis,
+ *  Stefan Sicklinger, Tianyang Wang, Andreas Apostolatos, Munich
+ *
+ *  All rights reserved.
+ *
+ *  This file is part of EMPIRE.
+ *
+ *  EMPIRE is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  EMPIRE is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with EMPIRE.  If not, see http://www.gnu.org/licenses/.
+ */
 /***********************************************************************************************//**
  * \file BSplineBasis2D.h
  * This file holds the class BSplineBasis2D.h
@@ -10,6 +30,7 @@
 // Inclusion of user defined libraries
 #include "AbstractBSplineBasis2D.h"
 #include "BSplineBasis1D.h"
+#include "Message.h"
 
 namespace EMPIRE {
 
@@ -154,32 +175,13 @@ public:
 		return vBSplineBasis1D;
 	}
 
-	/// DEBUGGING functions
-public:
-	/***********************************************************************************************
-	 * \brief Prints the polynomial degrees of the B-Spline basis
-	 * \author Andreas Apostolatos
-	 ***********/
-	void printPolynomialDegrees();
-
-	/***********************************************************************************************
-	 * \brief Prints the number of knots for both knot vectors
-	 * \author Andreas Apostolatos
-	 ***********/
-	void printNoKnots();
-
-	/***********************************************************************************************
-	 * \brief Prints the knot vectors at each direction
-	 * \author Andreas Apostolatos
-	 ***********/
-	void printKnotVectors();
-
-	/***********************************************************************************************
-	 * \brief Prints the number of basis functions at each direction
-	 * \author Andreas Apostolatos
-	 ***********/
-	void printNoBasisFunctions();
 };
+
+/***********************************************************************************************
+ * \brief Allows for nice debug output
+ * \author Chenshen Wu
+ ***********/
+Message &operator<<(Message &message, BSplineBasis2D &bSplineBasis2D);
 
 }/* namespace EMPIRE */
 

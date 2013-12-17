@@ -1,3 +1,23 @@
+/*  Copyright &copy; 2013, TU Muenchen, Chair of Structural Analysis,
+ *  Stefan Sicklinger, Tianyang Wang, Andreas Apostolatos, Munich
+ *
+ *  All rights reserved.
+ *
+ *  This file is part of EMPIRE.
+ *
+ *  EMPIRE is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  EMPIRE is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with EMPIRE.  If not, see http://www.gnu.org/licenses/.
+ */
 /***********************************************************************************************//**
  * \file NurbsBasis1D.h
  * This file holds the class NurbsBasis1D.h
@@ -141,14 +161,13 @@ public:
      ***********/
     void setControlPointWeights(int, double*);
 
-    /// DEBUGGING functions
-public:
-    /***********************************************************************************************
-     * \brief Outputs the Control Points weights of the net
-     * \author Andreas Apostolatos
-     ***********/
-    void printControlPointWeights();
 };
+
+/***********************************************************************************************
+ * \brief Allows for nice debug output
+ * \author Chenshen Wu
+ ***********/
+Message &operator<<(Message &message, NurbsBasis1D &nurbsBasis1D);
 
 }/* namespace EMPIRE */
 

@@ -1,3 +1,23 @@
+/*  Copyright &copy; 2013, TU Muenchen, Chair of Structural Analysis,
+ *  Stefan Sicklinger, Tianyang Wang, Andreas Apostolatos, Munich
+ *
+ *  All rights reserved.
+ *
+ *  This file is part of EMPIRE.
+ *
+ *  EMPIRE is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  EMPIRE is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with EMPIRE.  If not, see http://www.gnu.org/licenses/.
+ */
 /***********************************************************************************************//**
  * \file IGAMesh.h
  * This file holds the class IGAMesh.h
@@ -105,8 +125,8 @@ public:
      * \param[in] _component The component of the displacement field (0,1,2)=(x,y,z)
      * \author Chenshen Wu
      ***********/
-    double computeDisplacementComponent(std::string _dataFieldName, int _patchid, double _u, double _v,
-            int _component);
+    double computeDisplacementComponent(std::string _dataFieldName, int _patchid, double _u,
+            double _v, int _component);
 
     /// Get and set functions
 public:
@@ -120,12 +140,30 @@ public:
     }
 
     /***********************************************************************************************
+     * \brief Get the control points
+     * \param[out] A container vector of type std::vector<IGAPatchSurface*>
+     * \author Chenshen Wu
+     ***********/
+    inline std::vector<IGAControlPoint*> getGlobalControlPoints() {
+        return globalControlPoints;
+    }
+
+    /***********************************************************************************************
      * \brief Get the map of the global ID of the Control Points to the Index of its array controlPointID
      * \param[out] The map of the global ID of the Control Points to the Index of its array
      * \author Chenshen Wu
      ***********/
     inline std::map<int, int> getMapControlPointIDToIndex() {
         return mapControlPointIDToIndex;
+    }
+
+    /***********************************************************************************************
+     * \brief Get the control points id
+     * \param[out] A container vector of type std::vector<IGAPatchSurface*>
+     * \author Chenshen Wu
+     ***********/
+    inline int* getControlPointsID() {
+        return controlPointID;
     }
 
     /***********************************************************************************************
@@ -137,16 +175,10 @@ public:
         return numControlPoints;
     }
 
-    /// DeBug
-public:
-    /***********************************************************************************************
-     * \brief Prints all the patches of the IGAMesh
-     ***********/
-    void print();
 };
 
 /***********************************************************************************************
- * \brief Allows for nice debug output later
+ * \brief Allows for nice debug output
  * \author Chenshen Wu
  ***********/
 Message &operator<<(Message &message, IGAMesh &mesh);

@@ -1,3 +1,23 @@
+/*  Copyright &copy; 2013, TU Muenchen, Chair of Structural Analysis,
+ *  Stefan Sicklinger, Tianyang Wang, Andreas Apostolatos, Munich
+ *
+ *  All rights reserved.
+ *
+ *  This file is part of EMPIRE.
+ *
+ *  EMPIRE is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  EMPIRE is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with EMPIRE.  If not, see http://www.gnu.org/licenses/.
+ */
 /***********************************************************************************************//**
  * \file IGAPatchSurface.h
  * This file holds the class IGAPatchSurface.h
@@ -303,6 +323,10 @@ public:
         return vNoControlPoints;
     }
 
+    /***********************************************************************************************
+     * \brief Get the number of the Control Points of the patch
+     * \author Chenshen Wu
+     ***********/
     inline int getNoControlPoints() {
         return uNoControlPoints * vNoControlPoints;
     }
@@ -331,16 +355,6 @@ public:
         return getIGABasis()->getVBSplineBasis1D()->findKnotSpan(_v);
     }
 
-    /// DEBUGGING functions
-public:
-    /***********************************************************************************************
-     * \brief Prints the Control Point net for the 2D NURBS patch
-     * \author Andreas Apostolatos
-     ***********/
-    void printControlPointNet();
-
-    void print();
-
     /// The maximum number of Newton-Raphson iterations for the computation of the orthogonal projection of point on the NURBS patch
     static const int MAX_NUM_ITERATIONS;
 
@@ -354,6 +368,10 @@ public:
     static const double EPS_DISTANCE;
 };
 
+/***********************************************************************************************
+ * \brief Allows for nice debug output
+ * \author Chenshen Wu
+ ***********/
 Message &operator<<(Message &message, IGAPatchSurface &mesh);
 
 }/* namespace EMPIRE */

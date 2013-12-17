@@ -34,6 +34,7 @@
 #include "MetaDatabase.h"
 #include "EMPEROR_Enum.h"
 #include "CopyFilter.h"
+#include "SetFilter.h"
 #include "MappingFilter.h"
 #include "CouplingAlgorithmFilter.h"
 #include "ExtrapolatingFilter.h"
@@ -286,7 +287,8 @@ void Emperor::initMappers() {
             mapper->initBarycentricInterpolationMapper();
             nameToMapperMap.insert(pair<string, MapperAdapter*>(name, mapper));
         } else if (settingMapper.type == EMPIRE_IGAMortarMapper) {
-            mapper->initIGAMortarMapper();
+            mapper->initIGAMortarMapper(settingMapper.igaMortarMapper.tolProjectionDistance,
+                    settingMapper.igaMortarMapper.numGPsTriangle,settingMapper.igaMortarMapper.numGPsQuad);
 	    nameToMapperMap.insert(pair<string, MapperAdapter*>(name, mapper));
         } else {
             assert(false);
@@ -419,6 +421,8 @@ void Emperor::initConnections() {
                 filter = new LocationFilter();
             } else if (settingFilter.type == EMPIRE_ScalingFilter) {
                 filter = new ScalingFilter(settingFilter.scalingFilter.factor);
+            } else if (settingFilter.type == EMPIRE_SetFilter) {
+                filter = new SetFilter(settingFilter.setFilter.value);
             } else if (settingFilter.type == EMPIRE_CopyFilter) {
                 filter = new CopyFilter();
             } else {

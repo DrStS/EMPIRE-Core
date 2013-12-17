@@ -1,3 +1,23 @@
+/*  Copyright &copy; 2013, TU Muenchen, Chair of Structural Analysis,
+ *  Stefan Sicklinger, Tianyang Wang, Andreas Apostolatos, Munich
+ *
+ *  All rights reserved.
+ *
+ *  This file is part of EMPIRE.
+ *
+ *  EMPIRE is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  EMPIRE is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with EMPIRE.  If not, see http://www.gnu.org/licenses/.
+ */
 // Inclusion of standard libraries
 #include <iostream>
 #include <stdlib.h>
@@ -6,6 +26,7 @@
 
 // Inclusion of user defined libraries
 #include "BSplineBasis2D.h"
+#include "Message.h"
 
 using namespace std;
 
@@ -16,14 +37,17 @@ BSplineBasis2D::BSplineBasis2D(int _ID = 0, int _pDegree = 0, int _noKnotsU = 0,
                 NULL) :
         AbstractBSplineBasis2D(_ID) {
 
+
     // The NURBS basis functions in u-direction
     uBSplineBasis1D = new BSplineBasis1D(_ID, _pDegree, _noKnotsU, _KnotVectorU);
 
     // The NURBS basis functions in v-direction
     vBSplineBasis1D = new BSplineBasis1D(_ID, _qDegree, _noKnotsV, _KnotVectorV);
+
 }
 
 BSplineBasis2D::~BSplineBasis2D() {
+
     delete uBSplineBasis1D;
     delete vBSplineBasis1D;
 }
@@ -58,17 +82,9 @@ int BSplineBasis2D::indexDerivativeBasisFunction(int _derivDegree, int _uDerivIn
 
     // Read input
     if (_uDerivIndex + _vDerivIndex > _derivDegree) {
-        cout << endl;
-        cout << endl;
-        cout << "Error in BSplineBasis2D::indexDerivativeBasisFunction" << endl;
-        cout << "It has been requested the " << _uDerivIndex
-                << "-th partial derivative w.r.t. u and" << endl;
-        cout << "the " << _vDerivIndex
-                << "-th partial derivative w.r.t. v of the basis functions but " << endl;
-        cout << "the maximum absolute derivative selected is of " << _derivDegree << "-th order"
-                << endl;
-        cout << endl;
-        cout << endl;
+        ERROR_OUT() << "in BSplineBasis2D::indexDerivativeBasisFunction";
+        ERROR_OUT() << "It has been requested the " << _uDerivIndex << "-th partial derivative w.r.t. u and" << endl;
+        ERROR_OUT() << "the " << _vDerivIndex << "-th partial derivative w.r.t. v of the basis functions but the maximum absolute derivative selected is of " << _derivDegree << "-th order" << endl;
     }
 
     // The polynomial degrees of the NURBS basis in both directions
@@ -206,16 +222,10 @@ void BSplineBasis2D::computeLocalBasisFunctionsAndDerivativesInefficient(
     assert(_basisFctsAndDerivs!=NULL);
 
     if (_maxMixDerivOrd > _derivDegreeU + _derivDegreeV) {
-        cout << endl;
-        cout << endl;
-        cout << "Error in BSplineBasis2D::computeLocalBasisFunctionsAndDerivatives" << endl;
-        cout << "Requested order of partial derivatives du: " << _derivDegreeU << " and dv: "
-                << _derivDegreeV << endl;
-        cout << "but requested maximal order of the mixed derivatives is dudv: " << _maxMixDerivOrd
-                << endl;
-        cout << "which is not possible" << endl;
-        cout << endl;
-        cout << endl;
+        ERROR_OUT() << "in BSplineBasis2D::computeLocalBasisFunctionsAndDerivatives" << endl;
+        ERROR_OUT() << "Requested order of partial derivatives du: " << _derivDegreeU << " and dv: " << _derivDegreeV << endl;
+        ERROR_OUT() << "but requested maximal order of the mixed derivatives is dudv: " << _maxMixDerivOrd << endl;
+        ERROR_OUT() << "which is not possible" << endl;
         exit(-1);
     }
 
@@ -318,16 +328,10 @@ void BSplineBasis2D::computeLocalBasisFunctionsAndDerivativesInefficient(
     assert(_basisFctsAndDerivs!=NULL);
 
     if (_maxMixDerivOrd > _derivDegreeU + _derivDegreeV) {
-        cout << endl;
-        cout << endl;
-        cout << "Error in BSplineBasis2D::computeLocalBasisFunctionsAndDerivatives" << endl;
-        cout << "Requested order of partial derivatives du: " << _derivDegreeU << " and dv: "
-                << _derivDegreeV << endl;
-        cout << "but requested maximal order of the mixed derivatives is dudv: " << _maxMixDerivOrd
-                << endl;
-        cout << "which is not possible" << endl;
-        cout << endl;
-        cout << endl;
+        ERROR_OUT() << "Error in BSplineBasis2D::computeLocalBasisFunctionsAndDerivatives" << endl;
+        ERROR_OUT() << "Requested order of partial derivatives du: " << _derivDegreeU << " and dv: " << _derivDegreeV << endl;
+        ERROR_OUT() << "but requested maximal order of the mixed derivatives is dudv: " << _maxMixDerivOrd << endl;
+        ERROR_OUT() << "which is not possible" << endl;
         exit(-1);
     }
 
@@ -494,57 +498,24 @@ void BSplineBasis2D::computeLocalBasisFunctionsAndDerivatives(double* _basisFcts
     delete[] vBSplinebasis1DFctsDerivs;
 }
 
-void BSplineBasis2D::printPolynomialDegrees() {
+Message &operator<<(Message &message, BSplineBasis2D &bSplineBasis2D) {
+//  message << "\t" << "IGA Patch name: " << mesh.name << endl;
 
-    cout << endl;
-    cout << "---------------------------------------------" << endl;
-    cout << "Debugging information in class BSplineBasis2D" << endl;
-    cout << "BSplineBasis2D::PDegree = " << uBSplineBasis1D->getPolynomialDegree() << endl;
-    cout << "BSplineBasis2D::QDegree = " << vBSplineBasis1D->getPolynomialDegree() << endl;
-    cout << "_____________________________________________" << endl;
-    cout << endl;
-}
+    message << "\t\tpDegree:  " << bSplineBasis2D.getUBSplineBasis1D()->getPolynomialDegree() << endl;
+    message << "\t\tqDegree:  " << bSplineBasis2D.getVBSplineBasis1D()->getPolynomialDegree() << endl;
 
-void BSplineBasis2D::printNoKnots() {
+    message << "\t\tKnots Vector U: [\t";
+    for (int i = 0; i < bSplineBasis2D.getUBSplineBasis1D()->getNoKnots(); i++)
+        message << bSplineBasis2D.getUBSplineBasis1D()->getKnotVector()[i] << "\t";
+    message << "]" << endl;
 
-    cout << endl;
-    cout << "---------------------------------------------" << endl;
-    cout << "Debugging information in class BSplineBasis2D" << endl;
-    cout << "BSplineBasis2D::uNoKnots = " << uBSplineBasis1D->getNoKnots() << endl;
-    cout << "BSplineBasis2D::vNoKnots = " << vBSplineBasis1D->getNoKnots() << endl;
-    cout << "_____________________________________________" << endl;
-    cout << endl;
-}
+    message << "\t\tKnots Vector V: [\t";
+    for (int i = 0; i < bSplineBasis2D.getVBSplineBasis1D()->getNoKnots(); i++)
+        message << bSplineBasis2D.getVBSplineBasis1D()->getKnotVector()[i] << "\t";
+    message << "]" << endl;
 
-void BSplineBasis2D::printKnotVectors() {
-    cout << endl;
-    cout << "---------------------------------------------" << endl;
-    cout << "Debugging information in class BSplineBasis2D" << endl;
-    cout << "BSplineBasis1D::uKnotVector = [\t";
-    for (int i = 0; i < uBSplineBasis1D->getNoKnots(); i++) {
-        cout << uBSplineBasis1D->getKnotVector()[i] << "\t";
-    }
-    cout << "]" << endl;
-    cout << "BSplineBasis1D::vKnotVector = [\t";
-    for (int i = 0; i < vBSplineBasis1D->getNoKnots(); i++) {
-        cout << vBSplineBasis1D->getKnotVector()[i] << "\t";
-    }
-    cout << "]" << endl;
-    cout << "_____________________________________________" << endl;
-    cout << endl;
-}
-
-void BSplineBasis2D::printNoBasisFunctions() {
-    cout << endl;
-    cout << "---------------------------------------------" << endl;
-    cout << "Debugging information in class BSplineBasis2D" << endl;
-    cout << endl;
-    cout << "BSplineBasis1D::uNoBasisFunctions = " << uBSplineBasis1D->computeNoBasisFunctions()
-            << endl;
-    cout << "BSplineBasis1D::vNoBasisFunctions = " << vBSplineBasis1D->computeNoBasisFunctions()
-            << endl;
-    cout << "_____________________________________________" << endl;
-    cout << endl;
+    message() << "\t" << "---------------------------------" << endl;
+    return message;
 }
 
 }/* namespace EMPIRE */

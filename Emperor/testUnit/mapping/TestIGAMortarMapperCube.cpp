@@ -220,54 +220,14 @@ public:
 			fieldS[i] = 1.0;
 		theMapper->consistentMapping(fieldS, fieldF);
 		for (int i = 0; i < nF; i++)
-			CPPUNIT_ASSERT(fabs(fieldF[i] - 1.0) < 1e-13);
+			CPPUNIT_ASSERT(fabs(fieldF[i] - 1.0) < Tol);
 
 	}
-
-	void testMappingPrint() {
-
-		std::cout.precision(15);
-		int nS = theIGAMesh->getNumControlPoints();
-		int nF = theFEMesh->numNodes;
-		double fieldS[nS];
-		double fieldF[nF];
-
-		cout << "nS : " << nS << endl;
-		cout << "1: consistent Mapping" << endl;
-		for (int i = 0; i < nS; i++)
-			fieldS[i] = 1;
-		theMapper->consistentMapping(fieldS, fieldF);
-		for (int i = 0; i < nF; i++)
-			cout << i << "  :   " << fieldF[i] << endl;
-		cout << endl;
-
-		cout << "nS : " << nS << endl;
-		cout << "2: consistent Mapping" << endl;
-		for (int i = 0; i < nS; i++)
-			fieldS[i] = i;
-		theMapper->consistentMapping(fieldS, fieldF);
-		for (int i = 0; i < nF; i++)
-			cout << i << "  :   " << fieldF[i] << endl;
-		cout << endl;
-
-		cout << "nS : " << nS << endl;
-		cout << "3: Conservative Mapping" << endl;
-		for (int i = 0; i < nF; i++)
-			fieldF[i] = 2;
-		theMapper->conservativeMapping(fieldF, fieldS);
-
-		cout << "nS : " << nS << endl;
-		for (int i = 0; i < nS; i++)
-			cout << i << "  :   " << fieldS[i] << endl;
-		cout << endl;
-
-	}
-
 
 // Make the tests
 CPPUNIT_TEST_SUITE(TestIGAMortarMapperCube);
 
-//	CPPUNIT_TEST(testMapping);
+	CPPUNIT_TEST(testMapping);
 //	CPPUNIT_TEST(testMappingPrint);
 	CPPUNIT_TEST_SUITE_END()
 	;

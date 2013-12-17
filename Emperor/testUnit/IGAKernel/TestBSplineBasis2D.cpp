@@ -1,3 +1,23 @@
+/*  Copyright &copy; 2013, TU Muenchen, Chair of Structural Analysis,
+ *  Stefan Sicklinger, Tianyang Wang, Andreas Apostolatos, Munich
+ *
+ *  All rights reserved.
+ *
+ *  This file is part of EMPIRE.
+ *
+ *  EMPIRE is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  EMPIRE is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with EMPIRE.  If not, see http://www.gnu.org/licenses/.
+ */
 // inclusion of standard libraries   (only if really necessary here in *.h)
 #include "cppunit/TestFixture.h"
 #include "cppunit/TestAssert.h"
@@ -108,6 +128,7 @@ public:
      * \brief Test case: Test the constructor
      ***********/
     void testConstructor() {
+
         // Test the ID's
         CPPUNIT_ASSERT(bSplineBasis2D->getUBSplineBasis1D()->getId()==1);
         CPPUNIT_ASSERT(bSplineBasis2D->getVBSplineBasis1D()->getId()==1);
@@ -794,7 +815,7 @@ CPPUNIT_TEST_SUITE(TestBSplineBasis2D);
     CPPUNIT_TEST(testConstructor);
     CPPUNIT_TEST(testBSpline2DKnotSpans);
     CPPUNIT_TEST(testBSpline2DBasisFunctions);
-    CPPUNIT_TEST(testBSplineBasisFunctionsAndDerivatives2DInefficient);
+//    CPPUNIT_TEST(testBSplineBasisFunctionsAndDerivatives2DInefficient);
     CPPUNIT_TEST(testBSplineBasisFunctionsAndDerivatives2DOldWayOfStoring);
     CPPUNIT_TEST(testBSplineBasisFunctionsAndDerivatives2D);
     CPPUNIT_TEST(testBSplineBasis2DCopyConstructor);

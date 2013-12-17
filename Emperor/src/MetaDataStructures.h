@@ -92,11 +92,17 @@ struct structMapper {
         bool dual;
         bool enforceConsistency;
     };
+    struct structIGAMortarMapper{
+        double tolProjectionDistance;
+        int numGPsTriangle;
+        int numGPsQuad;
+    };
     std::string name;
     structMeshRef meshRefA;
     structMeshRef meshRefB;
     EMPIRE_Mapper_type type;
     structMortarMapper mortarMapper;
+    structIGAMortarMapper igaMortarMapper;
 };
 
 struct structCouplingAlgorithm {
@@ -125,11 +131,15 @@ struct structFilter {
     struct structScalingFilter {
         double factor;
     };
+    struct structSetFilter {
+        std::vector<double> value;
+    };
     EMPIRE_DataFieldFilter_type type;
     structMappingFilter mappingFilter;
     structCouplingAlgorithmFilter couplingAlgorithmFilter;
     structExtrapolatingFilter extrapolatingFilter;
     structScalingFilter scalingFilter;
+    structSetFilter setFilter;
     std::vector<structConnectionIO> inputs;
     std::vector<structConnectionIO> outputs;
 };
