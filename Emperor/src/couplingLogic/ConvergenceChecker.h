@@ -27,6 +27,7 @@
 #define CONVERGENCECHECKER_H_
 
 #include <string>
+#include <vector>
 #include "EMPEROR_Enum.h"
 
 namespace EMPIRE {
@@ -47,7 +48,7 @@ public:
      * \param[in] maxNumOfIters maximum number of iterations
      * \author Tianyang Wang
      ***********/
-    ConvergenceChecker(double absTol, double relTol, double maxNumOfIters);
+    ConvergenceChecker(double maxNumOfIters);
     /***********************************************************************************************
      * \brief Destructor
      * \author Tianyang Wang
@@ -59,73 +60,42 @@ public:
      * \author Tianyang Wang
      ***********/
     bool isConvergent();
-    /***********************************************************************************************
-     * \brief return currentNumOfIterations, this is only used for debugging, that this value is
-     *        the same as that inside iterativeCouplingLogic
-     * \return currentNumOfIterations
-     * \author Tianyang Wang
-     ***********/
+    void addCheckResidual(double _absoluteTolerance, double _relativeTolerance,
+            AbstractCouplingAlgorithm *_couplingAlgorithm, int _residualIndex);
     int getcurrentNumOfIterations();
-    /***********************************************************************************************
-     * \brief Set the data field
-     * \param[in] _dataField the data field on which convergence is checked
-     * \author Tianyang Wang
-     ***********/
-    void setDataField(DataField *_dataField);
-    /***********************************************************************************************
-     * \brief Set the signal
-     * \param[in] _signal the signal on which convergence is checked
-     * \author Tianyang Wang
-     ***********/
-    void setSignal(Signal *_signal);
-    /***********************************************************************************************
-     * \brief Set the coupling algorithm
-     * \param[in] _couplingAlgorithm the coupling algorithm which computes the residual
-     * \author Tianyang Wang
-     ***********/
-    void setCouplingAlgorithm(AbstractCouplingAlgorithm *_couplingAlgorithm);
-    /// default absolute tolerance of convergence
-    static const double DEFAULT_ABS_TOL;
-    /// default relative tolerance of convergence
-    static const double DEFAULT_REL_TOL;
-    /// default maximum number of iterations
-    static const double DEFAULT_MAX_NUM_ITERATIONS;
 
 private:
-    /// has reference to dataField or signal or couplingAlgorithm
-    EMPIRE_ConvergenceChecker_whichRef whichRef;
-    /// data field on which convergence is checked
-    DataField *dataField;
-    /// signal on which convergence is checked
-    Signal *signal;
-    /// coupling algorithm which computes the residual
-    AbstractCouplingAlgorithm *couplingAlgorithm;
-    /// absolute tolerance of convergence
-    const double ABS_TOL;
-    /// relative tolerance of convergence
-    const double REL_TOL;
+    class CheckResidual {
+    public:
+        CheckResidual(double _absoluteTolerance, double _relativeTolerance,
+                AbstractCouplingAlgorithm *_couplingAlgorithm, int _residualIndex);
+        virtual ~CheckResidual();
+        void updateInitialResidual();
+        double getAbsoluteResidual();
+        double getRelativeResidual();
+        bool isConvergent();
+        void writeResidualToShell();
+
+    private:
+        AbstractCouplingAlgorithm *couplingAlgorithm;
+        int residualIndex;
+        const double ABS_TOL;
+        const double REL_TOL;
+        double initialResidual;
+        friend class TestEmperor;
+    };
     /// maximum number of iterations
     const double MAX_NUM_ITERATIONS;
+    /// vector of checkResiduals
+    std::vector<CheckResidual*> checkResiduals;
     /// current number of loops
     int currentNumOfIterations;
-    /// data of last inner loop step
-    double *dataLastInnerLoopStep;
-    /// initial residual in fixed point iteration
-    double initialResidual;
-    /// current residual in fixed point iteration
-    double currentResidual;
     /// whether always output the residual or not
     bool debugResidual;
     /// the file where the residual at each time step are written
     std::string residualFileName;
     /// time step number, only used when writing the residual in a file
     int timeStepNumber;
-    /***********************************************************************************************
-     * \brief Calculate the L2 norm of the difference
-     * \return the L2 norm of the difference
-     * \author Tianyang Wang
-     ***********/
-    static double calcDifferenceL2Norm(const double *array1, const double *array2, int size);
 
     /// the unit test classes
     friend class TestConvergenceChecker;
