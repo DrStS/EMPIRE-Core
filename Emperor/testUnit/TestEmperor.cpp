@@ -33,6 +33,8 @@
 #include "MetaDatabase.h"
 #include "Emperor.h"
 #include "Aitken.h"
+#include "ConstantRelaxation.h"
+#include "Residual.h"
 #include "Connection.h"
 #include "CouplingLogicSequence.h"
 #include "TimeStepLoop.h"
@@ -101,6 +103,9 @@ public:
         // 2. set up coupling algorithms
         const string STRING_AITKEN = "aitken";
         Aitken *aitken = new Aitken(STRING_AITKEN, DOUBY);
+        Residual *residual = new Residual(INTY);
+        aitken->addResidual(residual, INTY);
+        //aitken->addOutput(NULL, INTY);
 
         emperor->nameToCouplingAlgorithmMap.insert(
                 pair<string, AbstractCouplingAlgorithm*>(STRING_AITKEN, aitken));
@@ -127,23 +132,15 @@ public:
         iterativeCouplingLoop.type = EMPIRE_IterativeCouplingLoop;
         iterativeCouplingLoop.sequence.push_back(singleConnection1);
         iterativeCouplingLoop.sequence.push_back(singleConnection2);
-        iterativeCouplingLoop.iterativeCouplingLoop.convergenceChecker.dataFieldRef.clientCodeName =
-                STRING_CLIENT_A;
-        iterativeCouplingLoop.iterativeCouplingLoop.convergenceChecker.dataFieldRef.meshName =
-                STRING_MESH;
-        iterativeCouplingLoop.iterativeCouplingLoop.convergenceChecker.dataFieldRef.dataFieldName =
-                STRING_DATAFIELD;
-        iterativeCouplingLoop.iterativeCouplingLoop.convergenceChecker.absoluteTolerance = DOUBY;
-        iterativeCouplingLoop.iterativeCouplingLoop.convergenceChecker.relativeTolerance = DOUBY;
-        iterativeCouplingLoop.iterativeCouplingLoop.convergenceChecker.maxNumOfIterations = DOUBY;
-        iterativeCouplingLoop.iterativeCouplingLoop.convergenceChecker.hasAbsTol = true;
-        iterativeCouplingLoop.iterativeCouplingLoop.convergenceChecker.hasRelTol = true;
-        iterativeCouplingLoop.iterativeCouplingLoop.convergenceChecker.hasMaxNumOfIters = true;
-        iterativeCouplingLoop.iterativeCouplingLoop.convergenceChecker.whichRef =
-                EMPIRE_ConvergenceChecker_dataFieldRef;
+        iterativeCouplingLoop.iterativeCouplingLoop.convergenceChecker.maxNumOfIterations = INTY;
+        structCouplingLogic::structIterativeCouplingLoop::structConvergenceChecker::structCheckResidual cr;
+        cr.residualRef.couplingAlgorithmName = STRING_AITKEN;
+        cr.residualRef.index = INTY;
+        iterativeCouplingLoop.iterativeCouplingLoop.convergenceChecker.checkResiduals.push_back(cr);
         iterativeCouplingLoop.iterativeCouplingLoop.convergenceObservers.push_back(STRING_CLIENT_A);
         iterativeCouplingLoop.iterativeCouplingLoop.convergenceObservers.push_back(STRING_CLIENT_B);
-        iterativeCouplingLoop.iterativeCouplingLoop.couplingAlgorithmRefs.push_back(STRING_AITKEN);
+        iterativeCouplingLoop.iterativeCouplingLoop.couplingAlgorithmRef.first = true;
+        iterativeCouplingLoop.iterativeCouplingLoop.couplingAlgorithmRef.second = STRING_AITKEN;
 
         structCouplingLogic timeStepLoop;
         timeStepLoop.type = EMPIRE_TimeStepLoop;
@@ -172,14 +169,13 @@ public:
         AbstractCouplingLogic *icl = tsl->couplingLogicSequence[0];
         CPPUNIT_ASSERT(typeid(*icl) == typeid(IterativeCouplingLoop));
         IterativeCouplingLoop *icl2 = dynamic_cast<IterativeCouplingLoop*>(icl);
-        CPPUNIT_ASSERT(icl2->convergenceChecker->ABS_TOL == DOUBY);
-        CPPUNIT_ASSERT(icl2->convergenceChecker->REL_TOL == DOUBY);
-        CPPUNIT_ASSERT(icl2->convergenceChecker->MAX_NUM_ITERATIONS == DOUBY);
-        CPPUNIT_ASSERT( icl2->convergenceChecker->dataField == dummyDataFieldA);
+        CPPUNIT_ASSERT(icl2->convergenceChecker->MAX_NUM_ITERATIONS == INTY);
+        CPPUNIT_ASSERT( icl2->convergenceChecker->checkResiduals.size() == 1);
+        CPPUNIT_ASSERT( icl2->convergenceChecker->checkResiduals[0]->couplingAlgorithm == aitken);
+        CPPUNIT_ASSERT( icl2->convergenceChecker->checkResiduals[0]->residualIndex == INTY);
         CPPUNIT_ASSERT(icl2->convergenceObserverVec[0] == clientA);
         CPPUNIT_ASSERT(icl2->convergenceObserverVec[1] == clientB);
-        CPPUNIT_ASSERT(icl2->couplingAlgorithmVec.size() == 1);
-        CPPUNIT_ASSERT(icl2->couplingAlgorithmVec[0] == aitken);
+        CPPUNIT_ASSERT(icl2->couplingAlgorithm == aitken);
         CPPUNIT_ASSERT(icl2->couplingLogicSequence.size() == 2);
         CPPUNIT_ASSERT(icl2->couplingLogicSequence[0] == connectionA);
         CPPUNIT_ASSERT(icl2->couplingLogicSequence[1] == connectionB);

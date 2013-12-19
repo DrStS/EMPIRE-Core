@@ -28,10 +28,12 @@
 #define ABSTRACTCOUPLINGALGORITHM_H_
 
 #include <string>
+#include <map>
 
 namespace EMPIRE {
 
 class ConnectionIO;
+class Residual;
 /********//**
  * \brief Class AbstractCouplingAlgorithm is the mother class of all coupling algorithms. A
  *              coupling algorithm must be attached to an iterative coupling loop
@@ -50,12 +52,27 @@ public:
      ***********/
     virtual ~AbstractCouplingAlgorithm();
     /***********************************************************************************************
-     * \brief Set the input and output
-     * \param[in] _input
+     * \brief Add residual
+     * \param[in] _residual
+     * \author Tianyang Wang
+     ***********/
+    void addResidual(Residual *residual, int index);
+    /***********************************************************************************************
+     * \brief Add output
      * \param[in] _output
      * \author Tianyang Wang
      ***********/
-    virtual void setInputAndOutput(const ConnectionIO *_input, ConnectionIO *_output);
+    void addOutput(ConnectionIO *output, int index);
+    /***********************************************************************************************
+     * \brief Update the data at the iteration beginning
+     * \author Tianyang Wang
+     ***********/
+    void updateAtIterationBeginning();
+    /***********************************************************************************************
+     * \brief Update the data at the iteration end
+     * \author Tianyang Wang
+     ***********/
+    void updateAtIterationEnd();
     /***********************************************************************************************
      * \brief Calculate the output by relaxation on the input
      * \author Tianyang Wang
@@ -67,33 +84,63 @@ public:
      ***********/
     void setNewLoop();
     /***********************************************************************************************
-     * \brief return the current residual
-     * \return the current residual
+     * \brief return the L2 norm of the residual with the given index
+     * \return the L2 norm of the residual
      * \author Tianyang Wang
      ***********/
-    double getCurrentResidual();
+    double getResidualL2Norm(int index);
     /***********************************************************************************************
-     * \brief return the initial residual
-     * \return the initial residual
+     * \brief return the name
+     * \return the name
      * \author Tianyang Wang
      ***********/
-    double getInitialResidual();
+    std::string getName();
 
 protected:
+    /********//**
+     * \brief Class CouplingAlgorithmOutput is the output of a coupling algorithm
+     * (the output is always copied at the iteration beginning and overwitten at the iteration end)
+     ***********/
+    class CouplingAlgorithmOutput {
+    public:
+        /***********************************************************************************************
+         * \brief Constructor
+         * \param[in] _reference reference to the output instance
+         * \author Tianyang Wang
+         ***********/
+        CouplingAlgorithmOutput(ConnectionIO *_reference);
+        /***********************************************************************************************
+         * \brief Destructor
+         * \author Tianyang Wang
+         ***********/
+        virtual ~CouplingAlgorithmOutput();
+        /***********************************************************************************************
+         * \brief Update at the iteration beginning
+         * \author Tianyang Wang
+         ***********/
+        void updateAtIterationBeginning();
+        /***********************************************************************************************
+         * \brief overwrite the output (the reference)
+         * \param[in] newData the new data for the output
+         * \author Tianyang Wang
+         ***********/
+        void overwrite(double *newData);
+        /// reference to the output instance
+        ConnectionIO* reference;
+        /// size of the array
+        int size;
+        /// the array
+        double *outputCopyAtIterationBeginning;
+    };
+
     /// name of the coupling algorithm
     std::string name;
-    /// input
-    const ConnectionIO* input;
-    /// output
-    ConnectionIO* output;
+    /// output vector
+    std::map<int, CouplingAlgorithmOutput*> outputs;
+    /// residual vector
+    std::map<int, Residual*> residuals;
     /// whether it is the new loop
     bool newLoop;
-    /// the implicit loop number
-    int step;
-    /// initial residual in fixed point iteration
-    double initialResidual;
-    /// current residual in fixed point iteration
-    double currentResidual;
 
     /***********************************************************************************************
      * \brief Copy a vector

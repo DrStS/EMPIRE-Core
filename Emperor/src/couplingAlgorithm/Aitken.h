@@ -39,22 +39,15 @@ public:
     /***********************************************************************************************
      * \brief Constructor, set input and output (the input and output could be the same memory)
      * \param[in] _name name of the coupling algorithm
-     * \param[in] _initialAitkenFactor the initial aitken factor
+     * \param[in] _initialRelaxationFactor the initial aitken factor
      * \author Tianyang Wang
      ***********/
-    Aitken(std::string _name, double _initialAitkenFactor);
+    Aitken(std::string _name, double _initialRelaxationFactor);
     /***********************************************************************************************
      * \brief Destructor
      * \author Tianyang Wang
      ***********/
     virtual ~Aitken();
-    /***********************************************************************************************
-     * \brief Set the input and output (they can be the same!)
-     * \param[in] _input
-     * \param[in] _output
-     * \author Tianyang Wang
-     ***********/
-    virtual void setInputAndOutput(const ConnectionIO *_input, ConnectionIO *_output);
     /***********************************************************************************************
      * \brief Calculate the output by relaxation on the input
      * \author Tianyang Wang
@@ -63,18 +56,12 @@ public:
 private:
     /// the initial Aitken factor
     const double INIT_AITKEN_FACTOR;
-    /// at the beginning, it is the output of last step. At the end, it is the computed at this step
-    double *X_out;
-    /// residual of last step
-    double *R_0;
-    /// aikten factor of last step
-    double w_0;
-    /// size of the array
-    int SIZE;
     /// limit of aikten factor amplification
     static const double LIMIT;
     /// whether output numbers or not
     bool debugMe;
+    /// iteration number in iterative coupling
+    int step;
     /// the unit test class
     friend class TestAitken;
     friend class TestRelaxationMethods;

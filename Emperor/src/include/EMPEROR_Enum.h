@@ -48,11 +48,6 @@ enum EMPIRE_ConnectionIO_Type {
 enum EMPIRE_Signal_dimension {
     EMPIRE_Signal_0D, EMPIRE_Signal_1D, EMPIRE_Signal_2D, EMPIRE_Signal_3D
 };
-enum EMPIRE_ConvergenceChecker_whichRef {
-    EMPIRE_ConvergenceChecker_dataFieldRef,
-    EMPIRE_ConvergenceChecker_signalRef,
-    EMPIRE_ConvergenceChecker_couplingAlgorithmRef
-};
 
 /********//**
  * The rule of naming 2:
@@ -72,7 +67,6 @@ enum EMPIRE_Mesh_type {
 enum EMPIRE_DataFieldFilter_type {
     EMPIRE_CopyFilter,
     EMPIRE_MappingFilter,
-    EMPIRE_CouplingAlgorithmFilter,
     EMPIRE_LocationFilter,
     EMPIRE_ScalingFilter,
     EMPIRE_SetFilter,

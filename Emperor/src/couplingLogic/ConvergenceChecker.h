@@ -43,8 +43,6 @@ class ConvergenceChecker {
 public:
     /***********************************************************************************************
      * \brief Constructor
-     * \param[in] absTol absolute tolerance of convergence
-     * \param[in] relTol relative tolerance of convergence
      * \param[in] maxNumOfIters maximum number of iterations
      * \author Tianyang Wang
      ***********/
@@ -60,28 +58,84 @@ public:
      * \author Tianyang Wang
      ***********/
     bool isConvergent();
+    /***********************************************************************************************
+     * \brief Add a checkResidual object to checkResiduals
+     * \param[in] _absoluteTolerance the absolute residual
+     * \param[in] _relativeTolerance the relative residual
+     * \param[in] _couplingAlgorithm the coupling algorithm which contains the residual
+     * \param[in] _residualIndex the index of the residual
+     * \author Tianyang Wang
+     ***********/
     void addCheckResidual(double _absoluteTolerance, double _relativeTolerance,
             AbstractCouplingAlgorithm *_couplingAlgorithm, int _residualIndex);
+    /***********************************************************************************************
+     * \brief Get the current number of iterations
+     * \return the current number of iterations
+     * \author Tianyang Wang
+     ***********/
     int getcurrentNumOfIterations();
 
 private:
+    /********//**
+     * \brief Class ConvergenceChecker checks whether convergence is got or not
+     ***********/
     class CheckResidual {
     public:
+        /***********************************************************************************************
+         * \brief Constructor
+         * \param[in] _absoluteTolerance the absolute residual
+         * \param[in] _relativeTolerance the relative residual
+         * \param[in] _couplingAlgorithm the coupling algorithm which contains the residual
+         * \param[in] _residualIndex the index of the residual
+         * \author Tianyang Wang
+         ***********/
         CheckResidual(double _absoluteTolerance, double _relativeTolerance,
                 AbstractCouplingAlgorithm *_couplingAlgorithm, int _residualIndex);
+        /***********************************************************************************************
+         * \brief Destructor
+         * \author Tianyang Wang
+         ***********/
         virtual ~CheckResidual();
+        /***********************************************************************************************
+         * \brief update the initial residual
+         * \author Tianyang Wang
+         ***********/
         void updateInitialResidual();
+        /***********************************************************************************************
+         * \brief get the absolute residual
+         * \return the absolute residual
+         * \author Tianyang Wang
+         ***********/
         double getAbsoluteResidual();
+        /***********************************************************************************************
+         * \brief get the relative residual
+         * \return the relative residual
+         * \author Tianyang Wang
+         ***********/
         double getRelativeResidual();
+        /***********************************************************************************************
+         * \brief is convergent?
+         * \return true if convergent, otherwise false
+         * \author Tianyang Wang
+         ***********/
         bool isConvergent();
+        /***********************************************************************************************
+         * \brief write residual to the shell
+         * \author Tianyang Wang
+         ***********/
         void writeResidualToShell();
-
     private:
+        /// reference to the coupling algorithm
         AbstractCouplingAlgorithm *couplingAlgorithm;
+        /// index of the residual
         int residualIndex;
+        /// absolute tolerance
         const double ABS_TOL;
+        /// relative tolerance
         const double REL_TOL;
+        /// initial residual
         double initialResidual;
+        /// the unit test class
         friend class TestEmperor;
     };
     /// maximum number of iterations
@@ -97,8 +151,9 @@ private:
     /// time step number, only used when writing the residual in a file
     int timeStepNumber;
 
-    /// the unit test classes
+    /// the unit test class
     friend class TestConvergenceChecker;
+    /// the unit test class
     friend class TestEmperor;
 };
 

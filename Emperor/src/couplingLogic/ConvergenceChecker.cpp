@@ -104,6 +104,7 @@ bool ConvergenceChecker::isConvergent() {
     fstream residualFile;
     residualFile.open(residualFileName.c_str(), ios_base::out | ios_base::app);
 
+    // update the initial residual
     if (currentNumOfIterations == 1) {
         for (int i = 0; i < checkResiduals.size(); i++) {
             checkResiduals[i]->updateInitialResidual();

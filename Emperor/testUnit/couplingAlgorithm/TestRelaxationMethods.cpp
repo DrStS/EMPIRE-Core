@@ -55,7 +55,7 @@ public:
      * solution of x=cos(x) is x=0.73908513321516
      */
     void testRelaxationMethods() {
-        DataField *dfIn1 = new DataField("", EMPIRE_DataField_atNode, 1, EMPIRE_DataField_scalar,
+        /*DataField *dfIn1 = new DataField("", EMPIRE_DataField_atNode, 1, EMPIRE_DataField_scalar,
                 EMPIRE_DataField_field);
         DataField *dfOut1 = new DataField("", EMPIRE_DataField_atNode, 1, EMPIRE_DataField_scalar,
                 EMPIRE_DataField_field);
@@ -129,7 +129,7 @@ public:
         delete aitken;
         delete comaAitken;
         delete cr;
-        delete dfCurrent, dfIn1, dfIn2, dfOld, dfOut1, dfOut2;
+        delete dfCurrent, dfIn1, dfIn2, dfOld, dfOut1, dfOut2;*/
     }
 
 CPPUNIT_TEST_SUITE( TestRelaxationMethods );

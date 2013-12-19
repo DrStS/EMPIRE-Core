@@ -59,11 +59,11 @@ public:
      ***********/
     void doCoupling();
     /***********************************************************************************************
-     * \brief Initialize the convergence checker of the iterative coupling
+     * \brief Set the convergence checker of the iterative coupling
      * \param[in] convergenceChecker the convergence checker which is initialized outside
      * \author Tianyang Wang
      ***********/
-    void initConvergenceChecker(ConvergenceChecker *_convergenceChecker);
+    void setConvergenceChecker(ConvergenceChecker *_convergenceChecker);
     /***********************************************************************************************
      * \brief Add the convergence observer (the loop tells the observers whether it is convergent)
      * \param[in] clientCode the observer to be added
@@ -73,10 +73,10 @@ public:
     /***********************************************************************************************
      * \brief Add the coupling algorithm (the loop tells the coupling algorithm whether to
      *        start new loop)
-     * \param[in] couplingAlgorithm the coupling algorithm to be added
+     * \param[in] _couplingAlgorithm the coupling algorithm to be set
      * \author Tianyang Wang
      ***********/
-    void addCouplingAlgorithm(AbstractCouplingAlgorithm *couplingAlgorithm);
+    void setCouplingAlgorithm(AbstractCouplingAlgorithm *_couplingAlgorithm);
     /***********************************************************************************************
      * \brief Add a dataOutput which will write data of current iteration
      * \param[in] dataOutput the data output writer
@@ -86,12 +86,12 @@ public:
 private:
     /// convergence checker
     ConvergenceChecker *convergenceChecker;
+    /// vector of coupling algorithms
+    AbstractCouplingAlgorithm* couplingAlgorithm;
     /// vector of convergence observers
     std::vector<ClientCode*> convergenceObserverVec;
     /// dataOutputs
     std::vector<DataOutput*> dataOutputVec;
-    /// vector of coupling algorithms
-    std::vector<AbstractCouplingAlgorithm*> couplingAlgorithmVec;
     /// output counter
     int outputCounter;
 
@@ -101,8 +101,9 @@ private:
      * \author Tianyang Wang
      ***********/
     void broadcastConvergenceToClients(bool convergent);
-    /// the unit test classes
+    /// the unit test class
     friend class TestLoops;
+    /// the unit test class
     friend class TestEmperor;
 };
 

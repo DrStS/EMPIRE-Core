@@ -36,28 +36,6 @@ namespace EMPIRE {
  * Please mark the difference: sometimes a struct owns another struct, sometimes it refers to another struct.
  * There is such a difference also in the XML inputDataField file.
  */
-struct structMeshRef {
-    std::string clientCodeName;
-    std::string meshName;
-};
-
-struct structDataFieldRef {
-    std::string clientCodeName;
-    std::string meshName;
-    std::string dataFieldName;
-};
-
-struct structSignalRef {
-    std::string clientCodeName;
-    std::string signalName;
-};
-
-struct structConnectionIO {
-    EMPIRE_ConnectionIO_Type type;
-    structSignalRef signalRef;
-    structDataFieldRef dataFieldRef;
-};
-
 struct structClientCode {
     struct structMesh {
         struct structDataField {
@@ -79,11 +57,48 @@ struct structClientCode {
     std::vector<structSignal> signals;
 };
 
+struct structMeshRef {
+    std::string clientCodeName;
+    std::string meshName;
+};
+
+struct structDataFieldRef {
+    std::string clientCodeName;
+    std::string meshName;
+    std::string dataFieldName;
+};
+
+struct structSignalRef {
+    std::string clientCodeName;
+    std::string signalName;
+};
+
 struct structDataOutput {
     std::string name;
     int interval;
     std::vector<structDataFieldRef> dataFieldRefs;
     std::vector<structSignalRef> signalRefs;
+};
+
+struct structConnectionIO {
+    EMPIRE_ConnectionIO_Type type;
+    structSignalRef signalRef;
+    structDataFieldRef dataFieldRef;
+};
+
+struct structResidual {
+    struct structComponent {
+        int coefficient;
+        std::string timeToUpdate;
+        structConnectionIO connectionIO;
+    };
+    int index;
+    std::vector<structComponent> components;
+};
+
+struct structResidualRef {
+    std::string couplingAlgorithmName;
+    int index;
 };
 
 struct structMapper {
@@ -101,13 +116,19 @@ struct structMapper {
 
 struct structCouplingAlgorithm {
     struct structAitken {
-        double initialAitkenFactor;
+        double initialRelaxationFactor;
     };
     struct structConstantRelaxation {
         double relaxationFactor;
     };
+    struct structOutput {
+        int index;
+        structConnectionIO connectionIO;
+    };
     std::string name;
     EMPIRE_CouplingAlgorithm_type type;
+    std::vector<structOutput> outputs;
+    std::vector<structResidual> residuals;
     structAitken aitken;
     structConstantRelaxation constantRelaxation;
 };
@@ -119,9 +140,6 @@ struct structFilter {
     struct structExtrapolatingFilter {
         std::string extrapolatorName;
     };
-    struct structCouplingAlgorithmFilter {
-        std::string couplingAlgorithmName;
-    };
     struct structScalingFilter {
         double factor;
     };
@@ -130,7 +148,6 @@ struct structFilter {
     };
     EMPIRE_DataFieldFilter_type type;
     structMappingFilter mappingFilter;
-    structCouplingAlgorithmFilter couplingAlgorithmFilter;
     structExtrapolatingFilter extrapolatingFilter;
     structScalingFilter scalingFilter;
     structSetFilter setFilter;
@@ -172,20 +189,17 @@ struct structCouplingLogic {
     };
     struct structIterativeCouplingLoop {
         struct structConvergenceChecker {
-            EMPIRE_ConvergenceChecker_whichRef whichRef;
-            structDataFieldRef dataFieldRef;
-            structSignalRef signalRef;
-            std::string couplingAlgorithmRef;
-            double absoluteTolerance;
-            double relativeTolerance;
+            struct structCheckResidual {
+                double relativeTolerance;
+                double absoluteTolerance;
+                structResidualRef residualRef;
+            };
             double maxNumOfIterations;
-            bool hasAbsTol;
-            bool hasRelTol;
-            bool hasMaxNumOfIters;
+            std::vector<structCheckResidual> checkResiduals;
         };
         structConvergenceChecker convergenceChecker;
         std::vector<std::string> convergenceObservers;
-        std::vector<std::string> couplingAlgorithmRefs;
+        std::pair<bool, std::string> couplingAlgorithmRef; // bool: has the ref or not
         std::vector<std::string> dataOutputRefs;
     };
     EMPIRE_CouplingLogic_type type;

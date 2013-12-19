@@ -182,9 +182,26 @@ public:
         { // check block coupling algorithms
             CPPUNIT_ASSERT(settingCouplingAlgorithmVec.size() == 1);
             structCouplingAlgorithm settingCoupAlg = settingCouplingAlgorithmVec[0];
-            CPPUNIT_ASSERT(settingCoupAlg.type == EMPIRE_Aitken);
-            CPPUNIT_ASSERT(settingCoupAlg.name == "aitken A disp");
-            CPPUNIT_ASSERT(settingCoupAlg.aitken.initialAitkenFactor == 0.3);
+            CPPUNIT_ASSERT(settingCoupAlg.type == EMPIRE_ConstantRelaxation);
+            CPPUNIT_ASSERT(settingCoupAlg.name == "cr");
+            CPPUNIT_ASSERT(settingCoupAlg.constantRelaxation.relaxationFactor == 0.3);
+            CPPUNIT_ASSERT(settingCoupAlg.residuals.size() == 1);
+            CPPUNIT_ASSERT(settingCoupAlg.residuals[0].components.size() == 2);
+            CPPUNIT_ASSERT(settingCoupAlg.residuals[0].components[0].coefficient == 1.0);
+            CPPUNIT_ASSERT(settingCoupAlg.residuals[0].components[0].timeToUpdate == "iterationBeginning");
+            CPPUNIT_ASSERT(settingCoupAlg.residuals[0].components[0].connectionIO.type == EMPIRE_ConnectionIO_Signal);
+            CPPUNIT_ASSERT(settingCoupAlg.residuals[0].components[0].connectionIO.signalRef.clientCodeName == "meshClientA");
+            CPPUNIT_ASSERT(settingCoupAlg.residuals[0].components[0].connectionIO.signalRef.signalName == "signal");
+            CPPUNIT_ASSERT(settingCoupAlg.residuals[0].components[1].coefficient == -1.0);
+            CPPUNIT_ASSERT(settingCoupAlg.residuals[0].components[1].timeToUpdate == "iterationEnd");
+            CPPUNIT_ASSERT(settingCoupAlg.residuals[0].components[1].connectionIO.type == EMPIRE_ConnectionIO_Signal);
+            CPPUNIT_ASSERT(settingCoupAlg.residuals[0].components[1].connectionIO.signalRef.clientCodeName == "meshClientA");
+            CPPUNIT_ASSERT(settingCoupAlg.residuals[0].components[1].connectionIO.signalRef.signalName == "signal");
+            CPPUNIT_ASSERT(settingCoupAlg.outputs.size() == 1);
+            CPPUNIT_ASSERT(settingCoupAlg.outputs[0].connectionIO.type == EMPIRE_ConnectionIO_Signal);
+            CPPUNIT_ASSERT(settingCoupAlg.outputs[0].connectionIO.signalRef.clientCodeName == "meshClientA");
+            CPPUNIT_ASSERT(settingCoupAlg.outputs[0].connectionIO.signalRef.signalName == "signal");
+            CPPUNIT_ASSERT(settingCoupAlg.outputs[0].index == 1);
         }
         { // check block extrapolators
             CPPUNIT_ASSERT(settingExtrapolatorVec.size() == 1);
@@ -211,29 +228,9 @@ public:
                 CPPUNIT_ASSERT(settingConnection.outputs[0].dataFieldRef.meshName == "myMesh");
                 CPPUNIT_ASSERT(
                         settingConnection.outputs[0].dataFieldRef.dataFieldName == "displacements");
-                CPPUNIT_ASSERT(settingConnection.filterSequence.size() == 2);
+                CPPUNIT_ASSERT(settingConnection.filterSequence.size() == 1);
                 {
                     structFilter &settingfilter = settingConnection.filterSequence[0];
-                    CPPUNIT_ASSERT(settingfilter.type == EMPIRE_CouplingAlgorithmFilter);
-                    CPPUNIT_ASSERT(
-                            settingfilter.couplingAlgorithmFilter.couplingAlgorithmName == "aitken A disp");
-                    CPPUNIT_ASSERT(settingfilter.inputs.size() == 1);
-                    CPPUNIT_ASSERT(settingfilter.inputs[0].type == EMPIRE_ConnectionIO_DataField);
-                    CPPUNIT_ASSERT(
-                            settingfilter.inputs[0].dataFieldRef.clientCodeName == "meshClientA");
-                    CPPUNIT_ASSERT(settingfilter.inputs[0].dataFieldRef.meshName== "myMesh");
-                    CPPUNIT_ASSERT(
-                            settingfilter.inputs[0].dataFieldRef.dataFieldName == "displacements");
-                    CPPUNIT_ASSERT(settingfilter.outputs.size() == 1);
-                    CPPUNIT_ASSERT(settingfilter.outputs[0].type == EMPIRE_ConnectionIO_DataField);
-                    CPPUNIT_ASSERT(
-                            settingfilter.outputs[0].dataFieldRef.clientCodeName == "meshClientA");
-                    CPPUNIT_ASSERT(settingfilter.outputs[0].dataFieldRef.meshName== "myMesh");
-                    CPPUNIT_ASSERT(
-                            settingfilter.outputs[0].dataFieldRef.dataFieldName == "displacements");
-                }
-                {
-                    structFilter &settingfilter = settingConnection.filterSequence[1];
                     CPPUNIT_ASSERT(settingfilter.type == EMPIRE_MappingFilter);
                     CPPUNIT_ASSERT(settingfilter.mappingFilter.mapperName == "mortar1");
                     CPPUNIT_ASSERT(settingfilter.inputs.size() == 1);
@@ -356,27 +353,27 @@ public:
         structCouplingLogic settingICL = settingTSL.sequence[0];
         {
             CPPUNIT_ASSERT(settingICL.type == EMPIRE_IterativeCouplingLoop);
-            string stmp =
-                    settingICL.iterativeCouplingLoop.convergenceChecker.dataFieldRef.clientCodeName;
-            CPPUNIT_ASSERT(stmp == "meshClientA");
-            stmp = settingICL.iterativeCouplingLoop.convergenceChecker.dataFieldRef.meshName;
-            CPPUNIT_ASSERT(stmp == "myMesh");
-            stmp = settingICL.iterativeCouplingLoop.convergenceChecker.dataFieldRef.dataFieldName;
-            CPPUNIT_ASSERT(stmp == "displacements");
-            CPPUNIT_ASSERT(
-                    settingICL.iterativeCouplingLoop.convergenceChecker.absoluteTolerance==1e-12);
-            CPPUNIT_ASSERT(
-                    settingICL.iterativeCouplingLoop.convergenceChecker.relativeTolerance==1e-6);
             CPPUNIT_ASSERT(
                     settingICL.iterativeCouplingLoop.convergenceChecker.maxNumOfIterations==100);
+            CPPUNIT_ASSERT(
+                    settingICL.iterativeCouplingLoop.convergenceChecker.checkResiduals.size()==1);
+            CPPUNIT_ASSERT(
+                    settingICL.iterativeCouplingLoop.convergenceChecker.checkResiduals[0].absoluteTolerance==1e-5);
+            CPPUNIT_ASSERT(
+                    settingICL.iterativeCouplingLoop.convergenceChecker.checkResiduals[0].relativeTolerance==0.0);
+            CPPUNIT_ASSERT(
+                    settingICL.iterativeCouplingLoop.convergenceChecker.checkResiduals[0].residualRef.couplingAlgorithmName=="cr");
+            CPPUNIT_ASSERT(
+                    settingICL.iterativeCouplingLoop.convergenceChecker.checkResiduals[0].residualRef.index==1);
             CPPUNIT_ASSERT(settingICL.iterativeCouplingLoop.convergenceObservers.size() == 2);
+            string stmp;
             stmp = settingICL.iterativeCouplingLoop.convergenceObservers[0];
             CPPUNIT_ASSERT(stmp == "meshClientA");
             stmp = settingICL.iterativeCouplingLoop.convergenceObservers[1];
             CPPUNIT_ASSERT(stmp == "meshClientB");
-            CPPUNIT_ASSERT(settingICL.iterativeCouplingLoop.couplingAlgorithmRefs.size() == 1);
-            stmp = settingICL.iterativeCouplingLoop.couplingAlgorithmRefs[0];
-            CPPUNIT_ASSERT(stmp == "aitken A disp");
+            CPPUNIT_ASSERT(settingICL.iterativeCouplingLoop.couplingAlgorithmRef.first);
+            stmp = settingICL.iterativeCouplingLoop.couplingAlgorithmRef.second;
+            CPPUNIT_ASSERT(stmp == "cr");
             CPPUNIT_ASSERT(settingICL.iterativeCouplingLoop.dataOutputRefs.size() == 1);
             stmp = settingICL.iterativeCouplingLoop.dataOutputRefs[0];
             CPPUNIT_ASSERT(stmp == "iterativeCoupling");

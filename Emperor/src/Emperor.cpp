@@ -36,7 +36,6 @@
 #include "CopyFilter.h"
 #include "SetFilter.h"
 #include "MappingFilter.h"
-#include "CouplingAlgorithmFilter.h"
 #include "ExtrapolatingFilter.h"
 #include "LocationFilter.h"
 #include "ScalingFilter.h"
@@ -57,6 +56,7 @@
 #include "PseudoCodeOutput.h"
 #include "ConvergenceChecker.h"
 #include "AuxiliaryParameters.h"
+#include "Residual.h"
 
 using namespace std;
 
@@ -94,14 +94,15 @@ Emperor::~Emperor() {
 void Emperor::initEnvironment(int *argc, char ***argv) {
     /// Check for command line arguments
     if (*argc != 2) {
-        ERROR_BLOCK_OUT("Emperor","initEnvironment","Please provide a valid input file.");
+        ERROR_BLOCK_OUT("Emperor", "initEnvironment", "Please provide a valid input file.");
     } else {
         /// Generate MetaDatabase in order give it to ServerCommunication::getSingleton()
         MetaDatabase::init((*argv)[1]);
         ServerCommunication::init(argc, argv);
     }
     ASCIIART_BLOCK();
-    HEADING_OUT(1, "Emperor", "Emperor version " + AuxiliaryParameters::gitSHA1 + " started!", infoOut);
+    HEADING_OUT(1, "Emperor", "Emperor version " + AuxiliaryParameters::gitSHA1 + " started!",
+            infoOut);
 
     PseudoCodeOutput *pcOutput = new PseudoCodeOutput(MetaDatabase::getSingleton(),
             "pseudocode.txt");
@@ -288,7 +289,7 @@ void Emperor::initMappers() {
             nameToMapperMap.insert(pair<string, MapperAdapter*>(name, mapper));
         } else if (settingMapper.type == EMPIRE_IGAMortarMapper) {
             mapper->initIGAMortarMapper();
-	    nameToMapperMap.insert(pair<string, MapperAdapter*>(name, mapper));
+            nameToMapperMap.insert(pair<string, MapperAdapter*>(name, mapper));
         } else {
             assert(false);
         }
@@ -303,16 +304,39 @@ void Emperor::initCouplingAlgorithms() {
         const structCouplingAlgorithm &settingCouplingAlgorithm = settingCouplingAlgorithmVec[i];
         string name = settingCouplingAlgorithm.name;
 
+        // call constructor
         AbstractCouplingAlgorithm *couplingAlgorithm = NULL;
         if (settingCouplingAlgorithm.type == EMPIRE_Aitken) {
-            double initialAitkenFactor = settingCouplingAlgorithm.aitken.initialAitkenFactor;
-            couplingAlgorithm = new Aitken(name, initialAitkenFactor);
+            double initialRelaxationFactor = settingCouplingAlgorithm.aitken.initialRelaxationFactor;
+            couplingAlgorithm = new Aitken(name, initialRelaxationFactor);
         } else if (settingCouplingAlgorithm.type == EMPIRE_ConstantRelaxation) {
             double relaxationFactor = settingCouplingAlgorithm.constantRelaxation.relaxationFactor;
             couplingAlgorithm = new ConstantRelaxation(name, relaxationFactor);
         } else {
             assert(false);
         }
+
+        // add residuals
+        for (int j = 0; j < settingCouplingAlgorithm.residuals.size(); j++) {
+            const structResidual &settingResidual = settingCouplingAlgorithm.residuals[j];
+            Residual *residual = new Residual(settingResidual.index);
+            for (int k = 0; k < settingResidual.components.size(); k++) {
+                const structResidual::structComponent &settingComponent =
+                        settingResidual.components[k];
+                residual->addComponent(settingComponent.coefficient, settingComponent.timeToUpdate,
+                        constructConnectionIO(settingComponent.connectionIO));
+            }
+            residual->init();
+            couplingAlgorithm->addResidual(residual, settingResidual.index);
+        }
+        // add outputs
+        for (int j = 0; j < settingCouplingAlgorithm.outputs.size(); j++) {
+            const structCouplingAlgorithm::structOutput &settingOutput =
+                    settingCouplingAlgorithm.outputs[j];
+            ConnectionIO *io = constructConnectionIO(settingOutput.connectionIO);
+            couplingAlgorithm->addOutput(io, settingOutput.index);
+        }
+
         nameToCouplingAlgorithmMap.insert(
                 pair<string, AbstractCouplingAlgorithm*>(name, couplingAlgorithm));
     }
@@ -356,37 +380,12 @@ void Emperor::initConnections() {
         connection = new Connection(name);
         for (int i = 0; i < settingConnection.inputs.size(); i++) {
             const structConnectionIO &settingConnectionIO = settingConnection.inputs[i];
-            if (settingConnectionIO.type == EMPIRE_ConnectionIO_DataField) {
-                ConnectionIO *io = new ConnectionIO(nameToClientCodeMap,
-                        settingConnectionIO.dataFieldRef.clientCodeName,
-                        settingConnectionIO.dataFieldRef.meshName,
-                        settingConnectionIO.dataFieldRef.dataFieldName);
-                connection->addInput(io);
-            } else if (settingConnectionIO.type == EMPIRE_ConnectionIO_Signal) {
-                ConnectionIO *io = new ConnectionIO(nameToClientCodeMap,
-                        settingConnectionIO.signalRef.clientCodeName,
-                        settingConnectionIO.signalRef.signalName);
-                connection->addInput(io);
-            } else {
-                assert(false);
-            }
+            connection->addInput(constructConnectionIO(settingConnectionIO));
+
         }
         for (int i = 0; i < settingConnection.outputs.size(); i++) {
             const structConnectionIO &settingConnectionIO = settingConnection.outputs[i];
-            if (settingConnectionIO.type == EMPIRE_ConnectionIO_DataField) {
-                ConnectionIO *io = new ConnectionIO(nameToClientCodeMap,
-                        settingConnectionIO.dataFieldRef.clientCodeName,
-                        settingConnectionIO.dataFieldRef.meshName,
-                        settingConnectionIO.dataFieldRef.dataFieldName);
-                connection->addOutput(io);
-            } else if (settingConnectionIO.type == EMPIRE_ConnectionIO_Signal) {
-                ConnectionIO *io = new ConnectionIO(nameToClientCodeMap,
-                        settingConnectionIO.signalRef.clientCodeName,
-                        settingConnectionIO.signalRef.signalName);
-                connection->addOutput(io);
-            } else {
-                assert(false);
-            }
+            connection->addOutput(constructConnectionIO(settingConnectionIO));
         }
 
         nameToConnetionMap.insert(pair<string, Connection*>(name, connection));
@@ -400,14 +399,6 @@ void Emperor::initConnections() {
                 assert(nameToMapperMap.find(mapperName)!=nameToMapperMap.end());
                 MapperAdapter *mapper = nameToMapperMap.at(mapperName);
                 filter = new MappingFilter(mapper);
-            } else if (settingFilter.type == EMPIRE_CouplingAlgorithmFilter) {
-                bool hasCoupAlg = nameToCouplingAlgorithmMap.find(
-                        settingFilter.couplingAlgorithmFilter.couplingAlgorithmName)
-                        != nameToCouplingAlgorithmMap.end();
-                assert(hasCoupAlg);
-                AbstractCouplingAlgorithm *couplingAlgorithm = nameToCouplingAlgorithmMap.at(
-                        settingFilter.couplingAlgorithmFilter.couplingAlgorithmName);
-                filter = new CouplingAlgorithmFilter(couplingAlgorithm);
             } else if (settingFilter.type == EMPIRE_ExtrapolatingFilter) {
                 bool hasExtrapolator = nameToExtrapolatorMap.find(
                         settingFilter.extrapolatingFilter.extrapolatorName)
@@ -429,37 +420,11 @@ void Emperor::initConnections() {
             }
             for (int i = 0; i < settingFilter.inputs.size(); i++) {
                 const structConnectionIO &settingConnectionIO = settingFilter.inputs[i];
-                if (settingConnectionIO.type == EMPIRE_ConnectionIO_DataField) {
-                    ConnectionIO *io = new ConnectionIO(nameToClientCodeMap,
-                            settingConnectionIO.dataFieldRef.clientCodeName,
-                            settingConnectionIO.dataFieldRef.meshName,
-                            settingConnectionIO.dataFieldRef.dataFieldName);
-                    filter->addInput(io);
-                } else if (settingConnectionIO.type == EMPIRE_ConnectionIO_Signal) {
-                    ConnectionIO *io = new ConnectionIO(nameToClientCodeMap,
-                            settingConnectionIO.signalRef.clientCodeName,
-                            settingConnectionIO.signalRef.signalName);
-                    filter->addInput(io);
-                } else {
-                    assert(false);
-                }
+                filter->addInput(constructConnectionIO(settingConnectionIO));
             }
             for (int i = 0; i < settingFilter.outputs.size(); i++) {
                 const structConnectionIO &settingConnectionIO = settingFilter.outputs[i];
-                if (settingConnectionIO.type == EMPIRE_ConnectionIO_DataField) {
-                    ConnectionIO *io = new ConnectionIO(nameToClientCodeMap,
-                            settingConnectionIO.dataFieldRef.clientCodeName,
-                            settingConnectionIO.dataFieldRef.meshName,
-                            settingConnectionIO.dataFieldRef.dataFieldName);
-                    filter->addOutput(io);
-                } else if (settingConnectionIO.type == EMPIRE_ConnectionIO_Signal) {
-                    ConnectionIO *io = new ConnectionIO(nameToClientCodeMap,
-                            settingConnectionIO.signalRef.clientCodeName,
-                            settingConnectionIO.signalRef.signalName);
-                    filter->addOutput(io);
-                } else {
-                    assert(false);
-                }
+                filter->addOutput(constructConnectionIO(settingConnectionIO));
             }
             filter->init(); // initialize something after the inputs and outputs are set
             connection->addFilter(filter);
@@ -489,52 +454,25 @@ AbstractCouplingLogic *Emperor::parseStructCouplingLogic(
         structCouplingLogic::structIterativeCouplingLoop::structConvergenceChecker &settingConvgChecker =
                 settingIterCoupLoop.convergenceChecker;
         vector<string> &convergenceObservers = settingIterCoupLoop.convergenceObservers;
-        vector<string> &couplingAlgorithmRefs = settingIterCoupLoop.couplingAlgorithmRefs;
+        pair<bool, string> &couplingAlgorithmRef = settingIterCoupLoop.couplingAlgorithmRef;
 
         IterativeCouplingLoop *iterativeCouplingLoop = new IterativeCouplingLoop();
         { // convergence checker
-            double absoluteTolerance =
-                    settingConvgChecker.hasAbsTol ?
-                            settingConvgChecker.absoluteTolerance :
-                            ConvergenceChecker::DEFAULT_ABS_TOL;
-            double relativeTolerance =
-                    settingConvgChecker.hasRelTol ?
-                            settingConvgChecker.relativeTolerance :
-                            ConvergenceChecker::DEFAULT_REL_TOL;
-            double maxNumOfIterations =
-                    settingConvgChecker.hasMaxNumOfIters ?
-                            settingConvgChecker.maxNumOfIterations :
-                            ConvergenceChecker::DEFAULT_MAX_NUM_ITERATIONS;
-            ConvergenceChecker *checker = new ConvergenceChecker(absoluteTolerance,
-                    relativeTolerance, maxNumOfIterations);
-            if (settingConvgChecker.whichRef == EMPIRE_ConvergenceChecker_dataFieldRef) {
-                string clientCodeName = settingConvgChecker.dataFieldRef.clientCodeName;
-                assert( nameToClientCodeMap.find(clientCodeName) != nameToClientCodeMap.end());
-                string meshName = settingConvgChecker.dataFieldRef.meshName;
-                string dataFieldName = settingConvgChecker.dataFieldRef.dataFieldName;
-                ClientCode *clientCode = nameToClientCodeMap.at(clientCodeName);
-                DataField *dataField = clientCode->getMeshByName(meshName)->getDataFieldByName(
-                        dataFieldName);
-                checker->setDataField(dataField);
-            } else if (settingConvgChecker.whichRef == EMPIRE_ConvergenceChecker_signalRef) {
-                string clientCodeName = settingConvgChecker.signalRef.clientCodeName;
-                string signalName = settingConvgChecker.signalRef.signalName;
-                assert( nameToClientCodeMap.find(clientCodeName) != nameToClientCodeMap.end());
-                ClientCode *clientCode = nameToClientCodeMap.at(clientCodeName);
-                Signal *signal = clientCode->getSignalByName(signalName);
-                checker->setSignal(signal);
-            } else if (settingConvgChecker.whichRef
-                    == EMPIRE_ConvergenceChecker_couplingAlgorithmRef) {
-                string couplingAlgName = settingConvgChecker.couplingAlgorithmRef;
-                assert(
-                        nameToCouplingAlgorithmMap.find(couplingAlgName) != nameToCouplingAlgorithmMap.end());
-                AbstractCouplingAlgorithm *couplingAlgorithm = nameToCouplingAlgorithmMap.at(
-                        couplingAlgName);
-                checker->setCouplingAlgorithm(couplingAlgorithm);
-            } else {
-                assert(false);
+            double maxNumOfIterations = settingConvgChecker.maxNumOfIterations;
+            ConvergenceChecker *checker = new ConvergenceChecker(maxNumOfIterations);
+            for (int i = 0; i < settingConvgChecker.checkResiduals.size(); i++) {
+                structCouplingLogic::structIterativeCouplingLoop::structConvergenceChecker::structCheckResidual & settingCheckResidual =
+                        settingConvgChecker.checkResiduals[i];
+                AbstractCouplingAlgorithm *coupAlgRef =
+                        nameToCouplingAlgorithmMap[settingCheckResidual.residualRef.couplingAlgorithmName];
+                checker->addCheckResidual(settingCheckResidual.absoluteTolerance,
+                        settingCheckResidual.relativeTolerance, coupAlgRef,
+                        settingCheckResidual.residualRef.index);
             }
-            iterativeCouplingLoop->initConvergenceChecker(checker);
+
+            iterativeCouplingLoop->setConvergenceChecker(checker);
+        }
+        { // add convergence observers
             int tmpSize = convergenceObservers.size();
             for (int i = 0; i < tmpSize; i++) {
                 assert(
@@ -543,14 +481,13 @@ AbstractCouplingLogic *Emperor::parseStructCouplingLogic(
                 iterativeCouplingLoop->addConvergenceObserver(clientCodeTmp);
             }
         }
-        { // add coupling algorithms
-            int tmpSize = couplingAlgorithmRefs.size();
-            for (int i = 0; i < tmpSize; i++) {
+        { // set coupling algorithm
+            if (settingIterCoupLoop.couplingAlgorithmRef.first) {
                 assert(
-                        nameToCouplingAlgorithmMap.find(couplingAlgorithmRefs[i])!=nameToCouplingAlgorithmMap.end());
+                        nameToCouplingAlgorithmMap.find(settingIterCoupLoop.couplingAlgorithmRef.second)!=nameToCouplingAlgorithmMap.end());
                 AbstractCouplingAlgorithm *couplingAlgorithmTmp = nameToCouplingAlgorithmMap.at(
-                        couplingAlgorithmRefs[i]);
-                iterativeCouplingLoop->addCouplingAlgorithm(couplingAlgorithmTmp);
+                        settingIterCoupLoop.couplingAlgorithmRef.second);
+                iterativeCouplingLoop->setCouplingAlgorithm(couplingAlgorithmTmp);
             }
         }
         { // add dataOutputs
@@ -602,6 +539,21 @@ AbstractCouplingLogic *Emperor::parseStructCouplingLogic(
 void Emperor::doCoSimulation() {
     assert(globalCouplingLogic->size()!=0);
     globalCouplingLogic->doCoupling();
+}
+
+ConnectionIO *Emperor::constructConnectionIO(const structConnectionIO &settingConnectionIO) {
+    ConnectionIO *io;
+    if (settingConnectionIO.type == EMPIRE_ConnectionIO_DataField) {
+        io = new ConnectionIO(nameToClientCodeMap, settingConnectionIO.dataFieldRef.clientCodeName,
+                settingConnectionIO.dataFieldRef.meshName,
+                settingConnectionIO.dataFieldRef.dataFieldName);
+    } else if (settingConnectionIO.type == EMPIRE_ConnectionIO_Signal) {
+        io = new ConnectionIO(nameToClientCodeMap, settingConnectionIO.signalRef.clientCodeName,
+                settingConnectionIO.signalRef.signalName);
+    } else {
+        assert(false);
+    }
+    return io;
 }
 
 } /* namespace EMPIRE */

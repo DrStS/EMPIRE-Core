@@ -34,6 +34,7 @@
 #include "Message.h"
 #include "ConnectionIO.h"
 #include "ConnectionIOSetup.h"
+#include "Residual.h"
 
 namespace EMPIRE {
 
@@ -43,6 +44,12 @@ class TestConstantRelaxation: public CppUnit::TestFixture {
 private:
     DataField *dfIn;
     DataField *dfOut;
+    ConnectionIO *in1;
+    ConnectionIO *in2;
+    ConnectionIO *out;
+    double coeffIn;
+    double coeffOut;
+    Residual *residual;
     ConstantRelaxation *constantRelaxation;
     double relaxationFactor;
 
@@ -54,8 +61,21 @@ public:
                 EMPIRE_DataField_field);
         dfOut = new DataField("output", EMPIRE_DataField_atNode, 5, EMPIRE_DataField_vector,
                 EMPIRE_DataField_field);
+        in1 = ConnectionIOSetup::constructDummyConnectionIO(dfIn);
+        in2 = ConnectionIOSetup::constructDummyConnectionIO(dfIn);
+        out = ConnectionIOSetup::constructDummyConnectionIO(dfOut);
+        coeffIn = -1.0;
+        coeffOut = 1.0;
+
+        residual = new Residual(1);
+        residual->addComponent(coeffIn, "iterationBeginning", in1);
+        residual->addComponent(coeffOut, "iterationEnd", out);
+        residual->init();
+
         constantRelaxation = new ConstantRelaxation("", relaxationFactor);
-        ConnectionIOSetup::setupIOForCouplingAlgorithm(constantRelaxation, NULL, dfIn, NULL, dfOut);
+        constantRelaxation->addResidual(residual, 1);
+        constantRelaxation->addOutput(in2, 1); // using in1 will cause segmentation fault
+
         constantRelaxation->debugMe = false;
     }
     void tearDown() {
@@ -65,67 +85,43 @@ public:
     }
     /*
      * Test case:
-     * Test check whether the step number is correct
-     */
-    void testNewTimeStep() {
-        const int SIZE = dfIn->dimension * dfIn->numLocations;
-        int NUM_INNER_LOOPS = 5;
-        const double EPS = 1E-10;
-        int NUM_OUTER_LOOPS = 2;
-
-        for (int k = 0; k < NUM_OUTER_LOOPS; k++) {
-            for (int i = 1; i <= NUM_INNER_LOOPS; i++) {
-                for (int j = 0; j < SIZE; j++) {
-                    dfIn->data[j] = 0.0;
-                }
-                if (i == 1)
-                    constantRelaxation->setNewLoop();
-                CPPUNIT_ASSERT(constantRelaxation->step == i);
-                constantRelaxation->calcNewValue();
-                constantRelaxation->initialResidual = 1.0; // dummy
-            }
-        }
-    }
-    /*
-     * Test case:
      * Test check whether the result is as expected
+     * In and out are: (10 20) (11 21) (12 22) (13 23) (14 24)
+     * output from constant relaxtion should be: 11 12 13 14 15
      */
     void testRelaxation() {
         const int SIZE = dfIn->dimension * dfIn->numLocations;
         int NUM_INNER_LOOPS = 5;
         const double EPS = 1E-10;
-        int NUM_OUTER_LOOPS = 2;
+        int NUM_OUTER_LOOPS = 2; // can be used to test memory leak
         // test case 1, all entries in an array are equal (e.g. 1,1,1, ...)
-        for (int k = 0; k < NUM_OUTER_LOOPS; k++) {
+        for (int time = 0; time < NUM_OUTER_LOOPS; time++) {
+            // initial value
+            for (int j = 0; j < SIZE; j++) {
+                dfIn->data[j] = 10.0;
+            }
+            // iterative loop ( dfIn = dfIn + omega * (dfOut - dfIn) )
             for (int i = 0; i < NUM_INNER_LOOPS; i++) {
-                double valueIn = 0.0;
-                if (i == 0)
-                    valueIn = 10.0;
-                else
-                    valueIn = 20.0 + double(i) - 1;
+                constantRelaxation->updateAtIterationBeginning();
                 for (int j = 0; j < SIZE; j++) {
-                    dfIn->data[j] = valueIn;
+                    dfOut->data[j] = 20.0 + double(i);
                 }
+                constantRelaxation->updateAtIterationEnd();
                 //debugOut << *dfIn;
                 if (i == 0)
-                    constantRelaxation->setNewLoop();
+                    constantRelaxation->setNewLoop(); // useful only for aitken
                 constantRelaxation->calcNewValue();
                 //debugOut << *dfOut;
-                double valueRef = 0.0;
-                if (i == 0)
-                    valueRef = 10.0;
-                else
-                    valueRef = 10.0 + double(i);
+                double valueRef = 10.0 + double(i) + 1.0;
 
                 for (int j = 0; j < SIZE; j++) {
-                    CPPUNIT_ASSERT( fabs(dfOut->data[j] - valueRef) < EPS);
+                    CPPUNIT_ASSERT( fabs(dfIn->data[j] - valueRef) < EPS);
                 }
             }
         }
     }
 
 CPPUNIT_TEST_SUITE( class TestConstantRelaxation );
-        CPPUNIT_TEST( testNewTimeStep);
         CPPUNIT_TEST( testRelaxation);
     CPPUNIT_TEST_SUITE_END();
 };
