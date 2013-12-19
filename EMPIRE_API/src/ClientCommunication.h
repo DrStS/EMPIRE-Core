@@ -144,7 +144,8 @@ private:
 	int isMpiInitCalledByClient;
 	/// The singleton of this class
 	static ClientCommunication* clientComm;
-
+	/// The Rank of the current process
+    int myRank;
 
 	/***********************************************************************************************
 	 * \brief disallow public constructor

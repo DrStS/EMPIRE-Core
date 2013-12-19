@@ -22,8 +22,10 @@
 #include "Emperor.h"
 #include "MetaDataStructures.h"
 #include "GiDFileIO.h"
+#include "MatlabIGAFileIO.h"
 #include "AbstractMesh.h"
 #include "FEMesh.h"
+#include "IGAMesh.h"
 #include "DataField.h"
 #include "ClientCode.h"
 #include "Signal.h"
@@ -61,7 +63,7 @@ void DataOutput::writeCurrentStep(int step) {
 void DataOutput::writeMeshes() {
     const vector<structDataFieldRef> &dataFieldRefs = settingDataOutput.dataFieldRefs;
     // get rid of repeated meshes
-    map<string, FEMesh*> meshFileNameToMeshMap;
+    map<string, AbstractMesh*> meshFileNameToMeshMap;
     for (int i = 0; i < dataFieldRefs.size(); i++) {
         const string UNDERSCORE = "_";
         string clientCodeName = dataFieldRefs[i].clientCodeName;
@@ -69,25 +71,25 @@ void DataOutput::writeMeshes() {
         string meshFileName = dataOutputName + UNDERSCORE + clientCodeName + UNDERSCORE + meshName
                 + ".msh";
 
-        assert(nameToClientCodeMap.find(clientCodeName)!=nameToClientCodeMap.end());
+        assert(nameToClientCodeMap.find(clientCodeName) != nameToClientCodeMap.end());
         AbstractMesh *mesh = nameToClientCodeMap[clientCodeName]->getMeshByName(meshName);
-        if (mesh->type == EMPIRE_Mesh_FEMesh){
-        	FEMesh *feMesh = dynamic_cast<FEMesh*>(mesh);
-        	meshFileNameToMeshMap.insert(pair<string, FEMesh*>(meshFileName, feMesh));
-        } else if (mesh->type == EMPIRE_Mesh_IGAMesh){
-        } else
-        	assert(0);
-
+        meshFileNameToMeshMap.insert(pair<string, AbstractMesh*>(meshFileName, mesh));
     }
     // write meshes
-    for (map<string, FEMesh*>::iterator it = meshFileNameToMeshMap.begin();
+    for (map<string, AbstractMesh*>::iterator it = meshFileNameToMeshMap.begin();
             it != meshFileNameToMeshMap.end(); it++) {
         string meshFileName = it->first;
-        FEMesh *mesh = it->second;
-        if (mesh->triangulate() != NULL)
-            mesh = mesh->triangulate();
-        GiDFileIO::writeDotMsh(meshFileName, mesh->numNodes, mesh->numElems, mesh->nodes,
-                mesh->nodeIDs, mesh->numNodesPerElem, mesh->elems, mesh->elemIDs);
+        if (it->second->type == EMPIRE_Mesh_FEMesh) {
+            FEMesh *mesh = dynamic_cast<FEMesh*>(it->second);
+            if (mesh->triangulate() != NULL)
+                mesh = mesh->triangulate();
+            GiDFileIO::writeDotMsh(meshFileName, mesh->numNodes, mesh->numElems, mesh->nodes,
+                    mesh->nodeIDs, mesh->numNodesPerElem, mesh->elems, mesh->elemIDs);
+        } else if (it->second->type == EMPIRE_Mesh_IGAMesh) {
+            IGAMesh* igaMesh = dynamic_cast<IGAMesh*>(it->second);
+            MatlabIGAFileIO::writeIGAMesh(igaMesh);
+        } else
+            assert(0);
     }
 }
 
@@ -164,6 +166,8 @@ void DataOutput::writeDataFields(int step) {
 							feMesh->numNodesPerElem, dataField->data);
 				}
             } else if (mesh->type == EMPIRE_Mesh_IGAMesh) {
+                DataField *dataField = mesh->getDataFieldByName(dataFieldName);
+                MatlabIGAFileIO::writeDisplacementOnCPs(dataFieldName, step, dataField);
             } else {
             	assert(0);
             }

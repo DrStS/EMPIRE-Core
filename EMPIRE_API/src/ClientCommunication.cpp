@@ -44,10 +44,15 @@ ClientCommunication::ClientCommunication() {
 
     portFile.open((const char*) (ClientMetaDatabase::getSingleton()->getServerPortFile().c_str()));
     MPI_Initialized(&isMpiInitCalledByClient);
+	myRank = -1;
     if (!isMpiInitCalledByClient) {
         MPI_Init(NULL, NULL);
+		MPI_Comm_rank(MPI_COMM_WORLD, &myRank);
     } else {
-        cout << "EMPIRE_INFO: Client has already called MPI_Init." << endl;
+	    MPI_Comm_rank(MPI_COMM_WORLD, &myRank);
+	    if (myRank == 0) {
+			cout << "EMPIRE_INFO: Client has already called MPI_Init." << endl;
+		}
     }
     isMpiCallLegal = 1;
 }
@@ -58,8 +63,6 @@ ClientCommunication::~ClientCommunication() {
 void ClientCommunication::connect() {
     MPI_Status status;
     int connectionSuccessful = 0;
-    int myRank = -1;
-    MPI_Comm_rank(MPI_COMM_WORLD, &myRank);
     if (portFile.is_open()) {
         getline(portFile, portName);
         portFile.close();
@@ -93,20 +96,24 @@ void ClientCommunication::connect() {
 }
 
 void ClientCommunication::disconnect() {
-    if (isMpiCallLegal) {
-        int size;
-        cout << "EMPIRE_INFO: Disconnect from Emperor" << endl;
-        MPI_Comm_size(MPI_COMM_WORLD, &size);
-        cout << "EMPIRE_INFO: COMM size MPI_COMM_WORLD: " << size << endl;
-        MPI_Comm_size(server, &size);
-        cout << "EMPIRE_INFO: COMM size server: " << size << endl;
-        MPI_Comm_remote_size(server, &size);
-        cout << "EMPIRE_INFO: COMM size remote server: " << size << endl;
-        MPI_Comm_disconnect(&server);
-        if (!isMpiInitCalledByClient) {
-            MPI_Finalize();
-        }
-    }
+
+	if (isMpiCallLegal) {
+		if (myRank == 0) {
+			int size;
+			cout << "EMPIRE_INFO: Disconnect from Emperor" << endl;
+			MPI_Comm_size(MPI_COMM_WORLD, &size);
+			cout << "EMPIRE_INFO: COMM size MPI_COMM_WORLD: " << size << endl;
+			MPI_Comm_size(server, &size);
+			cout << "EMPIRE_INFO: COMM size server: " << size << endl;
+			MPI_Comm_remote_size(server, &size);
+			cout << "EMPIRE_INFO: COMM size remote server: " << size << endl;
+			MPI_Comm_disconnect(&server);
+		}
+		if (!isMpiInitCalledByClient) {
+			MPI_Finalize();
+		}
+	}
+
 }
 
 } /* namespace EMPIRE */

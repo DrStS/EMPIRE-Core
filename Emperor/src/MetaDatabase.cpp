@@ -279,6 +279,12 @@ void MetaDatabase::fillSettingMapperVec() {
             mapper.type = EMPIRE_BarycentricInterpolationMapper;
         } else if (xmlMapper->GetAttribute("type") == "IGAMortarMapper") {
             mapper.type = EMPIRE_IGAMortarMapper;
+            ticpp::Element *xmlIGAMortar = xmlMapper->FirstChildElement("IGAMortarMapper");
+            mapper.igaMortarMapper.tolProjectionDistance = xmlIGAMortar->GetAttribute<double>(
+                    "tolProjectionDistance");
+            mapper.igaMortarMapper.numGPsTriangle = xmlIGAMortar->GetAttribute<int>(
+                    "numGPsTriangle");
+            mapper.igaMortarMapper.numGPsQuad = xmlIGAMortar->GetAttribute<int>("numGPsQuad");
         } else {
             assert(false);
         }

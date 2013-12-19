@@ -58,6 +58,11 @@ public:
 
     /// Constructor, destructor
 public:
+    /***********************************************************************************************
+     * \brief Constructor
+     * \param[in] _numGaussPoints, number of Gauss points
+     * \author Chenshen Wu
+     ***********/
     GaussQuadrature(int _numGaussPoints) :
             numGaussPoints(_numGaussPoints) {
     }
@@ -67,7 +72,12 @@ public:
 
     /// Get and set functions
 public:
-    virtual const double* getGaussPoint(int i) = 0;
+    /***********************************************************************************************
+     * \brief Returns the coordinates of the Gauss point
+     * \param[in] _index the Gauss point to be returned
+     * \author Chenshen Wu
+     ***********/
+    virtual const double* getGaussPoint(int _index) = 0;
 };
 
 /********//**
@@ -85,8 +95,14 @@ public:
     virtual ~GaussQuadratureOnTriangle() {
     }
     ;
-    const double* getGaussPoint(int i) {
-        return &gaussPoints[i * 2];
+    
+    /***********************************************************************************************
+     * \brief Returns the coordinates of the Gauss point
+     * \param[in] _index the Gauss point to be returned
+     * \author Chenshen Wu
+     ***********/
+    const double* getGaussPoint(int _index) {
+        return &gaussPoints[_index * 2];
     }
 
 };
@@ -107,8 +123,14 @@ public:
     virtual ~GaussQuadratureOnQuad() {
     }
     ;
-    const double* getGaussPoint(int i) {
-        return &gaussPoints[i * 2];
+    
+    /***********************************************************************************************
+     * \brief Returns the coordinates of the Gauss point
+     * \param[in] _index the Gauss point to be returned
+     * \author Chenshen Wu
+     ***********/
+    const double* getGaussPoint(int _index) {
+        return &gaussPoints[_index * 2];
     }
 };
 
@@ -283,6 +305,15 @@ double det3x3(const double* _A);
  ***********/
 double computePointDistance(double* _x1, double* _x2);
 
+/***********************************************************************************************
+ * \brief Computes the cross product of between two vectors with zero component on z direction
+ * \param[in] _x1, x component of the first vector
+ * \param[in] _y1, y component of the first vector
+ * \param[in] _x2, x component of the second vector
+ * \param[in] _y2, y component of the second vector
+ * \param[out] Z component of the cross product between (x1,y1,0) and (x2,y2,0)
+ * \author Chenshen Wu
+ ***********/
 double computeCrossProduct2D(double x1, double y1, double x2, double y2);
 }
 }

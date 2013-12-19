@@ -81,13 +81,11 @@ void MapperAdapter::initMortarMapper(bool oppositeSurfaceNormal, bool dual,
             b->nodeIDs, b->elems, oppositeSurfaceNormal, dual, enforceConsistency);
 }
 
-void MapperAdapter::initIGAMortarMapper() {
+void MapperAdapter::initIGAMortarMapper(double _tolProjectionDistance, int _numGPsTriangle, int _numGPsQuad) {
     assert(meshA->type == EMPIRE_Mesh_IGAMesh);
     assert(meshB->type == EMPIRE_Mesh_FEMesh);
     mapperImpl = new IGAMortarMapper(name,dynamic_cast<IGAMesh *>(meshA),
-                     dynamic_cast<FEMesh *>(meshB),1e-6,7,25);
-    // Tri: 1,3,4,6,7,12,13,16
-    // Quad: 1,4,9,16,25
+                     dynamic_cast<FEMesh *>(meshB),_tolProjectionDistance,_numGPsTriangle,_numGPsQuad);
 }
 
 void MapperAdapter::initNearestNeighborMapper() {

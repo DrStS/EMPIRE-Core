@@ -323,6 +323,10 @@ public:
         return vNoControlPoints;
     }
 
+    /***********************************************************************************************
+     * \brief Get the number of the Control Points of the patch
+     * \author Chenshen Wu
+     ***********/
     inline int getNoControlPoints() {
         return uNoControlPoints * vNoControlPoints;
     }
@@ -351,16 +355,6 @@ public:
         return getIGABasis()->getVBSplineBasis1D()->findKnotSpan(_v);
     }
 
-    /// DEBUGGING functions
-public:
-    /***********************************************************************************************
-     * \brief Prints the Control Point net for the 2D NURBS patch
-     * \author Andreas Apostolatos
-     ***********/
-    void printControlPointNet();
-
-    void print();
-
     /// The maximum number of Newton-Raphson iterations for the computation of the orthogonal projection of point on the NURBS patch
     static const int MAX_NUM_ITERATIONS;
 
@@ -374,6 +368,10 @@ public:
     static const double EPS_DISTANCE;
 };
 
+/***********************************************************************************************
+ * \brief Allows for nice debug output
+ * \author Chenshen Wu
+ ***********/
 Message &operator<<(Message &message, IGAPatchSurface &mesh);
 
 }/* namespace EMPIRE */

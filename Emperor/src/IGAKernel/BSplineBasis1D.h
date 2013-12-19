@@ -19,7 +19,7 @@
  *  along with EMPIRE.  If not, see http://www.gnu.org/licenses/.
  */
 /***********************************************************************************************//**
- * \file NurbsBasis1D.h
+* \file NurbsBasis1D.h
  * This file holds the class NurbsBasis1D.h
  * \date 11/3/2013
  **************************************************************************************************/
@@ -31,6 +31,7 @@
 #include "AbstractBSplineBasis1D.h"
 
 namespace EMPIRE {
+class Message;
 
 /********//**
  * \brief class BSplineBasis1D is related to the BSpline basis functions in 1D case
@@ -64,9 +65,7 @@ public:
      * \brief Destructor
      * \author Andreas Apostolatos
      ***********/
-    ~BSplineBasis1D() {
-
-    }
+    ~BSplineBasis1D();
 
     /***********************************************************************************************
      * \brief Copy constructor
@@ -168,35 +167,15 @@ public:
      ***********/
     void setKnotVector(int, double*);
 
-    /// DEBUGGING functions
-public:
-    /***********************************************************************************************
-     * \brief Outputs the polynomial degree on the terminal
-     * \author Andreas Apostolatos
-     ***********/
-    void printPolynomialDegree();
-
-    /***********************************************************************************************
-     * \brief Outputs the knot vector in the terminal
-     * \author Andreas Apostolatos
-     ***********/
-    void printNoKnots();
-
-    /***********************************************************************************************
-     * \brief Outputs the knot vector in the terminal
-     * \author Andreas Apostolatos
-     ***********/
-    void printKnotVector();
-
-    /***********************************************************************************************
-     * \brief Outputs the number of basis functions
-     * \author Andreas Apostolatos
-     ***********/
-    void printNoBasisFunctions();
-
     /// The tolerance for accepting a very small number as interior to the knot span
     static const double EPS_ACCPETEDINTOKNOTSPAN;
 };
+
+/***********************************************************************************************
+ * \brief Allows for nice debug output
+ * \author Chenshen Wu
+ ***********/
+Message &operator<<(Message &message, BSplineBasis1D &bSplineBasis1D);
 
 }/* namespace EMPIRE */
 
