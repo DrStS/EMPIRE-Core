@@ -34,7 +34,7 @@ namespace EMPIRE {
 
 ConstantRelaxation::ConstantRelaxation(std::string _name, double _relaxationFactor) :
         AbstractCouplingAlgorithm(_name), RELAXATION_FACTOR(_relaxationFactor) {
-    assert(RELAXATION_FACTOR>0.0);
+    ///assert(RELAXATION_FACTOR>0.0); can be also negative
     debugMe = false;
 }
 

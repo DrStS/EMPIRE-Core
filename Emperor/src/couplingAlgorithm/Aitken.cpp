@@ -18,37 +18,58 @@
  *  You should have received a copy of the GNU General Public License
  *  along with EMPIRE.  If not, see http://www.gnu.org/licenses/.
  */
-#include <assert.h>
-#include <sstream>
-#include <math.h>
-
 #include "Aitken.h"
 #include "DataField.h"
-#include "Message.h"
-#include "Signal.h"
 #include "ConnectionIO.h"
-#include "EMPEROR_Enum.h"
+#include "Signal.h"
+#include "Residual.h"
+
+#include <assert.h>
+#include <math.h>
+#include <sstream>
 
 using namespace std;
 
 namespace EMPIRE {
 
-const double Aitken::LIMIT = 1E6;
-
-Aitken::Aitken(std::string _name, double _initialRelaxationFactor) :
-        AbstractCouplingAlgorithm(_name), INIT_AITKEN_FACTOR(_initialRelaxationFactor) {
-    assert(INIT_AITKEN_FACTOR >= 0.0);
+Aitken::Aitken(std::string _name, double _initRelaxationFactor) :
+        AbstractCouplingAlgorithm(_name), INIT_RELAXATION_FACTOR(_initRelaxationFactor) {
+    debugMe = false;
 }
 
 Aitken::~Aitken() {
 }
 
 void Aitken::calcNewValue() {
-    assert(false);
+    /// compute the current residuals
+    for (map<int, Residual*>::iterator it = residuals.begin(); it != residuals.end(); it++) {
+        it->second->computeCurrentResidual();
+    }
+
+    /// determine global residual vector size
+    int globalResidualSize =0;
+    for (map<int, Residual*>::iterator it = residuals.begin(); it != residuals.end(); it++) {
+    	globalResidualSize +=it->second->size;
+    }
+    double *globalResidual = new double [globalResidualSize];
+
+
+
+    // update the output
+    assert(outputs.size() == residuals.size());
+    for (map<int, Residual*>::iterator it = residuals.begin(); it != residuals.end(); it++) {
+        Residual *residual = it->second;
+        assert(outputs.find(it->first) != outputs.end());
+        CouplingAlgorithmOutput *output = outputs.find(it->first)->second;
+        assert(residual->size == output->size);
+        double *newOuput = new double[residual->size];
+        // U_i_n+1 = U_i_n + alpha R_i_n
+        for (int i=0; i<residual->size; i++) {
+            newOuput[i] = output->outputCopyAtIterationBeginning[i]+ INIT_RELAXATION_FACTOR*residual->residualVector[i] ;
+        }
+        output->overwrite(newOuput);
+        delete[] newOuput;
+    }
+    delete[] globalResidual;
 }
-
-void Aitken::setZeroState() {
-
-}
-
 } /* namespace EMPIRE */

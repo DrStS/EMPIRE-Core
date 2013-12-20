@@ -30,49 +30,35 @@
 #include "AbstractCouplingAlgorithm.h"
 
 namespace EMPIRE {
-
 /********//**
- * \brief Class Aitken uses Aitken algorithms to perform relaxation in an implicit coupling loop
+ * \brief Class ConstantRelaxation does a constant relaxation
  ***********/
 class Aitken: public AbstractCouplingAlgorithm {
 public:
     /***********************************************************************************************
-     * \brief Constructor, set input and output (the input and output could be the same memory)
-     * \param[in] _name name of the coupling algorithm
-     * \param[in] _initialRelaxationFactor the initial aitken factor
-     * \author Tianyang Wang
+     * \brief Constructor
+     * \param[in] _name the name of the coupling algorithm
+     * \param[in] _initRelaxationFactor the initial relaxation factor
+     * \author Stefan Sicklinger
      ***********/
-    Aitken(std::string _name, double _initialRelaxationFactor);
+    Aitken(std::string _name, double _initRelaxationFactor);
     /***********************************************************************************************
      * \brief Destructor
-     * \author Tianyang Wang
+     * \author Stefan Sicklinger
      ***********/
     virtual ~Aitken();
     /***********************************************************************************************
-     * \brief Calculate the output by relaxation on the input
-     * \author Tianyang Wang
+     * \brief Calculate the new value of the output
+     * \author Stefan Sicklinger
      ***********/
     void calcNewValue();
 private:
-    /// the initial Aitken factor
-    const double INIT_AITKEN_FACTOR;
-    /// limit of aikten factor amplification
-    static const double LIMIT;
+    /// relaxation factor
+    const double INIT_RELAXATION_FACTOR;
+    /// friend class in unit test
+    friend class TestAitken;
     /// whether output numbers or not
     bool debugMe;
-    /// iteration number in iterative coupling
-    int step;
-    /// the unit test class
-    friend class TestAitken;
-    friend class TestRelaxationMethods;
-    friend class TestConvergenceChecker;
-    /***********************************************************************************************
-     * \brief Sets all the Atiken vectors to zero (needs to be done at the beginning of every
-     * timestep)
-     * \author Stefan Sicklinger
-     ***********/
-    void setZeroState();
-
 };
 
 } /* namespace EMPIRE */

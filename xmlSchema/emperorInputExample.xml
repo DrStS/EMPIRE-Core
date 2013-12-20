@@ -95,11 +95,34 @@
 	
 
 	<!-- ================ define couplingAlgorithms ================================== -->
-	<couplingAlgorithm type="aitken" name="aitken">
-		<aitken initialAitkenFactor="0.3" />
+	<couplingAlgorithm type="constantRelaxation" name="myConstantRelaxation">
+		<residual index="1">
+			<component coefficient="-1" timeToUpdate="iterationBeginning">
+				<signalRef clientCodeName="subSystem1" signalName="interfaceDisplacementY" />
+			</component>
+			<component coefficient="1" timeToUpdate="iterationEnd">
+				<signalRef clientCodeName="subSystem1" signalName="interfaceDisplacementY" />
+			</component>
+		</residual>
+		<output index="1">
+			<signalRef clientCodeName="subSystem1" signalName="interfaceDisplacementY" />
+		</output>
+		<constantRelaxation relaxationFactor="0.1" />
 	</couplingAlgorithm>
-	<couplingAlgorithm type="constantRelaxation" name="constantRelaxation">
-		<constantRelaxation relaxationFactor="0.3" />
+	
+	<couplingAlgorithm type="aitken" name="myAitkenRelaxation">
+		<residual index="1">
+			<component coefficient="-1" timeToUpdate="iterationBeginning">
+				<signalRef clientCodeName="subSystem1" signalName="interfaceDisplacementY" />
+			</component>
+			<component coefficient="1" timeToUpdate="iterationEnd">
+				<signalRef clientCodeName="subSystem1" signalName="interfaceDisplacementY" />
+			</component>
+		</residual>
+		<output index="1">
+			<signalRef clientCodeName="subSystem1" signalName="interfaceDisplacementY" />
+		</output>
+		<aitkenRelaxation initialRelaxationFactor="0.1" />
 	</couplingAlgorithm>
 
 	<!-- ================ define extrapolators ================================= -->
