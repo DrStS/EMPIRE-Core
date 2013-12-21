@@ -42,7 +42,7 @@ public:
         ERROR,   /// Error
         WARNING, /// Warning of possible problem
         INFO,    /// Info for user
-        DEBUG,   /// Debugging information in event of error
+        DEBUG    /// Debugging information in event of error
     };
 
     ///This variable is shared between all objects of type message
@@ -167,7 +167,6 @@ extern Message warningOut;
 #define INFO_OUT(string) /*
  */                CRITICAL_OUTPUT /*
  */                infoOut(string)
-
 /**************************************************************************************************!
   Forwards \a string argument to debugOut(string) Message object;
 ***********/
