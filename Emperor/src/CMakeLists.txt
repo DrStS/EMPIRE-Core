@@ -16,13 +16,18 @@ get_property(Emperor_INCLUDES GLOBAL PROPERTY Emperor_INCLUDES)
 get_property(Emperor_SOURCES GLOBAL PROPERTY Emperor_SOURCES) 
 get_property(EMPIRE_thirdparty_INCLUDES GLOBAL PROPERTY EMPIRE_thirdparty_INCLUDES) 
 #------------------------------------------------------------------------------------#
+# MPI
+IF(MPI_CXX_INCLUDE_PATH)
+include_directories(${MPI_CXX_INCLUDE_PATH})
+ENDIF()
+#------------------------------------------------------------------------------------#
 include_directories(${Emperor_INCLUDES})
 include_directories(${EMPIRE_thirdparty_INCLUDES})
 LIST(REMOVE_ITEM Emperor_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp)
 add_library(EmperorLib STATIC ${Emperor_SOURCES} $<TARGET_OBJECTS:EMPIRE_thirdparty>)
 #------------------------------------------------------------------------------------#
 add_executable(Emperor ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp)
-target_link_libraries(Emperor EmperorLib ${Emperor_LIBS})
+target_link_libraries(Emperor EmperorLib ${Emperor_LIBS} ${MPI_CXX_LINK_FLAGS})
 #------------------------------------------------------------------------------------#
 add_dependencies(Emperor EmperorLib EMPIRE_thirdparty)
 #------------------------------------------------------------------------------------#
