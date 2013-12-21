@@ -143,6 +143,6 @@ ENDIF()
 ######################################################################################
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/../EMPIRE-Libraries" "${CMAKE_CURRENT_BINARY_DIR}/EMPIRE-Libraries")
 add_subdirectory(Emperor)
-#add_subdirectory(EMPIRE_API)
-#add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/../EMPIRE-Testing" "${CMAKE_CURRENT_BINARY_DIR}/EMPIRE-Testing")
+add_subdirectory(EMPIRE_API)
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/../EMPIRE-Testing" "${CMAKE_CURRENT_BINARY_DIR}/EMPIRE-Testing")
 
