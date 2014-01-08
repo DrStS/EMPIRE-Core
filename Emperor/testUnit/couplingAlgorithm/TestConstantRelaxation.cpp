@@ -109,7 +109,7 @@ public:
                 constantRelaxation->updateAtIterationEnd();
                 //debugOut << *dfIn;
                 if (i == 0)
-                    constantRelaxation->setNewLoop(); // useful only for aitken
+                    constantRelaxation->setNewTimeStep(); // useful only for aitken
                 constantRelaxation->calcNewValue();
                 //debugOut << *dfOut;
                 double valueRef = 10.0 + double(i) + 1.0;

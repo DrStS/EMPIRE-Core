@@ -338,6 +338,10 @@ void Emperor::initCouplingAlgorithms() {
             ConnectionIO *io = constructConnectionIO(settingOutput.connectionIO);
             couplingAlgorithm->addOutput(io, settingOutput.index);
         }
+        // init all coupling algorithms
+        for (int j = 0; j < settingCouplingAlgorithm.outputs.size(); j++) {
+            couplingAlgorithm->init();
+        }
 
         nameToCouplingAlgorithmMap.insert(
                 pair<string, AbstractCouplingAlgorithm*>(name, couplingAlgorithm));

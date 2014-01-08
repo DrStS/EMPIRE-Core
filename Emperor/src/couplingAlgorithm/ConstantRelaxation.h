@@ -51,6 +51,11 @@ public:
      * \author Tianyang Wang
      ***********/
     void calcNewValue();
+    /***********************************************************************************************
+     * \brief Init constant relaxation
+     * \author Stefan Sicklinger
+     ***********/
+    void init(){}
 private:
     /// relaxation factor
     const double RELAXATION_FACTOR;

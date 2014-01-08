@@ -78,7 +78,7 @@ void AbstractCouplingAlgorithm::CouplingAlgorithmOutput::overwrite(double *newDa
 }
 
 AbstractCouplingAlgorithm::AbstractCouplingAlgorithm(std::string _name) :
-        name(_name), newLoop(false) {
+        name(_name), newTimeStep(false) {
 }
 
 AbstractCouplingAlgorithm::~AbstractCouplingAlgorithm() {
@@ -115,8 +115,8 @@ void AbstractCouplingAlgorithm::updateAtIterationEnd() {
         it->second->updateAtIterationEnd();
 }
 
-void AbstractCouplingAlgorithm::setNewLoop() {
-    newLoop = true;
+void AbstractCouplingAlgorithm::setNewTimeStep() {
+	newTimeStep = true;
 }
 
 double AbstractCouplingAlgorithm::getResidualL2Norm(int index) {
@@ -125,39 +125,6 @@ double AbstractCouplingAlgorithm::getResidualL2Norm(int index) {
 
 std::string AbstractCouplingAlgorithm::getName() {
     return name;
-}
-
-void AbstractCouplingAlgorithm::vecCopy(const double *from, double *to, int size) {
-    for (int i = 0; i < size; i++)
-        to[i] = from[i];
-}
-
-double AbstractCouplingAlgorithm::vecDotProduct(const double *vec1, const double *vec2, int size) {
-    double product = 0.0;
-    for (int i = 0; i < size; i++)
-        product += vec1[i] * vec2[i];
-    return product;
-}
-
-void AbstractCouplingAlgorithm::vecScalarMultiply(double *vec, const double SCALAR, int size) {
-    for (int i = 0; i < size; i++)
-        vec[i] *= SCALAR;
-}
-
-void AbstractCouplingAlgorithm::vecPlusEqual(double *vec1, const double *vec2, int size) {
-    for (int i = 0; i < size; i++)
-        vec1[i] += vec2[i];
-}
-
-void AbstractCouplingAlgorithm::vecMinusEqual(double *vec1, const double *vec2, int size) {
-    for (int i = 0; i < size; i++)
-        vec1[i] -= vec2[i];
-}
-
-void AbstractCouplingAlgorithm::vecMinus(const double *vec1, const double *vec2, double *vec1minus2,
-        int size) {
-    for (int i = 0; i < size; i++)
-        vec1minus2[i] = vec1[i] - vec2[i];
 }
 
 double AbstractCouplingAlgorithm::vecL2Norm(const double *vec, int size) {

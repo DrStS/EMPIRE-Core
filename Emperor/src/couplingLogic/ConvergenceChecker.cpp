@@ -71,6 +71,7 @@ bool ConvergenceChecker::CheckResidual::isConvergent() {
 
 void ConvergenceChecker::CheckResidual::writeResidualToShell() {
     stringstream ss;
+    ss << scientific;
     ss << "ConvergenceChecker::CheckResidual(" << couplingAlgorithm->getName() << ", " << residualIndex
             << "): " << "(" << getRelativeResidual() << ", " << getAbsoluteResidual() << ")"
             << endl;
@@ -120,6 +121,7 @@ bool ConvergenceChecker::isConvergent() {
 
     // write residuals to file
     residualFile << timeStepNumber << '\t' << currentNumOfIterations;
+    residualFile << scientific;
     for (int i = 0; i < checkResiduals.size(); i++) {
         residualFile << '\t' << "(" << checkResiduals[i]->getRelativeResidual() << '\t'
                 << checkResiduals[i]->getAbsoluteResidual() << ")";

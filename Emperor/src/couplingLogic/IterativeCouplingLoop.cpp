@@ -53,9 +53,9 @@ void IterativeCouplingLoop::setConvergenceChecker(ConvergenceChecker *_convergen
 void IterativeCouplingLoop::doCoupling() {
     assert(convergenceChecker!=NULL);
     int count = 0;
-    // notify the coupling algorithms the start of the iteration
+    // notify the coupling algorithms the start of a new time step
     if (couplingAlgorithm != NULL)
-        couplingAlgorithm->setNewLoop();
+        couplingAlgorithm->setNewTimeStep();
 
     // initialize output files
     outputCounter++;

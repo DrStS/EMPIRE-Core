@@ -79,16 +79,21 @@ public:
      ***********/
     virtual void calcNewValue() = 0;
     /***********************************************************************************************
-     * \brief Set that the new implicit coupling loop starts
+     * \brief Set that the new time step starts
      * \author Tianyang Wang
      ***********/
-    void setNewLoop();
+    void setNewTimeStep();
     /***********************************************************************************************
      * \brief return the L2 norm of the residual with the given index
      * \return the L2 norm of the residual
      * \author Tianyang Wang
      ***********/
     double getResidualL2Norm(int index);
+    /***********************************************************************************************
+     * \brief Init coupling algorithm
+     * \author Stefan Sicklinger
+     ***********/
+    virtual void init()=0;
     /***********************************************************************************************
      * \brief return the name
      * \return the name
@@ -140,58 +145,8 @@ protected:
     /// residual vector
     std::map<int, Residual*> residuals;
     /// whether it is the new loop
-    bool newLoop;
+    bool newTimeStep;
 
-    /***********************************************************************************************
-     * \brief Copy a vector
-     * \param[in] from input vector (a double array)
-     * \param[in] size size of the array
-     * \param[out] to output vector
-     * \author Tianyang Wang
-     ***********/
-    static void vecCopy(const double *from, double *to, int size);
-    /***********************************************************************************************
-     * \brief Dot product of two vectors
-     * \param[in] vec1 the 1st vector
-     * \param[in] vec2 the 2nd vector
-     * \param[in] size size of the array
-     * \return the dot product
-     * \author Tianyang Wang
-     ***********/
-    static double vecDotProduct(const double *vec1, const double *vec2, int size);
-    /***********************************************************************************************
-     * \brief vector scalar multiplification
-     * \param[in/out] vec input vector (a double array)
-     * \param[in] size size of the arsignal    * \param[out] to output vector
-     * \author Tianyang Wang
-     ***********/
-    static void vecScalarMultiply(double *vec, const double SCALAR, int size);
-    /***********************************************************************************************
-     * \brief vec1 = vec1 + vec2
-     * \param[in/out] vec1 the 1st vector
-     * \param[in] vec2 the 2nd vector
-     * \param[in] size size of the array
-     * \author Tianyang Wang
-     ***********/
-    static void vecPlusEqual(double *vec1, const double *vec2, int size);
-    /***********************************************************************************************
-     * \brief vec1 = vec1 - vec2
-     * \param[in/out] vec1 the 1st vector
-     * \param[in] vec2 the 2nd vector
-     * \param[in] size size of the array
-     * \author Tianyang Wang
-     ***********/
-    static void vecMinusEqual(double *vec1, const double *vec2, int size);
-    /***********************************************************************************************
-     * \brief vec1minus2 = vec1 - vec2
-     * \param[in] vec1 the 1st vector
-     * \param[in] vec2 the 2nd vector
-     * \param[out] vec1minus2 the 1st vector
-     * \param[in] size size of the array
-     * \author Tianyang Wang
-     ***********/
-    static void vecMinus(const double *vec1, const double *vec2, double *vec1minus2,
-            int size);
     /***********************************************************************************************
      * \brief compute L2 norm of the vector
      * \param[in] vec the 2nd vector

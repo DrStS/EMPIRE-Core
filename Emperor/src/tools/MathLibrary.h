@@ -54,6 +54,39 @@ double computeDenseDotProduct(const std::vector<double> &vec1, const std::vector
  * \author Stefan Sicklinger
  ***********/
 double computeDenseDotProduct(const double *vec1, const double *vec2, const int elements);
+/***********************************************************************************************
+ * \brief Copy dense vector vec1 <- vec2
+ * \param[in] vec1 the 1st vector
+ * \param[in] vec2 the 2nd vector
+ * \author Stefan Sicklinger
+ ***********/
+void copyDenseVector(double *vec1, const double *vec2, const int elements);
+/***********************************************************************************************
+ * \brief Compute Euclidean norm of vector
+ * \param[in] vec1 the 1st vector
+ * \param[in] elements number of elements in vec1
+ * \return Euclidean norm
+ * \author Stefan Sicklinger
+ ***********/
+double computeDenseEuclideanNorm(const double *vec1, const int elements);
+/***********************************************************************************************
+ * \brief Computes a vector-scalar product and adds the result to a vector. vec1 <- a*vec1 + vec2
+ * \param[in] vec1 the 1st vector
+ * \param[in] vec2 the 2nd vector
+ * \param[in] a    scalar
+ * \param[in] elements number of elements in vec1
+ * \author Stefan Sicklinger
+ ***********/
+void computeDenseVectorAddition(double *vec1, const double *vec2 ,const double a, const int elements);
+/***********************************************************************************************
+ * \brief Computes vector scales by scalar vec1 <- vec1*a
+ * \param[in] vec1 the 1st vector
+ * \param[in] a    scalar
+ * \param[in] elements number of elements in vec1
+ * \author Stefan Sicklinger
+ ***********/
+void computeDenseVectorMultiplicationScalar(double *vec1 ,const double a, const int elements);
+
 
 /********//**
  * \brief This is a template class does compressed sparse row matrix computations: CSR Format (3-Array Variation)

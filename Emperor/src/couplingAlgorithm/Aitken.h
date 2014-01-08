@@ -52,14 +52,40 @@ public:
      * \author Stefan Sicklinger
      ***********/
     void calcNewValue();
+    /***********************************************************************************************
+     * \brief Init aitken relaxation
+     * \author Stefan Sicklinger
+     ***********/
+    void init();
 private:
-    /// relaxation factor
+    /***********************************************************************************************
+     * \brief Reset in order to start new time step
+     * \author Stefan Sicklinger
+     ***********/
+    void startNewTimeStep();
+    /***********************************************************************************************
+     * \brief Compute new optimal (Aitken) relaxation factor
+     * \author Stefan Sicklinger
+     ***********/
+    void computeRelaxationFactor();
+    /// initial relaxation factor
     const double INIT_RELAXATION_FACTOR;
-    /// friend class in unit test
-    friend class TestAitken;
+    /// current relaxation factor
+    double relaxationFactor;
+    /// old relaxation factor
+    double relaxationFactorOld;
     /// whether output numbers or not
     bool debugMe;
+    /// size of global residual vector
+    int globalResidualSize;
+    /// current global residual vector
+    double *globalResidual   ;
+    /// old global residual vector
+    double *globalResidualOld;
+    /// temp vector of size globalResidualSize
+    double *tmpVec;
+    /// friend class in unit test
+    friend class TestAitken;
 };
-
-} /* namespace EMPIRE */
+}/* namespace EMPIRE */
 #endif /* AITKEN_H_ */
