@@ -89,7 +89,10 @@
 		</output>
 		<constantRelaxation relaxationFactor="0.3" />
 	</couplingAlgorithm>
-	<extrapolator type="simpleExtrapolator" name="simple" />
+	<extrapolator type="linearExtrapolator" name="extrapolate displacement">
+		<dataFieldRef clientCodeName="meshClientA" meshName="myMesh"
+			dataFieldName="displacements" />
+	</extrapolator>
 	<connection name="transfer displacements">
 		<input>
 			<dataFieldRef clientCodeName="meshClientA" meshName="myMesh"
@@ -173,13 +176,14 @@
 			<couplingLogic type="timeStepLoop">
 				<timeStepLoop numTimeSteps="5">
 					<dataOutputRef dataOutputName="timeStep" />
-					<extrapolatorRef extrapolatorName="simple" />
+					<extrapolatorRef extrapolatorName="extrapolate displacement" />
 				</timeStepLoop>
 				<sequence>
 					<couplingLogic type="iterativeCouplingLoop">
 						<iterativeCouplingLoop>
 							<convergenceChecker maxNumOfIterations="100">
-								<checkResidual relativeTolerance="0" absoluteTolerance="1e-5">
+								<checkResidual relativeTolerance="0"
+									absoluteTolerance="1e-5">
 									<residualRef couplingAlgorithmName="cr" index="1" />
 								</checkResidual>
 							</convergenceChecker>

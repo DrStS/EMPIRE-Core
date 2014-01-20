@@ -19,38 +19,49 @@
  *  along with EMPIRE.  If not, see http://www.gnu.org/licenses/.
  */
 /***********************************************************************************************//**
- * \file SimpleExtrapolator.h
- * This file holds the class SimpleExtrapolator
- * \date 3/5/2012
+ * \file LinearExtrapolator.h
+ * This file holds the class LinearExtrapolator
+ * \date 1/17/2014
  **************************************************************************************************/
-#ifndef SIMPLEEXTRAPOLATOR_H_
-#define SIMPLEEXTRAPOLATOR_H_
+#ifndef LINEAREXTRAPOLATOR_H_
+#define LINEAREXTRAPOLATOR_H_
 
 #include "AbstractExtrapolator.h"
+#include <vector>
 
 namespace EMPIRE {
 /********//**
- * \brief Class SimpleExtrapolator does nothing
+ * \brief Class LinearExtrapolator does linear extrapolation at the beginning of a time step, as a guess
  ***********/
-class SimpleExtrapolator: public AbstractExtrapolator {
+class LinearExtrapolator : public AbstractExtrapolator {
 public:
     /***********************************************************************************************
      * \brief Constructor
      * \param[in] _name the name
      * \author Tianyang Wang
      ***********/
-    SimpleExtrapolator(std::string _name);
+    LinearExtrapolator(std::string _name);
     /***********************************************************************************************
      * \brief Destructor
      * \author Tianyang Wang
      ***********/
-    virtual ~SimpleExtrapolator();
+    virtual ~LinearExtrapolator();
+    /***********************************************************************************************
+     * \brief initialize the extrapolator after all the connectionIOs are added
+     * \author Tianyang Wang
+     ***********/
+    void init();
     /***********************************************************************************************
      * \brief Do extrapolation
      * \author Tianyang Wang
      ***********/
     void extrapolate();
+private:
+    // data of the previous' previous time step
+    std::vector<double*> data00;
+    // data of the previous time step
+    std::vector<double*> data0;
 };
 
 } /* namespace EMPIRE */
-#endif /* SIMPLEEXTRAPOLATOR_H_ */
+#endif /* LINEAREXTRAPOLATOR_H_ */

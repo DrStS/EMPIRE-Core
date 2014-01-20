@@ -42,6 +42,7 @@
 #include "ConvergenceChecker.h"
 #include "DataOutput.h"
 #include "ConnectionIO.h"
+#include "LinearExtrapolator.h"
 
 namespace EMPIRE {
 
@@ -106,9 +107,15 @@ public:
         Residual *residual = new Residual(INTY);
         aitken->addResidual(residual, INTY);
         //aitken->addOutput(NULL, INTY);
-
         emperor->nameToCouplingAlgorithmMap.insert(
                 pair<string, AbstractCouplingAlgorithm*>(STRING_AITKEN, aitken));
+
+        // 2.5 set up extrapolator
+        const string STRING_EXTRAPOLATOR = "linear";
+        LinearExtrapolator *linearExtrapolator = new LinearExtrapolator(STRING_EXTRAPOLATOR);
+        emperor->nameToExtrapolatorMap.insert(
+                pair<string, AbstractExtrapolator*>(STRING_EXTRAPOLATOR, linearExtrapolator));
+
         // 3. set up connections
         const string STRING_CONNECTION_A = "connectionA";
         const string STRING_CONNECTION_B = "connectionB";
@@ -146,7 +153,8 @@ public:
         timeStepLoop.type = EMPIRE_TimeStepLoop;
         timeStepLoop.sequence.push_back(iterativeCouplingLoop);
         timeStepLoop.timeStepLoop.numTimeSteps = INTY;
-        //timeStepLoop.timeStepLoop.extrapolatorRefs.push_back(STRING_CONNECTION_A);
+        timeStepLoop.timeStepLoop.extrapolatorRef.first = true;
+        timeStepLoop.timeStepLoop.extrapolatorRef.second = STRING_EXTRAPOLATOR;
         timeStepLoop.timeStepLoop.dataOutputRefs.push_back(STRING_DUMMY);
 
         structCouplingLogic coSimulation;
@@ -164,6 +172,7 @@ public:
         CPPUNIT_ASSERT( tsl2->numTimeSteps == INTY);
         CPPUNIT_ASSERT( tsl2->dataOutputVec.size() == 1);
         CPPUNIT_ASSERT( tsl2->dataOutputVec[0] == dataOutput);
+        CPPUNIT_ASSERT( tsl2->extrapolator == linearExtrapolator);
 
         CPPUNIT_ASSERT(tsl->couplingLogicSequence.size() == 1);
         AbstractCouplingLogic *icl = tsl->couplingLogicSequence[0];
@@ -179,7 +188,6 @@ public:
         CPPUNIT_ASSERT(icl2->couplingLogicSequence.size() == 2);
         CPPUNIT_ASSERT(icl2->couplingLogicSequence[0] == connectionA);
         CPPUNIT_ASSERT(icl2->couplingLogicSequence[1] == connectionB);
-
         delete emperor; // the destructor is tested (failed if there is segmentation fault)
     }
 

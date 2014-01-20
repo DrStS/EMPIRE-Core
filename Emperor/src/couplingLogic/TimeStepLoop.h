@@ -58,12 +58,11 @@ public:
      ***********/
     void doCoupling();
     /***********************************************************************************************
-     * \brief Add a extrapolator (an observer of new time step) which will do extrapolation when
-     *        it comes the new time step
-     * \param[in] connection the owner of the predictor
+     * \brief Set the extrapolator which will do extrapolation at the beginning of the time step
+     * \param[in] _extrapolator the extrapolator
      * \author Tianyang Wang
      ***********/
-    void addExtrapolator(AbstractExtrapolator *extrapolator);
+    void setExtrapolator(AbstractExtrapolator *_extrapolator);
     /***********************************************************************************************
      * \brief Add a dataOutput (an observer of new time step) which will write data of current time
      *        step
@@ -74,8 +73,8 @@ public:
 private:
     /// number of time steps
     int numTimeSteps;
-    /// Extrapolators
-    std::vector<AbstractExtrapolator*> extrapolatorVec;
+    /// Extrapolator
+    AbstractExtrapolator *extrapolator;
     /// dataOutputs
     std::vector<DataOutput*> dataOutputVec;
     /// the unit test classes

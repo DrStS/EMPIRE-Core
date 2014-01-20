@@ -28,15 +28,12 @@
 #include "ClientCode.h"
 #include "DataOutput.h"
 #include "Connection.h"
-#include "SimpleExtrapolator.h"
-#include "GenMSExtrapolator.h"
 #include "ConnectionIO.h"
 #include "MetaDatabase.h"
 #include "EMPEROR_Enum.h"
 #include "CopyFilter.h"
 #include "SetFilter.h"
 #include "MappingFilter.h"
-#include "ExtrapolatingFilter.h"
 #include "LocationFilter.h"
 #include "ScalingFilter.h"
 #include "MapperAdapter.h"
@@ -50,6 +47,7 @@
 #include "Aitken.h"
 #include "ConstantRelaxation.h"
 #include "AbstractCouplingLogic.h"
+#include "LinearExtrapolator.h"
 #include "CouplingLogicSequence.h"
 #include "IterativeCouplingLoop.h"
 #include "TimeStepLoop.h"
@@ -85,6 +83,10 @@ Emperor::~Emperor() {
     }
     for (map<string, AbstractCouplingAlgorithm*>::iterator it = nameToCouplingAlgorithmMap.begin();
             it != nameToCouplingAlgorithmMap.end(); it++) {
+        delete it->second;
+    }
+    for (map<string, AbstractExtrapolator*>::iterator it = nameToExtrapolatorMap.begin();
+            it != nameToExtrapolatorMap.end(); it++) {
         delete it->second;
     }
     for (int i = 0; i < couplingLogicVec.size(); i++)
@@ -355,22 +357,16 @@ void Emperor::initExtrapolators() {
         const structExtrapolator &settingExtrapolator = settingExtrapolatorVec[i];
         string name = settingExtrapolator.name;
         AbstractExtrapolator *extrapolator = NULL;
-        if (settingExtrapolator.type == EMPIRE_SimpleExtrapolator) {
-            extrapolator = new SimpleExtrapolator(name);
-        } else if (settingExtrapolator.type == EMPIRE_GenMSExtrapolator) {
-            int numInput = settingExtrapolator.genMSExtrapolator.numInput;
-            int seqLen = settingExtrapolator.genMSExtrapolator.seqLen;
-            bool sumOutput = settingExtrapolator.genMSExtrapolator.sumOutput;
-            double deltaTime = settingExtrapolator.genMSExtrapolator.deltaTime;
-            const vector<double>* coefDot0 = &settingExtrapolator.genMSExtrapolator.coefficientDot0;
-            const vector<double>* coefDot1 = &settingExtrapolator.genMSExtrapolator.coefficientDot1;
-            const vector<double>* coefDot2 = &settingExtrapolator.genMSExtrapolator.coefficientDot2;
-            const vector<double>* coefOut = &settingExtrapolator.genMSExtrapolator.coefficientOut;
-            extrapolator = new GenMSExtrapolator(name, numInput, sumOutput, seqLen, deltaTime,
-                    coefDot0, coefDot1, coefDot2, coefOut);
+        if (settingExtrapolator.type == EMPIRE_LinearExtrapolator) {
+            extrapolator = new LinearExtrapolator(name);
         } else {
             assert(false);
         }
+        for (int j = 0; j < settingExtrapolator.connectionIOs.size(); j++) {
+            extrapolator->addConnectionIO(
+                    (constructConnectionIO(settingExtrapolator.connectionIOs[j])));
+        }
+        extrapolator->init();
         nameToExtrapolatorMap.insert(pair<string, AbstractExtrapolator*>(name, extrapolator));
     }
 }
@@ -384,13 +380,13 @@ void Emperor::initConnections() {
         const structConnection &settingConnection = settingConnectionVec[i];
         string name = settingConnection.name;
         connection = new Connection(name);
-        for (int i = 0; i < settingConnection.inputs.size(); i++) {
-            const structConnectionIO &settingConnectionIO = settingConnection.inputs[i];
+        for (int j = 0; j < settingConnection.inputs.size(); j++) {
+            const structConnectionIO &settingConnectionIO = settingConnection.inputs[j];
             connection->addInput(constructConnectionIO(settingConnectionIO));
 
         }
-        for (int i = 0; i < settingConnection.outputs.size(); i++) {
-            const structConnectionIO &settingConnectionIO = settingConnection.outputs[i];
+        for (int j = 0; j < settingConnection.outputs.size(); j++) {
+            const structConnectionIO &settingConnectionIO = settingConnection.outputs[j];
             connection->addOutput(constructConnectionIO(settingConnectionIO));
         }
 
@@ -405,14 +401,6 @@ void Emperor::initConnections() {
                 assert(nameToMapperMap.find(mapperName)!=nameToMapperMap.end());
                 MapperAdapter *mapper = nameToMapperMap.at(mapperName);
                 filter = new MappingFilter(mapper);
-            } else if (settingFilter.type == EMPIRE_ExtrapolatingFilter) {
-                bool hasExtrapolator = nameToExtrapolatorMap.find(
-                        settingFilter.extrapolatingFilter.extrapolatorName)
-                        != nameToExtrapolatorMap.end();
-                assert(hasExtrapolator);
-                AbstractExtrapolator *extrapolator = nameToExtrapolatorMap.at(
-                        settingFilter.extrapolatingFilter.extrapolatorName);
-                filter = new ExtrapolatingFilter(extrapolator);
             } else if (settingFilter.type == EMPIRE_LocationFilter) {
                 filter = new LocationFilter();
             } else if (settingFilter.type == EMPIRE_ScalingFilter) {
@@ -424,12 +412,12 @@ void Emperor::initConnections() {
             } else {
                 assert(false);
             }
-            for (int i = 0; i < settingFilter.inputs.size(); i++) {
-                const structConnectionIO &settingConnectionIO = settingFilter.inputs[i];
+            for (int k = 0; k < settingFilter.inputs.size(); k++) {
+                const structConnectionIO &settingConnectionIO = settingFilter.inputs[k];
                 filter->addInput(constructConnectionIO(settingConnectionIO));
             }
-            for (int i = 0; i < settingFilter.outputs.size(); i++) {
-                const structConnectionIO &settingConnectionIO = settingFilter.outputs[i];
+            for (int k = 0; k < settingFilter.outputs.size(); k++) {
+                const structConnectionIO &settingConnectionIO = settingFilter.outputs[k];
                 filter->addOutput(constructConnectionIO(settingConnectionIO));
             }
             filter->init(); // initialize something after the inputs and outputs are set
@@ -510,13 +498,12 @@ AbstractCouplingLogic *Emperor::parseStructCouplingLogic(
                 settingCouplingLogic.timeStepLoop;
         int numTimeSteps = settingTimeStepLoop.numTimeSteps;
         TimeStepLoop *timeStepLoop = new TimeStepLoop(numTimeSteps);
-        { // add extrapolaters
-            const vector<string> &extrapolatorRefs = settingTimeStepLoop.extrapolatorRefs;
-            for (int i = 0; i < extrapolatorRefs.size(); i++) {
-                assert(
-                        nameToExtrapolatorMap.find(extrapolatorRefs[i])!=nameToExtrapolatorMap.end());
-                AbstractExtrapolator *extrapolator = nameToExtrapolatorMap.at(extrapolatorRefs[i]);
-                timeStepLoop->addExtrapolator(extrapolator);
+        { // set extrapolater
+            if (settingTimeStepLoop.extrapolatorRef.first) {
+                string extrapolatorName = settingTimeStepLoop.extrapolatorRef.second;
+                assert( nameToExtrapolatorMap.find(extrapolatorName)!=nameToExtrapolatorMap.end());
+                AbstractExtrapolator *extrapolator = nameToExtrapolatorMap.at(extrapolatorName);
+                timeStepLoop->setExtrapolator(extrapolator);
             }
         }
         { // add dataOutputs

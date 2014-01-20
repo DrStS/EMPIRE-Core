@@ -70,7 +70,6 @@ enum EMPIRE_DataFieldFilter_type {
     EMPIRE_LocationFilter,
     EMPIRE_ScalingFilter,
     EMPIRE_SetFilter,
-    EMPIRE_ExtrapolatingFilter
 };
 
 enum EMPIRE_CouplingLogic_type {
@@ -81,7 +80,7 @@ enum EMPIRE_CouplingLogic_type {
 };
 
 enum EMPIRE_Extrapolator_type {
-    EMPIRE_SimpleExtrapolator, EMPIRE_GenMSExtrapolator
+    EMPIRE_LinearExtrapolator
 };
 
 enum EMPIRE_CouplingAlgorithm_type {

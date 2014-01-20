@@ -115,35 +115,41 @@ public:
                 structDataOutput dataOutput = settingDataOutputVec[0];
                 CPPUNIT_ASSERT(dataOutput.name=="timeStep");
                 CPPUNIT_ASSERT(dataOutput.interval==5);
-                CPPUNIT_ASSERT(dataOutput.dataFieldRefs.size()==2);
-                CPPUNIT_ASSERT(dataOutput.dataFieldRefs[0].clientCodeName=="meshClientA");
-                CPPUNIT_ASSERT(dataOutput.dataFieldRefs[0].meshName=="myMesh");
-                CPPUNIT_ASSERT(dataOutput.dataFieldRefs[0].dataFieldName=="displacements");
-                CPPUNIT_ASSERT(dataOutput.dataFieldRefs[1].clientCodeName=="meshClientB");
-                CPPUNIT_ASSERT(dataOutput.dataFieldRefs[1].meshName=="myMesh");
-                CPPUNIT_ASSERT(dataOutput.dataFieldRefs[1].dataFieldName=="forces");
-                CPPUNIT_ASSERT(dataOutput.signalRefs.size()==2);
-                CPPUNIT_ASSERT(dataOutput.signalRefs[0].clientCodeName=="meshClientA");
-                CPPUNIT_ASSERT(dataOutput.signalRefs[0].signalName=="signal");
-                CPPUNIT_ASSERT(dataOutput.signalRefs[1].clientCodeName=="meshClientB");
-                CPPUNIT_ASSERT(dataOutput.signalRefs[1].signalName=="signal");
+                CPPUNIT_ASSERT(dataOutput.connectionIOs.size()==4);
+                CPPUNIT_ASSERT(dataOutput.connectionIOs[0].type==EMPIRE_ConnectionIO_DataField);
+                CPPUNIT_ASSERT(dataOutput.connectionIOs[1].type==EMPIRE_ConnectionIO_DataField);
+                CPPUNIT_ASSERT(dataOutput.connectionIOs[2].type==EMPIRE_ConnectionIO_Signal);
+                CPPUNIT_ASSERT(dataOutput.connectionIOs[3].type==EMPIRE_ConnectionIO_Signal);
+                CPPUNIT_ASSERT(dataOutput.connectionIOs[0].dataFieldRef.clientCodeName=="meshClientA");
+                CPPUNIT_ASSERT(dataOutput.connectionIOs[0].dataFieldRef.meshName=="myMesh");
+                CPPUNIT_ASSERT(dataOutput.connectionIOs[0].dataFieldRef.dataFieldName=="displacements");
+                CPPUNIT_ASSERT(dataOutput.connectionIOs[1].dataFieldRef.clientCodeName=="meshClientB");
+                CPPUNIT_ASSERT(dataOutput.connectionIOs[1].dataFieldRef.meshName=="myMesh");
+                CPPUNIT_ASSERT(dataOutput.connectionIOs[1].dataFieldRef.dataFieldName=="forces");
+                CPPUNIT_ASSERT(dataOutput.connectionIOs[2].signalRef.clientCodeName=="meshClientA");
+                CPPUNIT_ASSERT(dataOutput.connectionIOs[2].signalRef.signalName=="signal");
+                CPPUNIT_ASSERT(dataOutput.connectionIOs[3].signalRef.clientCodeName=="meshClientB");
+                CPPUNIT_ASSERT(dataOutput.connectionIOs[3].signalRef.signalName=="signal");
             }
             { // the 2nd dataOutput
                 structDataOutput dataOutput = settingDataOutputVec[1];
                 CPPUNIT_ASSERT(dataOutput.name=="iterativeCoupling");
                 CPPUNIT_ASSERT(dataOutput.interval==1);
-                CPPUNIT_ASSERT(dataOutput.dataFieldRefs.size()==2);
-                CPPUNIT_ASSERT(dataOutput.dataFieldRefs[0].clientCodeName=="meshClientA");
-                CPPUNIT_ASSERT(dataOutput.dataFieldRefs[0].meshName=="myMesh");
-                CPPUNIT_ASSERT(dataOutput.dataFieldRefs[0].dataFieldName=="displacements");
-                CPPUNIT_ASSERT(dataOutput.dataFieldRefs[1].clientCodeName=="meshClientB");
-                CPPUNIT_ASSERT(dataOutput.dataFieldRefs[1].meshName=="myMesh");
-                CPPUNIT_ASSERT(dataOutput.dataFieldRefs[1].dataFieldName=="forces");
-                CPPUNIT_ASSERT(dataOutput.signalRefs.size()==2);
-                CPPUNIT_ASSERT(dataOutput.signalRefs[0].clientCodeName=="meshClientA");
-                CPPUNIT_ASSERT(dataOutput.signalRefs[0].signalName=="signal");
-                CPPUNIT_ASSERT(dataOutput.signalRefs[1].clientCodeName=="meshClientB");
-                CPPUNIT_ASSERT(dataOutput.signalRefs[1].signalName=="signal");
+                CPPUNIT_ASSERT(dataOutput.connectionIOs.size()==4);
+                CPPUNIT_ASSERT(dataOutput.connectionIOs[0].type==EMPIRE_ConnectionIO_DataField);
+                CPPUNIT_ASSERT(dataOutput.connectionIOs[1].type==EMPIRE_ConnectionIO_DataField);
+                CPPUNIT_ASSERT(dataOutput.connectionIOs[2].type==EMPIRE_ConnectionIO_Signal);
+                CPPUNIT_ASSERT(dataOutput.connectionIOs[3].type==EMPIRE_ConnectionIO_Signal);
+                CPPUNIT_ASSERT(dataOutput.connectionIOs[0].dataFieldRef.clientCodeName=="meshClientA");
+                CPPUNIT_ASSERT(dataOutput.connectionIOs[0].dataFieldRef.meshName=="myMesh");
+                CPPUNIT_ASSERT(dataOutput.connectionIOs[0].dataFieldRef.dataFieldName=="displacements");
+                CPPUNIT_ASSERT(dataOutput.connectionIOs[1].dataFieldRef.clientCodeName=="meshClientB");
+                CPPUNIT_ASSERT(dataOutput.connectionIOs[1].dataFieldRef.meshName=="myMesh");
+                CPPUNIT_ASSERT(dataOutput.connectionIOs[1].dataFieldRef.dataFieldName=="forces");
+                CPPUNIT_ASSERT(dataOutput.connectionIOs[2].signalRef.clientCodeName=="meshClientA");
+                CPPUNIT_ASSERT(dataOutput.connectionIOs[2].signalRef.signalName=="signal");
+                CPPUNIT_ASSERT(dataOutput.connectionIOs[3].signalRef.clientCodeName=="meshClientB");
+                CPPUNIT_ASSERT(dataOutput.connectionIOs[3].signalRef.signalName=="signal");
             }
         }
         { // check block mappers
@@ -206,8 +212,13 @@ public:
         { // check block extrapolators
             CPPUNIT_ASSERT(settingExtrapolatorVec.size() == 1);
             structExtrapolator settingExtrapolator = settingExtrapolatorVec[0];
-            CPPUNIT_ASSERT(settingExtrapolator.type == EMPIRE_SimpleExtrapolator);
-            CPPUNIT_ASSERT(settingExtrapolator.name == "simple");
+            CPPUNIT_ASSERT(settingExtrapolator.type == EMPIRE_LinearExtrapolator);
+            CPPUNIT_ASSERT(settingExtrapolator.name == "extrapolate displacement");
+            CPPUNIT_ASSERT(settingExtrapolator.connectionIOs.size() == 1);
+            CPPUNIT_ASSERT(settingExtrapolator.connectionIOs[0].type == EMPIRE_ConnectionIO_DataField);
+            CPPUNIT_ASSERT(settingExtrapolator.connectionIOs[0].dataFieldRef.clientCodeName == "meshClientA");
+            CPPUNIT_ASSERT(settingExtrapolator.connectionIOs[0].dataFieldRef.meshName == "myMesh");
+            CPPUNIT_ASSERT(settingExtrapolator.connectionIOs[0].dataFieldRef.dataFieldName == "displacements");
         }
         { // check block connections
             CPPUNIT_ASSERT(settingConnectionVec.size() == 3);
@@ -347,8 +358,8 @@ public:
 
         CPPUNIT_ASSERT(settingTSL.timeStepLoop.dataOutputRefs.size() == 1);
         CPPUNIT_ASSERT(settingTSL.timeStepLoop.dataOutputRefs[0] == "timeStep");
-        CPPUNIT_ASSERT(settingTSL.timeStepLoop.extrapolatorRefs.size() == 1);
-        CPPUNIT_ASSERT(settingTSL.timeStepLoop.extrapolatorRefs[0] == "simple");
+        CPPUNIT_ASSERT(settingTSL.timeStepLoop.extrapolatorRef.first);
+        CPPUNIT_ASSERT(settingTSL.timeStepLoop.extrapolatorRef.second == "extrapolate displacement");
         CPPUNIT_ASSERT(settingTSL.sequence.size() == 1);
         structCouplingLogic settingICL = settingTSL.sequence[0];
         {

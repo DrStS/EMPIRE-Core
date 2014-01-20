@@ -73,17 +73,16 @@ struct structSignalRef {
     std::string signalName;
 };
 
-struct structDataOutput {
-    std::string name;
-    int interval;
-    std::vector<structDataFieldRef> dataFieldRefs;
-    std::vector<structSignalRef> signalRefs;
-};
-
 struct structConnectionIO {
     EMPIRE_ConnectionIO_Type type;
     structSignalRef signalRef;
     structDataFieldRef dataFieldRef;
+};
+
+struct structDataOutput {
+    std::string name;
+    int interval;
+    std::vector<structConnectionIO> connectionIOs;
 };
 
 struct structResidual {
@@ -107,7 +106,7 @@ struct structMapper {
         bool dual;
         bool enforceConsistency;
     };
-    struct structIGAMortarMapper{
+    struct structIGAMortarMapper {
         double tolProjectionDistance;
         int numGPsTriangle;
         int numGPsQuad;
@@ -143,9 +142,6 @@ struct structFilter {
     struct structMappingFilter {
         std::string mapperName;
     };
-    struct structExtrapolatingFilter {
-        std::string extrapolatorName;
-    };
     struct structScalingFilter {
         double factor;
     };
@@ -154,7 +150,6 @@ struct structFilter {
     };
     EMPIRE_DataFieldFilter_type type;
     structMappingFilter mappingFilter;
-    structExtrapolatingFilter extrapolatingFilter;
     structScalingFilter scalingFilter;
     structSetFilter setFilter;
     std::vector<structConnectionIO> inputs;
@@ -162,19 +157,9 @@ struct structFilter {
 };
 
 struct structExtrapolator {
-  struct structGenMSExtrapolator {
-    int numInput;
-    int seqLen;
-    bool sumOutput;
-    double deltaTime;
-    std::vector<double> coefficientDot0;
-    std::vector<double> coefficientDot1;
-    std::vector<double> coefficientDot2;
-    std::vector<double> coefficientOut;
-  };
-  std::string name;
-  EMPIRE_Extrapolator_type type;
-  structGenMSExtrapolator genMSExtrapolator;
+    std::string name;
+    EMPIRE_Extrapolator_type type;
+    std::vector<structConnectionIO> connectionIOs;
 };
 
 struct structConnection {
@@ -190,7 +175,7 @@ struct structCouplingLogic {
     };
     struct structTimeStepLoop {
         int numTimeSteps;
-        std::vector<std::string> extrapolatorRefs;
+        std::pair<bool, std::string> extrapolatorRef; // bool: has the ref or not
         std::vector<std::string> dataOutputRefs;
     };
     struct structIterativeCouplingLoop {

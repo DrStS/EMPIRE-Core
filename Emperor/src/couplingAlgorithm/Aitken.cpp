@@ -37,6 +37,9 @@ namespace EMPIRE {
 Aitken::Aitken(std::string _name, double _initRelaxationFactor) :
         AbstractCouplingAlgorithm(_name), INIT_RELAXATION_FACTOR(_initRelaxationFactor) {
     debugMe = false;
+    globalResidual = NULL;
+    globalResidualOld = NULL;
+    tmpVec = NULL;
 }
 
 Aitken::~Aitken() {
@@ -72,6 +75,7 @@ void Aitken::calcNewValue() {
 	    toOutput << "Initial Aitken relaxation factor: " << relaxationFactor;
 	    INDENT_OUT(1, toOutput.str(), infoOut);
 		newTimeStep=false;
+		cout.unsetf(ios_base::floatfield);
 	}else{
 	    computeRelaxationFactor();
 	}
@@ -114,7 +118,7 @@ void Aitken::computeRelaxationFactor() {
     toOutput << scientific;
     toOutput << "Aitken relaxation factor: " << relaxationFactor;
     INDENT_OUT(1, toOutput.str(), infoOut);
-
+    cout.unsetf(ios_base::floatfield);
 }
 
 void Aitken::startNewTimeStep() {
