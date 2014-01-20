@@ -47,7 +47,7 @@ void LinearExtrapolator::init() {
 }
 
 void LinearExtrapolator::extrapolate() {
-    INDENT_OUT(1, "Doing extrapolation ...", infoOut);
+    HEADING_OUT(4, "LinearExtrapolator", "doing linear extrapolation ...", infoOut);
 
     assert(connectionIOs.size() == data0.size());
     assert(data00.size() == data0.size());
