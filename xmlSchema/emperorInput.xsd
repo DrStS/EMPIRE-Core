@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!-- 
 /*  Copyright &copy; 2013, TU Muenchen, Chair of Structural Analysis,
  *  Stefan Sicklinger, Tianyang Wang, Munich
@@ -19,7 +20,6 @@
  *  You should have received a copy of the GNU General Public License
  *  along with EMPIRE.  If not, see http://www.gnu.org/licenses/.
  */ -->
-<?xml version="1.0" encoding="UTF-8"?>
 <schema xmlns="http://www.w3.org/2001/XMLSchema" targetNamespace="EmperorInput"
 	elementFormDefault="qualified" xmlns:tns="EmperorInput">
 	<!-- REMARK: * The schema is a kind of language. A tutorial can be found 
