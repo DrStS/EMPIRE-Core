@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- EMPIRE input file -->
 <EMPEROR xmlns="EmperorInput" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="EmperorInput http://empire.st.bv.tum.de/projects/empire/repository/revisions/master/raw/xmlSchema/emperorInput.xsd">
+	xsi:schemaLocation="EmperorInput emperorInput.xsd">
 
 	<!-- ================ define clientCodes ======================================== -->
 	<clientCode name="carat">
@@ -129,7 +129,7 @@
 			<dataFieldRef clientCodeName="carat" meshName="myMesh1"
 				dataFieldName="displacements" />
 		</output>
-		<aitkenRelaxation initialRelaxationFactor="0.1" />
+		<aitken initialRelaxationFactor="0.1" />
 	</couplingAlgorithm>
 
 	<!-- ================ define extrapolators ================================= -->
@@ -149,19 +149,6 @@
 				dataFieldName="displacements" />
 		</output>
 		<sequence>
-			<filter type="couplingAlgorithmFilter">
-				<input>
-					<dataFieldRef clientCodeName="carat" meshName="myMesh1"
-						dataFieldName="displacements" />
-				</input>
-				<output>
-					<dataFieldRef clientCodeName="carat" meshName="myMesh1"
-						dataFieldName="displacements" />
-				</output>
-				<couplingAlgorithmFilter>
-					<couplingAlgorithmRef couplingAlgorithmName="aitken" />
-				</couplingAlgorithmFilter>
-			</filter>
 			<filter type="mappingFilter">
 				<input>
 					<dataFieldRef clientCodeName="carat" meshName="myMesh1"

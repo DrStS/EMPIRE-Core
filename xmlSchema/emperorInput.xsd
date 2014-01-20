@@ -50,15 +50,6 @@
 		</restriction>
 	</simpleType>
 
-	<simpleType name="stringMortarMapperType">
-		<restriction base="string">
-			<enumeration value="quad"></enumeration>
-			<enumeration value="quad dual"></enumeration>
-			<enumeration value="triangle"></enumeration>
-			<enumeration value="triangle dual"></enumeration>
-		</restriction>
-	</simpleType>
-
 	<simpleType name="stringCouplingAlgorithmType">
 		<restriction base="string">
 			<enumeration value="aitken"></enumeration>
@@ -68,16 +59,13 @@
 
 	<simpleType name="stringExtrapolatorType">
 		<restriction base="string">
-			<enumeration value="simpleExtrapolator"></enumeration>
-			<enumeration value="genMSExtrapolator"></enumeration>
+			<enumeration value="linearExtrapolator"></enumeration>
 		</restriction>
 	</simpleType>
 
 	<simpleType name="stringFilterType">
 		<restriction base="string">
 			<enumeration value="mappingFilter"></enumeration>
-			<enumeration value="couplingAlgorithmFilter"></enumeration>
-			<enumeration value="extrapolatingFilter"></enumeration>
 			<enumeration value="locationFilter"></enumeration>
 			<enumeration value="copyFilter"></enumeration>
 			<enumeration value="scalingFilter"></enumeration>
@@ -106,13 +94,6 @@
 		</restriction>
 	</simpleType>
 
-	<simpleType name="integer123Type">
-		<restriction base="integer">
-			<minInclusive value="1" />
-			<maxInclusive value="3" />
-		</restriction>
-	</simpleType>
-
 	<complexType name="doubleCoefficientType">
 		<attribute name="value" type="double" use="required"></attribute>
 	</complexType>
@@ -123,7 +104,7 @@
 				<element name="timeStepLoop" maxOccurs="1" minOccurs="0">
 					<complexType>
 						<sequence>
-							<element ref="tns:extrapolatorRef" maxOccurs="unbounded"
+							<element ref="tns:extrapolatorRef" maxOccurs="1"
 								minOccurs="0">
 							</element>
 							<element ref="tns:dataOutputRef" maxOccurs="unbounded"
@@ -141,22 +122,24 @@
 							<element name="convergenceChecker" maxOccurs="1"
 								minOccurs="1">
 								<complexType>
-									<choice>
-										<element ref="tns:dataFieldRef" maxOccurs="1"
-											minOccurs="1">
+									<sequence>
+										<element name="checkResidual" maxOccurs="unbounded"
+											minOccurs="0">
+											<complexType>
+												<sequence>
+													<element ref="tns:residualRef">
+													</element>
+												</sequence>
+												<attribute name="relativeTolerance" type="double"
+													use="required">
+												</attribute>
+												<attribute name="absoluteTolerance" type="double"
+													use="required">
+												</attribute>
+											</complexType>
 										</element>
-										<element ref="tns:signalRef" maxOccurs="1" minOccurs="1">
-										</element>
-										<element ref="tns:couplingAlgorithmRef" maxOccurs="1"
-											minOccurs="1">
-										</element>
-									</choice>
-									<attribute name="absoluteTolerance" type="double"
-										use="optional">
-									</attribute>
-									<attribute name="relativeTolerance" type="double"
-										use="optional">
-									</attribute>
+									</sequence>
+                                    
 									<attribute name="maxNumOfIterations" type="double"
 										use="optional">
 									</attribute>
@@ -230,11 +213,10 @@
 			<choice>
 				<element name="mortarMapper" maxOccurs="1" minOccurs="0">
 					<complexType>
-						<attribute name="type" type="tns:stringMortarMapperType">
-						</attribute>
-						<attribute name="oppositeSurfaceNormal" type="boolean"></attribute>
-						<attribute name="dual" type="boolean"></attribute>
-						<attribute name="enforceConsistency" type="boolean"></attribute>
+						<attribute name="oppositeSurfaceNormal" type="boolean"
+							use="required"></attribute>
+						<attribute name="dual" type="boolean" use="required"></attribute>
+						<attribute name="enforceConsistency" type="boolean" use="required"></attribute>
 					</complexType>
 				</element>
 			</choice>
@@ -245,28 +227,12 @@
 	</complexType>
 
 	<complexType name="extrapolatorType">
-		<sequence>
-			<choice>
-				<element name="genMSExtrapolator" maxOccurs="1" minOccurs="0">
-					<complexType>
-						<sequence>
-							<element name="coefficientDot0" type="tns:doubleCoefficientType"
-								minOccurs="1" maxOccurs="unbounded" />
-							<element name="coefficientDot1" type="tns:doubleCoefficientType"
-								minOccurs="0" maxOccurs="unbounded" />
-							<element name="coefficientDot2" type="tns:doubleCoefficientType"
-								minOccurs="0" maxOccurs="unbounded" />
-							<element name="coefficientOut" type="tns:doubleCoefficientType"
-								minOccurs="0" maxOccurs="unbounded" />
-						</sequence>
-						<attribute name="numInput" type="tns:integer123Type"
-							use="required"></attribute>
-						<attribute name="seqLen" type="positiveInteger" use="required"></attribute>
-						<attribute name="sumOutput" type="boolean" use="required"></attribute>
-						<attribute name="deltaTime" type="double" use="required"></attribute>
-					</complexType>
-				</element>
-			</choice>
+		<sequence maxOccurs="unbounded" minOccurs="1">
+			<element ref="tns:dataFieldRef" maxOccurs="unbounded"
+				minOccurs="0">
+			</element>
+			<element ref="tns:signalRef" maxOccurs="unbounded" minOccurs="0">
+			</element>
 		</sequence>
 		<attribute name="name" type="string" use="required"></attribute>
 		<attribute name="type" type="tns:stringExtrapolatorType"></attribute>
@@ -274,15 +240,45 @@
 
 	<complexType name="couplingAlgorithmType">
 		<sequence>
+			<element name="residual" maxOccurs="unbounded" minOccurs="1">
+				<complexType>
+					<sequence>
+						<element name="component" maxOccurs="unbounded" minOccurs="1">
+							<complexType>
+								<choice>
+									<element ref="tns:dataFieldRef"></element>
+									<element ref="tns:signalRef"></element>
+								</choice>
+								<attribute name="coefficient" type="double" use="required">
+								</attribute>
+								<attribute name="timeToUpdate" type="string" use="required">
+								</attribute>
+							</complexType>
+						</element>
+					</sequence>
+					<attribute name="index" type="int" use="required"></attribute>
+				</complexType>
+			</element>
+			<element name="output" maxOccurs="unbounded">
+				<complexType>
+					<choice>
+						<element ref="tns:dataFieldRef"></element>
+						<element ref="tns:signalRef"></element>
+					</choice>
+					<attribute name="index" type="int" use="required"></attribute>
+				</complexType>
+			</element>
 			<choice>
 				<element name="aitken" maxOccurs="1" minOccurs="1">
 					<complexType>
-						<attribute name="initialAitkenFactor" type="double"></attribute>
+						<attribute name="initialRelaxationFactor" type="double">
+						</attribute>
 					</complexType>
 				</element>
 				<element name="constantRelaxation" maxOccurs="1" minOccurs="1">
 					<complexType>
-						<attribute name="relaxationFactor" type="double"></attribute>
+						<attribute name="relaxationFactor" type="double">
+						</attribute>
 					</complexType>
 				</element>
 			</choice>
@@ -379,14 +375,6 @@
 						</sequence>
 					</complexType>
 				</element>
-				<element name="couplingAlgorithmFilter" maxOccurs="1"
-					minOccurs="0">
-					<complexType>
-						<sequence>
-							<element ref="tns:couplingAlgorithmRef"></element>
-						</sequence>
-					</complexType>
-				</element>
 				<element name="scalingFilter" maxOccurs="1" minOccurs="0">
 					<complexType>
 						<attribute name="factor" type="double" use="required">
@@ -397,13 +385,6 @@
 					<complexType>
 						<attribute name="value" type="string" use="required">
 						</attribute>
-					</complexType>
-				</element>
-				<element name="extrapolatingFilter" maxOccurs="1" minOccurs="0">
-					<complexType>
-						<sequence>
-							<element ref="tns:extrapolatorRef"></element>
-						</sequence>
 					</complexType>
 				</element>
 			</choice>
@@ -509,6 +490,13 @@
 		</complexType>
 	</element>
 
+	<element name="residualRef">
+		<complexType>
+			<attribute name="couplingAlgorithmName" type="string" use="required"></attribute>
+			<attribute name="index" type="int" use="required"></attribute>
+		</complexType>
+	</element>
+
 	<element name="EMPEROR">
 		<complexType>
 			<sequence>
@@ -550,4 +538,7 @@
 	<!-- ================================================================================================ -->
 
 
+
+
+    <element name="connectionIO" type="string"></element>
 </schema>
