@@ -153,7 +153,7 @@ void DataOutput::writeDataFields(int step) {
                         + meshName + ".res";
                 DataField *dataField = feMesh->getDataFieldByName(dataFieldName);
                 bool atNode = (dataField->location == EMPIRE_DataField_atNode ? true : false);
-                //if ((mesh->triangulate() != NULL) && (!atNode))
+
                 int *locationIDs = (atNode ? feMesh->nodeIDs : feMesh->elemIDs);
                 string type;
                 if (dataField->dimension == EMPIRE_DataField_vector)
@@ -168,9 +168,15 @@ void DataOutput::writeDataFields(int step) {
                             "\"EMPIRE_CoSimulation\"", step, type, dataField->numLocations,
                             locationIDs, dataField->data);
                 } else {
-                    GiDFileIO::appendElementalDataToDotRes(dataFieldFileName, tmpdataFieldName,
-                            "\"EMPIRE_CoSimulation\"", step, type, dataField->numLocations,
-                            locationIDs, feMesh->numNodesPerElem, dataField->data);
+                    if (feMesh->triangulate() == NULL) {
+                        GiDFileIO::appendElementalDataToDotRes(dataFieldFileName, tmpdataFieldName,
+                                "\"EMPIRE_CoSimulation\"", step, type, dataField->numLocations,
+                                locationIDs, feMesh->numNodesPerElem, dataField->data);
+                    } else {
+                        GiDFileIO::appendElementalDataToDotRes(dataFieldFileName, tmpdataFieldName,
+                                "\"EMPIRE_CoSimulation\"", step, type, dataField->numLocations,
+                                locationIDs, feMesh->triangulate()->numNodesPerElem, dataField->data);
+                    }
                 }
             } else if (mesh->type == EMPIRE_Mesh_IGAMesh) {
                 DataField *dataField = mesh->getDataFieldByName(dataFieldName);
