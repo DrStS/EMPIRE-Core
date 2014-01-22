@@ -153,7 +153,6 @@ void DataOutput::writeDataFields(int step) {
                         + meshName + ".res";
                 DataField *dataField = feMesh->getDataFieldByName(dataFieldName);
                 bool atNode = (dataField->location == EMPIRE_DataField_atNode ? true : false);
-
                 int *locationIDs = (atNode ? feMesh->nodeIDs : feMesh->elemIDs);
                 string type;
                 if (dataField->dimension == EMPIRE_DataField_vector)
@@ -173,9 +172,7 @@ void DataOutput::writeDataFields(int step) {
                                 "\"EMPIRE_CoSimulation\"", step, type, dataField->numLocations,
                                 locationIDs, feMesh->numNodesPerElem, dataField->data);
                     } else {
-                        GiDFileIO::appendElementalDataToDotRes(dataFieldFileName, tmpdataFieldName,
-                                "\"EMPIRE_CoSimulation\"", step, type, dataField->numLocations,
-                                locationIDs, feMesh->triangulate()->numNodesPerElem, dataField->data);
+                        assert(false); // writing out data field on element certeroid of triangulated mesh is not implemented yet
                     }
                 }
             } else if (mesh->type == EMPIRE_Mesh_IGAMesh) {
