@@ -70,6 +70,7 @@ enum EMPIRE_DataFieldFilter_type {
     EMPIRE_LocationFilter,
     EMPIRE_ScalingFilter,
     EMPIRE_SetFilter,
+    EMPIRE_DataFieldIntegrationFilter
 };
 
 enum EMPIRE_CouplingLogic_type {

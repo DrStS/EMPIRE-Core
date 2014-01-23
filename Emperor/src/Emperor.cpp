@@ -36,6 +36,7 @@
 #include "MappingFilter.h"
 #include "LocationFilter.h"
 #include "ScalingFilter.h"
+#include "DataFieldIntegrationFilter.h"
 #include "MapperAdapter.h"
 #include "NearestNeighborMapper.h"
 #include "BarycentricInterpolationMapper.h"
@@ -409,6 +410,13 @@ void Emperor::initConnections() {
                 filter = new SetFilter(settingFilter.setFilter.value);
             } else if (settingFilter.type == EMPIRE_CopyFilter) {
                 filter = new CopyFilter();
+            } else if (settingFilter.type == EMPIRE_DataFieldIntegrationFilter) {
+                const structMeshRef &meshRef = settingFilter.dataFieldIntegrationFilter.meshRef;
+                assert(
+                        nameToClientCodeMap.find(meshRef.clientCodeName)!=nameToClientCodeMap.end());
+                AbstractMesh *mesh = nameToClientCodeMap.at(meshRef.clientCodeName)->getMeshByName(
+                        meshRef.meshName);
+                filter = new DataFieldIntegrationFilter(mesh);
             } else {
                 assert(false);
             }

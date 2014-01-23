@@ -148,10 +148,15 @@ struct structFilter {
     struct structSetFilter {
         std::vector<double> value;
     };
+    struct structDataFieldIntegrationFilter {
+        structMeshRef meshRef;
+    };
     EMPIRE_DataFieldFilter_type type;
     structMappingFilter mappingFilter;
     structScalingFilter scalingFilter;
     structSetFilter setFilter;
+    structDataFieldIntegrationFilter dataFieldIntegrationFilter;
+
     std::vector<structConnectionIO> inputs;
     std::vector<structConnectionIO> outputs;
 };

@@ -70,6 +70,7 @@
 			<enumeration value="copyFilter"></enumeration>
 			<enumeration value="scalingFilter"></enumeration>
 			<enumeration value="setFilter"></enumeration>
+			<enumeration value="dataFieldIntegrationFilter"></enumeration>
 		</restriction>
 	</simpleType>
 
@@ -368,25 +369,35 @@
 				</element>
 			</choice>
 			<choice>
-				<element name="mappingFilter" maxOccurs="1" minOccurs="0">
+				<element name="mappingFilter" maxOccurs="1"
+					minOccurs="0">
 					<complexType>
 						<sequence>
-							<element ref="tns:mapperRef"></element>
+							<element ref="tns:mapperRef" maxOccurs="1" minOccurs="1"></element>
 						</sequence>
 					</complexType>
 				</element>
-				<element name="scalingFilter" maxOccurs="1" minOccurs="0">
+				<element name="scalingFilter" maxOccurs="1"
+					minOccurs="0">
 					<complexType>
-						<attribute name="factor" type="double" use="required">
+						<attribute name="factor" type="double"
+							use="required">
 						</attribute>
 					</complexType>
 				</element>
 				<element name="setFilter" maxOccurs="1" minOccurs="0">
 					<complexType>
-						<attribute name="value" type="string" use="required">
+						<attribute name="value" type="string"
+							use="required">
 						</attribute>
 					</complexType>
 				</element>
+				<element name="dataFieldIntegrationFilter" maxOccurs="1" minOccurs="0">
+					<complexType>
+						<sequence>
+							<element ref="tns:meshRef" maxOccurs="1" minOccurs="1"></element>
+						</sequence>
+					</complexType></element>
 			</choice>
 		</sequence>
 		<attribute name="type" type="tns:stringFilterType"></attribute>
