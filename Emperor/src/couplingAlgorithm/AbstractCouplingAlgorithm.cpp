@@ -26,76 +26,105 @@
 #include "DataField.h"
 #include "Signal.h"
 #include "ConnectionIO.h"
+#include "Residual.h"
+#include "EMPEROR_Enum.h"
 #include <iostream>
 
 using namespace std;
 
 namespace EMPIRE {
 
+AbstractCouplingAlgorithm::CouplingAlgorithmOutput::CouplingAlgorithmOutput(
+        ConnectionIO *_reference) :
+        reference(_reference) {
+    if (reference->type == EMPIRE_ConnectionIO_DataField) {
+        size = reference->dataField->dimension * reference->dataField->numLocations;
+        outputCopyAtIterationBeginning = new double[size];
+    } else if (reference->type == EMPIRE_ConnectionIO_Signal) {
+        size = reference->signal->size;
+        outputCopyAtIterationBeginning = new double[size];
+    } else {
+        assert(false);
+    }
+}
+
+AbstractCouplingAlgorithm::CouplingAlgorithmOutput::~CouplingAlgorithmOutput() {
+    delete reference;
+    delete[] outputCopyAtIterationBeginning;
+}
+
+void AbstractCouplingAlgorithm::CouplingAlgorithmOutput::updateAtIterationBeginning() {
+    if (reference->type == EMPIRE_ConnectionIO_DataField) {
+        for (int i = 0; i < size; i++)
+            outputCopyAtIterationBeginning[i] = reference->dataField->data[i];
+    } else if (reference->type == EMPIRE_ConnectionIO_Signal) {
+        for (int i = 0; i < size; i++)
+            outputCopyAtIterationBeginning[i] = reference->signal->array[i];
+    } else {
+        assert(false);
+    }
+}
+
+void AbstractCouplingAlgorithm::CouplingAlgorithmOutput::overwrite(double *newData) {
+    if (reference->type == EMPIRE_ConnectionIO_DataField) {
+        for (int i = 0; i < size; i++)
+            reference->dataField->data[i] = newData[i];
+    } else if (reference->type == EMPIRE_ConnectionIO_Signal) {
+        for (int i = 0; i < size; i++)
+            reference->signal->array[i] = newData[i];
+    } else {
+        assert(false);
+    }
+}
+
 AbstractCouplingAlgorithm::AbstractCouplingAlgorithm(std::string _name) :
-        name(_name), newLoop(false), step(0), input(NULL), output(NULL) {
+        name(_name), newTimeStep(false) {
 }
 
 AbstractCouplingAlgorithm::~AbstractCouplingAlgorithm() {
+    for (map<int, Residual*>::iterator it = residuals.begin(); it != residuals.end(); it++)
+        delete it->second;
+    for (map<int, CouplingAlgorithmOutput*>::iterator it = outputs.begin(); it != outputs.end();
+            it++)
+        delete it->second;
 }
 
-void AbstractCouplingAlgorithm::setInputAndOutput(const ConnectionIO *_input,
-        ConnectionIO *_output) {
-    assert(input==NULL);
-    assert(output==NULL);
-    assert(_input!=NULL);
-    assert(_output!=NULL);
-    input = _input;
-    output = _output;
-    assert(input->type == output->type);
+void AbstractCouplingAlgorithm::addResidual(Residual *residual, int index) {
+    residuals.insert(residuals.begin(), pair<int, Residual*>(index, residual));
 }
 
-void AbstractCouplingAlgorithm::setNewLoop() {
-    newLoop = true;
-    step = 1;
+void AbstractCouplingAlgorithm::addOutput(ConnectionIO *output, int index) {
+    outputs.insert(outputs.begin(),
+            pair<int, CouplingAlgorithmOutput*>(index, new CouplingAlgorithmOutput(output)));
 }
 
-double AbstractCouplingAlgorithm::getCurrentResidual() {
-    return currentResidual;
+void AbstractCouplingAlgorithm::updateAtIterationBeginning() {
+    // update residuals
+    for (map<int, Residual*>::iterator it = residuals.begin(); it != residuals.end(); it++)
+        it->second->updateAtIterationBeginning();
+    // update output copys
+    for (map<int, CouplingAlgorithmOutput*>::iterator it = outputs.begin(); it != outputs.end();
+            it++) {
+        it->second->updateAtIterationBeginning();
+    }
 }
 
-double AbstractCouplingAlgorithm::getInitialResidual() {
-    return initialResidual;
+void AbstractCouplingAlgorithm::updateAtIterationEnd() {
+    // update residuals
+    for (map<int, Residual*>::iterator it = residuals.begin(); it != residuals.end(); it++)
+        it->second->updateAtIterationEnd();
 }
 
-void AbstractCouplingAlgorithm::vecCopy(const double *from, double *to, int size) {
-    for (int i = 0; i < size; i++)
-        to[i] = from[i];
+void AbstractCouplingAlgorithm::setNewTimeStep() {
+	newTimeStep = true;
 }
 
-double AbstractCouplingAlgorithm::vecDotProduct(const double *vec1, const double *vec2,
-        int size) {
-    double product = 0.0;
-    for (int i = 0; i < size; i++)
-        product += vec1[i] * vec2[i];
-    return product;
+double AbstractCouplingAlgorithm::getResidualL2Norm(int index) {
+    return residuals[index]->residualVectorL2Norm;
 }
 
-void AbstractCouplingAlgorithm::vecScalarMultiply(double *vec, const double SCALAR,
-        int size) {
-    for (int i = 0; i < size; i++)
-        vec[i] *= SCALAR;
-}
-
-void AbstractCouplingAlgorithm::vecPlusEqual(double *vec1, const double *vec2, int size) {
-    for (int i = 0; i < size; i++)
-        vec1[i] += vec2[i];
-}
-
-void AbstractCouplingAlgorithm::vecMinusEqual(double *vec1, const double *vec2, int size) {
-    for (int i = 0; i < size; i++)
-        vec1[i] -= vec2[i];
-}
-
-void AbstractCouplingAlgorithm::vecMinus(const double *vec1, const double *vec2, double *vec1minus2,
-        int size) {
-    for (int i = 0; i < size; i++)
-        vec1minus2[i] = vec1[i] - vec2[i];
+std::string AbstractCouplingAlgorithm::getName() {
+    return name;
 }
 
 double AbstractCouplingAlgorithm::vecL2Norm(const double *vec, int size) {

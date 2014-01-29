@@ -55,7 +55,7 @@ private:
 
 public:
     void setUp() {
-        aitkenFactor = 0.5;
+        /*aitkenFactor = 0.5;
 
         dfIn = new DataField("input", EMPIRE_DataField_atNode, 5, EMPIRE_DataField_vector,
                 EMPIRE_DataField_field);
@@ -71,21 +71,21 @@ public:
                 EMPIRE_DataField_field);
         comaAitken = new ComaAitken(dfCurrent, dfOld, aitkenFactor);
 
-        VALUE = 100.0;
+        VALUE = 100.0;*/
     }
     void tearDown() {
-        delete dfIn;
+        /*delete dfIn;
         delete dfOut;
         delete aitken;
         delete dfCurrent;
-        delete dfOld;
+        delete dfOld;*/
     }
     /*
      * Test case:
      * Test Aitken in a nested loop, check whether the step number is correct
      */
     void testNewAitken() {
-        const int SIZE = dfIn->dimension * dfIn->numLocations;
+        /*const int SIZE = dfIn->dimension * dfIn->numLocations;
         int NUM_INNER_LOOPS = 5;
         const double EPS = 1E-10;
         int NUM_OUTER_LOOPS = 2;
@@ -102,7 +102,7 @@ public:
                 //debugOut << *dfIn;
                 //debugOut << *dfOut;
             }
-        }
+        }*/
     }
     /*
      * Test case:
@@ -110,7 +110,7 @@ public:
      * Aitken is the same or not
      */
     void compareWithComaAitken() {
-        const int SIZE = dfIn->dimension * dfIn->numLocations;
+        /*const int SIZE = dfIn->dimension * dfIn->numLocations;
         int NUM_INNER_LOOPS = 5;
         const double EPS = 1E-10;
         int NUM_OUTER_LOOPS = 2;
@@ -164,7 +164,7 @@ public:
                     CPPUNIT_ASSERT( fabs(dfOut->data[j] - dfCurrent->data[j]) < EPS);
                 }
             }
-        }
+        }*/
     }
 
 CPPUNIT_TEST_SUITE( TestAitken );

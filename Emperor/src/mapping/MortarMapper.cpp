@@ -37,6 +37,7 @@
 #endif
 
 #include "MortarMapper.h"
+#include "Message.h"
 //#include "AuxiliaryFunctions.h"
 #include <iostream>
 #include <stdlib.h>
@@ -718,8 +719,11 @@ void MortarMapper::initTables() {
             slaveNodesMap->insert(slaveNodesMap->end(), pair<int, int>(slaveNodeNumbers[i], i));
         int count = 0;
         for (int i = 0; i < slaveNumElems; i++) {
-            const int numNodesSlaveElem = slaveNodesPerElem[i];
+            const int numNodesSlaveElem = slaveNodesPerElem[i];   
             for (int j = 0; j < numNodesSlaveElem; j++) {
+                if(slaveNodesMap->find(slaveElemTable[count + j])== slaveNodesMap->end() ){
+                ERROR_OUT()<< "Slave Node Label " << slaveElemTable[count + j] << " is not part of slaveNodesMap." << endl;
+                }
                 slaveDirectElemTable[i]->push_back(slaveNodesMap->at(slaveElemTable[count + j]));
             }
             count += numNodesSlaveElem;

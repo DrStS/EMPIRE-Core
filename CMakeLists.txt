@@ -21,10 +21,14 @@
 project (EMPIRE)
 #------------------------------------------------------------------------------------#
 cmake_minimum_required (VERSION 2.8.10)
-enable_language(Fortran OPTIONAL)
 #------------------------------------------------------------------------------------#
-IF(NOT (${CMAKE_SYSTEM_NAME} MATCHES "Linux" AND ${CMAKE_HOST_SYSTEM_PROCESSOR} STREQUAL "x86_64")) 
-    MESSAGE(FATAL_ERROR "EMPIRE is supported on Linux x86_64 only")	
+IF( (${CMAKE_SYSTEM_NAME} MATCHES "Linux" AND ${CMAKE_HOST_SYSTEM_PROCESSOR} STREQUAL "x86_64")) 
+    enable_language(Fortran OPTIONAL)
+    MESSAGE("EMPIRE is going to be configured for Linux x86_64!")
+ELSEIF( (${CMAKE_SYSTEM_NAME} MATCHES "Windows" AND ${CMAKE_HOST_SYSTEM_PROCESSOR} STREQUAL "AMD64")) 
+    MESSAGE("EMPIRE is going to be configured for Windows x64!")	
+ELSE() 
+    MESSAGE(FATAL_ERROR "EMPIRE is supported on Linux x86_64 and Windows x64 only")	
 ENDIF()
 #------------------------------------------------------------------------------------#
 # 1. Options
@@ -46,8 +50,9 @@ ENDIF()
 ######################################################################################
 #1. Option
 ######################################################################################
-option(USE_INTEL_COMPILERS_AND_MKL "Use Intel Compilers C/C++ and MKL" ON )
-option(BUILD_FORTRAN_CLIENTS       "This builds FORTRAN test clients" OFF )
+#option(USE_INTEL_COMPILERS_MKL_IMPI      "Use Intel Compilers C/C++,     Intel MKL and Intel MPI"  ON )
+#option(USE_MICROSOFT_COMPILERS_MKL_IMPI  "Use Microsoft Compilers C/C++, Intel MKL and Intel MPI"  OFF )
+option(BUILD_FORTRAN_CLIENTS           "This builds FORTRAN test clients"     OFF )
 ######################################################################################
 #2. Macros
 ######################################################################################
@@ -67,53 +72,72 @@ include(CheckCXXCompilerFlag)
 # Avoid in source builds
 macro_ensure_out_of_source_build("In source build is not allowed for ${PROJECT_NAME}. Please run CMake from your build directory. You may want to remove CMakeCache.txt.")
 #------------------------------------------------------------------------------------#
+# Check compilers and their versions
+IF ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel" AND "${CMAKE_C_COMPILER_ID}" STREQUAL "Intel")
+  # using Intel C/C++
+  SET(USE_INTEL_COMPILERS_MKL_IMPI_LINUX ON)
+  MESSAGE("C compiler is ${CMAKE_C_COMPILER_ID} and has version ${CMAKE_C_COMPILER_VERSION} \nC++ compiler is ${CMAKE_CXX_COMPILER_ID} and has version ${CMAKE_CXX_COMPILER_VERSION} " ) 
+ELSEIF ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC" AND "${CMAKE_C_COMPILER_ID}" STREQUAL "MSVC")
+  # using MSVC
+  SET(USE_INTEL_COMPILERS_MKL_MSMPI_WINDOWS ON)
+  MESSAGE("C compiler is ${CMAKE_C_COMPILER_ID} and has version ${CMAKE_C_COMPILER_VERSION} \nC++ compiler is ${CMAKE_CXX_COMPILER_ID} and has version ${CMAKE_CXX_COMPILER_VERSION} " ) 
+  MESSAGE("As OpenMP 3.0 and VLA (C99) is used in EMPIRE you need to switch to Intel Compiler in Visual Studio" ) 
+ELSE()
+  MESSAGE(FATAL_ERROR "Your CXX compiler is ${CMAKE_CXX_COMPILER_ID} and your C compiler is ${CMAKE_C_COMPILER_ID} they are not supported by the build system yet")	
+ENDIF()
+#------------------------------------------------------------------------------------#
 # Set Intel Compiler & MKL
-IF (${USE_INTEL_COMPILERS_AND_MKL})
+IF (${USE_INTEL_COMPILERS_MKL_IMPI_LINUX})
   SET (CMAKE_C_COMPILER "mpiicc")
   SET (CMAKE_CXX_COMPILER "mpiicpc")
   #SET (MKL_INCLUDE_DIR "")
   #SET (MKL_LIB_DIR     "")
   find_package(MKL REQUIRED)
   #Let the source code know
+  add_definitions(-DUSE_INTEL_MKL) 
+ENDIF()
+
+IF (${USE_INTEL_COMPILERS_MKL_MSMPI_WINDOWS})
+  # Require MPI for this project:
+  SET(MPI_ROOT_PATH "C:/Program Files/Microsoft HPC Pack 2012")
+  SET(MPI_CXX_INCLUDE_PATH "${MPI_ROOT_PATH}/Inc")
+  SET(MPI_CXX_LINK_FLAGS "${MPI_ROOT_PATH}/Lib/amd64/msmpi.lib")
+  #SET (MKL_INCLUDE_DIR "")
+  #SET (MKL_LIB_DIR     "")
+  find_package(MKL REQUIRED)
+  #Let the source code know
   add_definitions(-DUSE_INTEL_MKL)
-  #MESSAGE("MKL is set ${MKL_INCLUDE_DIRS} ${LIBS}") 
 ENDIF()
-#------------------------------------------------------------------------------------#
-# Check compilers and their versions
-IF ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" AND "${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
-  # using GNU
-  MESSAGE("compiler is GNU") 
-ELSEIF ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel" AND "${CMAKE_C_COMPILER_ID}" STREQUAL "Intel")
-  # using Intel C/C++
-  MESSAGE("C compiler is ${CMAKE_C_COMPILER_ID} and has version ${CMAKE_C_COMPILER_VERSION} \nC++ compiler is ${CMAKE_CXX_COMPILER_ID} and has version ${CMAKE_CXX_COMPILER_VERSION} " ) 
-ELSE()
-  MESSAGE(FATAL_ERROR "Your compiler is not supported by the build system")	
-ENDIF()
+
+
 #------------------------------------------------------------------------------------#
 # Global valid defines
 add_definitions(-DFLANN) # TEMP
 add_definitions(-DMPICH_IGNORE_CXX_SEEK)
 #------------------------------------------------------------------------------------#
 # Set Compiler flags and Linker flags (CMAKE_BUILD_TYPE is not used!) 
-## This is for all compilers
-SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3 -std=c99")
-SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 ")
 ## Here INTEL specific flags are taken care for
 IF ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel" AND "${CMAKE_C_COMPILER_ID}" STREQUAL "Intel")
+## This is for all compilers
     check_c_compiler_flag(-xHost   CHECKXHOST)
     check_cxx_compiler_flag(-xHost CHECKXHOST)
-	SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -xHost")
-	SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -xHost")
+	SET (CMAKE_C_FLAGS "-xHost -std=c99")
+	SET (CMAKE_CXX_FLAGS "-xHost")
 ENDIF()
-## Here GNU specific flags are taken care for
-IF ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" AND "${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
-	SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-unused-result")
-	SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-result")
+## Here Intel Windows specific flags are taken care for
+IF ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC" AND "${CMAKE_C_COMPILER_ID}" STREQUAL "MSVC")
+	SET (CMAKE_C_FLAGS "/QxHost /Qstd=c99")
+	SET (CMAKE_CXX_FLAGS "/QxHost /Qstd=c++11")
 ENDIF()
 ######################################################################################
 #4. Configure
 ######################################################################################
-configure_file("${PROJECT_SOURCE_DIR}/configure/bashrc_config" "${PROJECT_SOURCE_DIR}/etc/bashrc.sh")
+IF (CMAKE_SYSTEM_NAME MATCHES "Linux")
+    configure_file("${PROJECT_SOURCE_DIR}/configure/bashrc_config" "${PROJECT_SOURCE_DIR}/etc/bashrc.sh")
+ENDIF()
+IF (CMAKE_SYSTEM_NAME MATCHES "Windows")
+    configure_file("${PROJECT_SOURCE_DIR}/configure/batch_config" "${PROJECT_SOURCE_DIR}/etc/batch.bat")
+ENDIF()
 ######################################################################################
 #5. Subdirectories THE ORDER IS IMPORTANT
 ######################################################################################

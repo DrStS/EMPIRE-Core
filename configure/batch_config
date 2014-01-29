@@ -1,0 +1,29 @@
+REM #Set EMPIRE environment
+@echo off
+set EMPIRE_CORE_BASE_DIR=@PROJECT_SOURCE_DIR@
+REM ######################################################################################
+REM # Set TOOLCHAIN and BASE DIR
+REM 
+REM ######################################################################################
+REM # Set PATH ENV variables for INCLUDE, LINKING and EXECUTION
+	set EMPIRE_API_LIB_NAME=EMPIRE_API
+	set EMPIRE_LD_LIBRARY_PATH=%EMPIRE_CORE_BASE_DIR%\lib
+	set EMPIRE_API_INC_ON_MACHINE=%EMPIRE_CORE_BASE_DIR%\EMPIRE_API\src\include\
+	set EMPIRE_API_LIB_ON_MACHINE=%EMPIRE_LD_LIBRARY_PATH%\lib$EMPIRE_API_LIB_NAME.a	
+	set EMPIRE_API_LIBSO_ON_MACHINE=%EMPIRE_LD_LIBRARY_PATH%\lib$EMPIRE_API_LIB_NAME.dll
+	set EMP_PATH=$EMPIRE_CORE_BASE_DIR\bin:%EMP_PATH%
+REM # INTEL MPI variables
+	set I_MPI_FABRICS=shm:tcp
+	set I_MPI_FAULT_CONTINUE=off
+	echo 'Setting toolchain ICC'
+REM ######################################################################################
+REM #Code metric
+REM # Not support under WINDOWS
+REM ######################################################################################
+set PATH=%EMP_PATH%;%PATH%
+REM set LD_LIBRARY_PATH=%EMPIRE_LD_LIBRARY_PATH%;%LD_LIBRARY_PATH%
+REM ######################################################################################
+echo 'EMPIRE environment is ready to use.'
+
+
+ 

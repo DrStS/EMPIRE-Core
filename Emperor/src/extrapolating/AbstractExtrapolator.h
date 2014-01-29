@@ -51,44 +51,29 @@ public:
      ***********/
     virtual ~AbstractExtrapolator();
     /***********************************************************************************************
-     * \brief Set the input and output
-     * \param[in] _input
-     * \param[in] _output
+     * \brief add connectionIO
+     * \param[in] io a connectionIO
      * \author Tianyang Wang
      ***********/
-    virtual void setInputAndOutput(const ConnectionIO *_input, ConnectionIO *_output);
+    virtual void addConnectionIO(ConnectionIO *io);
     /***********************************************************************************************
-     * \brief Set the input
-     * \param[in] _input
-     * \author Michael Andre
+     * \brief initialize the extrapolator after all the connectionIOs are added
+     * \author Tianyang Wang
      ***********/
-    virtual void addInput(const ConnectionIO *_input);
-    /***********************************************************************************************
-     * \brief Set the output
-     * \param[in] _output
-     * \author Michael Andre
-     ***********/
-    virtual void addOutput(ConnectionIO *_output);
+    virtual void init() = 0;
     /***********************************************************************************************
      * \brief Do extrapolation
      * \author Tianyang Wang
      ***********/
     virtual void extrapolate() = 0;
-    /***********************************************************************************************
-     * \brief Set to do extrapolation (by instance of TimeStepLoop)
-     * \author Tianyang Wang
-     ***********/
-    void setDoExtrapolate();
 
 protected:
     /// name
     std::string name;
-    /// input
-    std::vector<const ConnectionIO*> inputVec;
-    /// output
-    std::vector<ConnectionIO*> outputVec;
-    /// a sign of doing Extrapolation or not
-    bool doExtrapolate;
+    /// vector of connectionIOs
+    std::vector<const ConnectionIO*> connectionIOs;
+    /// currentTimeStepNumber
+    int currentTimeStepNumber;
     // the unit test class
     friend class TestExtrapolator;
 };

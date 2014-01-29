@@ -19,48 +19,49 @@
  *  along with EMPIRE.  If not, see http://www.gnu.org/licenses/.
  */
 /***********************************************************************************************//**
- * \file CouplingAlgorithmFilter.h
- * This file holds the class CouplingAlgorithmFilter
- * \date 3/5/2012
+ * \file LinearExtrapolator.h
+ * This file holds the class LinearExtrapolator
+ * \date 1/17/2014
  **************************************************************************************************/
-#ifndef COUPLINGALGORITHMFILTER_H_
-#define COUPLINGALGORITHMFILTER_H_
+#ifndef LINEAREXTRAPOLATOR_H_
+#define LINEAREXTRAPOLATOR_H_
 
-#include "AbstractFilter.h"
+#include "AbstractExtrapolator.h"
+#include <vector>
 
 namespace EMPIRE {
-
-class AbstractCouplingAlgorithm;
-
 /********//**
- * \brief Class CouplingAlgorithmFilter filters the data by calling a coupling algorithm
+ * \brief Class LinearExtrapolator does linear extrapolation at the beginning of a time step, as a guess
  ***********/
-class CouplingAlgorithmFilter: public AbstractFilter {
+class LinearExtrapolator : public AbstractExtrapolator {
 public:
     /***********************************************************************************************
      * \brief Constructor
-     * \param[in] _couplingAlgorithm the coupling algorithm which the filter calls
+     * \param[in] _name the name
      * \author Tianyang Wang
      ***********/
-    CouplingAlgorithmFilter(AbstractCouplingAlgorithm *_couplingAlgorithm);
+    LinearExtrapolator(std::string _name);
     /***********************************************************************************************
      * \brief Destructor
      * \author Tianyang Wang
      ***********/
-    virtual ~CouplingAlgorithmFilter();
+    virtual ~LinearExtrapolator();
     /***********************************************************************************************
-     * \brief Filtering
-     * \author Tianyang Wang
-     ***********/
-    void filtering();
-    /***********************************************************************************************
-     * \brief Initialize data according to the inputs and outputs
+     * \brief initialize the extrapolator after all the connectionIOs are added
      * \author Tianyang Wang
      ***********/
     void init();
+    /***********************************************************************************************
+     * \brief Do extrapolation
+     * \author Tianyang Wang
+     ***********/
+    void extrapolate();
 private:
-    AbstractCouplingAlgorithm *couplingAlgorithm;
+    // data of the previous' previous time step
+    std::vector<double*> data00;
+    // data of the previous time step
+    std::vector<double*> data0;
 };
 
 } /* namespace EMPIRE */
-#endif /* COUPLINGALGORITHMFILTER_H_ */
+#endif /* LINEAREXTRAPOLATOR_H_ */

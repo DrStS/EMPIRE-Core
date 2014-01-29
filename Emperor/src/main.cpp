@@ -20,6 +20,11 @@
  *  You should have received a copy of the GNU General Public License \n
  *  along with EMPIRE.  If not, see <a href="http://www.gnu.org/licenses/">http://www.gnu.org/licenses/</a>.
  *
+ *  Additional permission under GNU GPL version 3 section 7
+ *
+ * If you modify this Program, or any covered work, by linking or combining it with Intel Math Kernel Libraries(MKL) 
+ * (or a modified version of that library), containing parts covered by the terms of the license of the MKL, 
+ * the licensors of this Program grant you additional permission to convey the resulting work. 
  *
  * \section DESCRIPTION
  *  This is the server application of EMPIRE called Emperor

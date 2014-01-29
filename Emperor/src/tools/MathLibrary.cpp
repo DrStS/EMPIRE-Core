@@ -40,5 +40,23 @@ double computeDenseDotProduct(const std::vector<double> &vec1, const std::vector
     return cblas_ddot(vec1.size(), &vec1[0], 1, &vec2[0], 1);
 }
 
+
+void copyDenseVector(double *vec1, const double *vec2, const int elements){
+	cblas_dcopy(elements, vec2, 1, vec1, 1);
+}
+
+double computeDenseEuclideanNorm(const double *vec1, const int elements){
+	cblas_dnrm2 (elements, vec1, 1);
+}
+
+void computeDenseVectorAddition(double *vec1, const double *vec2 ,const double a, const int elements){
+	cblas_daxpy (elements, a, vec2, 1, vec1, 1);
+}
+
+void computeDenseVectorMultiplicationScalar(double *vec1 ,const double a, const int elements){
+	cblas_dscal (elements, a, vec1, 1);
+}
+
+
 } /* namespace Math */
 } /* namespace EMPIRE */

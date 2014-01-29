@@ -35,8 +35,8 @@
 
 namespace ticpp {
 class Document;
+class Element;
 }
-
 
 namespace EMPIRE {
 /********//**
@@ -154,9 +154,20 @@ private:
      * \author Tianyang Wang
      ***********/
     void fillSettingCouplingLogic();
-
-
-
+    /***********************************************************************************************
+     * \brief Parse DataFieldRef or SignalRef
+     * \param[in] xmlElement xml element
+     * \return the setting after parsing
+     * \author Tianyang Wang
+     ***********/
+    structConnectionIO parseConnectionIORef(ticpp::Element *xmlElement);
+    /***********************************************************************************************
+     * \brief Parse a vector of DataFieldRef or SignalRef
+     * \param[in] xmlElement xml element
+     * \return the setting after parsing
+     * \author Tianyang Wang
+     ***********/
+    std::vector<structConnectionIO> parseConnectionIORefs(ticpp::Element *xmlElement);
 
     /// The singleton of this class
     static MetaDatabase* metaDatabase;

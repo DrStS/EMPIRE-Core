@@ -1154,7 +1154,7 @@ bool IGAPatchSurface::computePointProjectionOnPatchBoundary(double& _u, double& 
     for (int edge = 0; edge < 4; edge++) {
 
         // Find the fixed and the running parameter on the patch boundary
-        if (edge == 0 or edge == 1)
+        if (edge == 0 || edge == 1)
             t = u1;
         else
             t = v1;
@@ -1386,7 +1386,7 @@ void IGAPatchSurface::computeLineMinimumDistanceToPatchBoundary(double& _u, doub
     for (int edge = 0; edge < 4; edge++) {
 
         // Find the running and the fixed parameter on the NURBS boundary
-        if (edge == 0 or edge == 1)
+        if (edge == 0 || edge == 1)
             t = u1;
         else
             t = v1;

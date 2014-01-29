@@ -27,6 +27,7 @@
 #define CONVERGENCECHECKER_H_
 
 #include <string>
+#include <vector>
 #include "EMPEROR_Enum.h"
 
 namespace EMPIRE {
@@ -42,12 +43,10 @@ class ConvergenceChecker {
 public:
     /***********************************************************************************************
      * \brief Constructor
-     * \param[in] absTol absolute tolerance of convergence
-     * \param[in] relTol relative tolerance of convergence
      * \param[in] maxNumOfIters maximum number of iterations
      * \author Tianyang Wang
      ***********/
-    ConvergenceChecker(double absTol, double relTol, double maxNumOfIters);
+    ConvergenceChecker(double maxNumOfIters);
     /***********************************************************************************************
      * \brief Destructor
      * \author Tianyang Wang
@@ -60,75 +59,101 @@ public:
      ***********/
     bool isConvergent();
     /***********************************************************************************************
-     * \brief return currentNumOfIterations, this is only used for debugging, that this value is
-     *        the same as that inside iterativeCouplingLogic
-     * \return currentNumOfIterations
+     * \brief Add a checkResidual object to checkResiduals
+     * \param[in] _absoluteTolerance the absolute residual
+     * \param[in] _relativeTolerance the relative residual
+     * \param[in] _couplingAlgorithm the coupling algorithm which contains the residual
+     * \param[in] _residualIndex the index of the residual
+     * \author Tianyang Wang
+     ***********/
+    void addCheckResidual(double _absoluteTolerance, double _relativeTolerance,
+            AbstractCouplingAlgorithm *_couplingAlgorithm, int _residualIndex);
+    /***********************************************************************************************
+     * \brief Get the current number of iterations
+     * \return the current number of iterations
      * \author Tianyang Wang
      ***********/
     int getcurrentNumOfIterations();
-    /***********************************************************************************************
-     * \brief Set the data field
-     * \param[in] _dataField the data field on which convergence is checked
-     * \author Tianyang Wang
-     ***********/
-    void setDataField(DataField *_dataField);
-    /***********************************************************************************************
-     * \brief Set the signal
-     * \param[in] _signal the signal on which convergence is checked
-     * \author Tianyang Wang
-     ***********/
-    void setSignal(Signal *_signal);
-    /***********************************************************************************************
-     * \brief Set the coupling algorithm
-     * \param[in] _couplingAlgorithm the coupling algorithm which computes the residual
-     * \author Tianyang Wang
-     ***********/
-    void setCouplingAlgorithm(AbstractCouplingAlgorithm *_couplingAlgorithm);
-    /// default absolute tolerance of convergence
-    static const double DEFAULT_ABS_TOL;
-    /// default relative tolerance of convergence
-    static const double DEFAULT_REL_TOL;
-    /// default maximum number of iterations
-    static const double DEFAULT_MAX_NUM_ITERATIONS;
 
 private:
-    /// has reference to dataField or signal or couplingAlgorithm
-    EMPIRE_ConvergenceChecker_whichRef whichRef;
-    /// data field on which convergence is checked
-    DataField *dataField;
-    /// signal on which convergence is checked
-    Signal *signal;
-    /// coupling algorithm which computes the residual
-    AbstractCouplingAlgorithm *couplingAlgorithm;
-    /// absolute tolerance of convergence
-    const double ABS_TOL;
-    /// relative tolerance of convergence
-    const double REL_TOL;
+    /********//**
+     * \brief Class ConvergenceChecker checks whether convergence is got or not
+     ***********/
+    class CheckResidual {
+    public:
+        /***********************************************************************************************
+         * \brief Constructor
+         * \param[in] _absoluteTolerance the absolute residual
+         * \param[in] _relativeTolerance the relative residual
+         * \param[in] _couplingAlgorithm the coupling algorithm which contains the residual
+         * \param[in] _residualIndex the index of the residual
+         * \author Tianyang Wang
+         ***********/
+        CheckResidual(double _absoluteTolerance, double _relativeTolerance,
+                AbstractCouplingAlgorithm *_couplingAlgorithm, int _residualIndex);
+        /***********************************************************************************************
+         * \brief Destructor
+         * \author Tianyang Wang
+         ***********/
+        virtual ~CheckResidual();
+        /***********************************************************************************************
+         * \brief update the initial residual
+         * \author Tianyang Wang
+         ***********/
+        void updateInitialResidual();
+        /***********************************************************************************************
+         * \brief get the absolute residual
+         * \return the absolute residual
+         * \author Tianyang Wang
+         ***********/
+        double getAbsoluteResidual();
+        /***********************************************************************************************
+         * \brief get the relative residual
+         * \return the relative residual
+         * \author Tianyang Wang
+         ***********/
+        double getRelativeResidual();
+        /***********************************************************************************************
+         * \brief is convergent?
+         * \return true if convergent, otherwise false
+         * \author Tianyang Wang
+         ***********/
+        bool isConvergent();
+        /***********************************************************************************************
+         * \brief write residual to the shell
+         * \author Tianyang Wang
+         ***********/
+        void writeResidualToShell();
+    private:
+        /// reference to the coupling algorithm
+        AbstractCouplingAlgorithm *couplingAlgorithm;
+        /// index of the residual
+        int residualIndex;
+        /// absolute tolerance
+        const double ABS_TOL;
+        /// relative tolerance
+        const double REL_TOL;
+        /// initial residual
+        double initialResidual;
+        /// the unit test class
+        friend class TestEmperor;
+    };
     /// maximum number of iterations
     const double MAX_NUM_ITERATIONS;
+    /// vector of checkResiduals
+    std::vector<CheckResidual*> checkResiduals;
     /// current number of loops
     int currentNumOfIterations;
-    /// data of last inner loop step
-    double *dataLastInnerLoopStep;
-    /// initial residual in fixed point iteration
-    double initialResidual;
-    /// current residual in fixed point iteration
-    double currentResidual;
     /// whether always output the residual or not
     bool debugResidual;
     /// the file where the residual at each time step are written
     std::string residualFileName;
     /// time step number, only used when writing the residual in a file
     int timeStepNumber;
-    /***********************************************************************************************
-     * \brief Calculate the L2 norm of the difference
-     * \return the L2 norm of the difference
-     * \author Tianyang Wang
-     ***********/
-    static double calcDifferenceL2Norm(const double *array1, const double *array2, int size);
 
-    /// the unit test classes
+    /// the unit test class
     friend class TestConvergenceChecker;
+    /// the unit test class
     friend class TestEmperor;
 };
 

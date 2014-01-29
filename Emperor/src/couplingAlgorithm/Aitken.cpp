@@ -18,182 +18,126 @@
  *  You should have received a copy of the GNU General Public License
  *  along with EMPIRE.  If not, see http://www.gnu.org/licenses/.
  */
-#include <assert.h>
-#include <sstream>
-#include <math.h>
-
 #include "Aitken.h"
 #include "DataField.h"
-#include "Message.h"
-#include "Signal.h"
 #include "ConnectionIO.h"
-#include "EMPEROR_Enum.h"
+#include "Signal.h"
+#include "Residual.h"
+#include "MathLibrary.h"
+
+#include <assert.h>
+#include <math.h>
+#include <sstream>
+#include <string.h>
 
 using namespace std;
 
 namespace EMPIRE {
 
-const double Aitken::LIMIT = 1E6;
-
-Aitken::Aitken(std::string _name, double _initialAitkenFactor) :
-        AbstractCouplingAlgorithm(_name), INIT_AITKEN_FACTOR(_initialAitkenFactor) {
-    assert(INIT_AITKEN_FACTOR >= 0.0);
-    X_out = NULL; // segmentation fault happens if it is not null during destructing (unit test)
-    R_0 = NULL;
-    debugMe = true;
+Aitken::Aitken(std::string _name, double _initRelaxationFactor) :
+        AbstractCouplingAlgorithm(_name), INIT_RELAXATION_FACTOR(_initRelaxationFactor) {
+    debugMe = false;
+    globalResidual = NULL;
+    globalResidualOld = NULL;
+    tmpVec = NULL;
 }
 
 Aitken::~Aitken() {
-    delete X_out;
-    delete R_0;
-}
-
-void Aitken::setInputAndOutput(const ConnectionIO *_input, ConnectionIO *_output) {
-    assert(input==NULL);
-    assert(output==NULL);
-    assert(_input!=NULL);
-    assert(_output!=NULL);
-    input = _input;
-    output = _output;
-    assert(input->type == output->type);
-    EMPIRE_ConnectionIO_Type IOType = input->type;
-    assert(input->type == output->type);
-    if (IOType == EMPIRE_ConnectionIO_DataField) {
-        assert(input->dataField->dimension == output->dataField->dimension);
-        assert(input->dataField->numLocations == output->dataField->numLocations);
-        int numLocations = input->dataField->numLocations;
-        int dimension = input->dataField->dimension;
-        SIZE = numLocations * dimension;
-        X_out = new double[SIZE];
-        R_0 = new double[SIZE];
-    } else if (IOType == EMPIRE_ConnectionIO_Signal) {
-        assert(input->signal->size == output->signal->size);
-        assert(input->signal->dimension == output->signal->dimension);
-        SIZE = input->signal->size;
-        X_out = new double[SIZE];
-        R_0 = new double[SIZE];
-    } else {
-        assert(false);
-    }
+    delete[] globalResidual;
+    delete[] globalResidualOld;
+    delete[] tmpVec;
 }
 
 void Aitken::calcNewValue() {
-///TODO change syntax
-    /* --------------------------------------------------------------
-     * FORMULAR (J. Degroote's handout P.101):
-     *
-     * [x_k+1] = (1-[w_k]) * [x_k] + [w_k] * [x_k_~]
-     *
-     * with [w_k] = - [w_k-1] * ( [r_k-1]^T * ([r_k]-[r_k-1])  /   ([r_k]-[r_k-1])^T * ([r_k]-[r_k-1]) )
-     *
-     * --------------------------------------------------------------
-     * DEFINE:
-     * X_out --- the output memory which stores [x_k], and is updated to [x_k+1] at the end
-     * X_in  --- the input memory which stores ([x_k_~])
-     * R_1    --- residual at this step ([r_k], defined by [r_k] = [x_k_~] - [x_k])
-     * R_0    --- residual of last step ([r_k-1])
-     * w_1    --- aikten factor of this step ([w_k])
-     * w_0    --- aikten factor of last step ([w_k-1])
-     * --------------------------------------------------------------
-     */
-
-    if (newLoop) {
-        newLoop = false;
-        assert(step == 1);
+	/// reset if new time step is started
+	if (newTimeStep)
+	{
+		startNewTimeStep();
+	}
+    /// compute the current residuals
+    for (map<int, Residual*>::iterator it = residuals.begin(); it != residuals.end(); it++) {
+        it->second->computeCurrentResidual();
+    }
+    /// assemble global residual vector
+    int oldSize =0;
+    for (map<int, Residual*>::iterator it = residuals.begin(); it != residuals.end(); it++) {
+        Residual *residual = it->second;
+    	for (int i=0; i<it->second->size; i++) {
+    		globalResidual[i+oldSize]=residual->residualVector[i];
+    	}
+    	oldSize+=it->second->size;;
+    }
+    /// compute Aitken update
+	if (newTimeStep)
+	{
+	    stringstream toOutput;
+	    toOutput << scientific;
+	    toOutput << "Initial Aitken relaxation factor: " << relaxationFactor;
+	    INDENT_OUT(1, toOutput.str(), infoOut);
+		newTimeStep=false;
+		cout.unsetf(ios_base::floatfield);
+	}else{
+	    computeRelaxationFactor();
+	}
+    /// apply the new output
+    assert(outputs.size() == residuals.size());
+    for (map<int, Residual*>::iterator it = residuals.begin(); it != residuals.end(); it++) {
+        Residual *residual = it->second;
+        assert(outputs.find(it->first) != outputs.end());
+        CouplingAlgorithmOutput *output = outputs.find(it->first)->second;
+        assert(residual->size == output->size);
+        double *newOuput = new double[residual->size];
+        // U_i_n+1 = U_i_n + alpha R_i_n
+        for (int i=0; i<residual->size; i++) {
+            newOuput[i] = output->outputCopyAtIterationBeginning[i]+ relaxationFactor*residual->residualVector[i] ;
+        }
+        output->overwrite(newOuput);
+        delete[] newOuput;
     }
 
-    double *dataIn;
-    double *dataOut;
-    EMPIRE_ConnectionIO_Type IOType = input->type;
-    if (IOType == EMPIRE_ConnectionIO_DataField) {
-        dataIn = input->dataField->data; // rename
-        dataOut = output->dataField->data; // rename
-    } else if (IOType == EMPIRE_ConnectionIO_Signal) {
-        dataIn = input->signal->array; // rename
-        dataOut = output->signal->array; // rename
-    } else {
-        assert(false);
-    }
+    /// save old values
+    MathLibrary::copyDenseVector(globalResidualOld,globalResidual,globalResidualSize);
 
-    // X_out, R_0 and w_0 are from the last step, X_in is the input at this step
-    if (step == 1) {
-        const double *X_in = dataIn; // rename
-        // Set X_out for next step
-        for (int i = 0; i < SIZE; i++)
-            X_out[i] = X_in[i];
-    } else {
-        // 1. initialize
-        const double *X_in = dataIn; // rename
-        double *tmpMemory = new double[SIZE];
+    relaxationFactorOld=relaxationFactor;
 
-        // 2. calculate w_1
-        double w_1;
-        if (step == 2) {
-            w_1 = INIT_AITKEN_FACTOR;
-        } else {
-            vecMinus(X_in, X_out, tmpMemory, SIZE); // now tmpMemory stores R_1
-            vecMinusEqual(tmpMemory, R_0, SIZE); // now tmpMemory stores deltaR
-            double numerator = vecDotProduct(R_0, tmpMemory, SIZE);
-            double denominator = vecDotProduct(tmpMemory, tmpMemory, SIZE);
-            if (denominator != 0.0) {
-                assert(fabs(numerator) < LIMIT * denominator);
-                w_1 = -w_0 * numerator / denominator;
-            } else { // this happens due to convergence is already obtained, so [r_k]=[r_k-1]=0
-                // convergence is obtained, set w_1 to 1.0
-                w_1 = 1.0;
-            }
-        }
-
-        if (debugMe) { // write aitken factor to shell
-            stringstream ss;
-            ss << "Aitken relaxation factor: " << w_1;
-            INDENT_OUT(1, ss.str(), infoOut);
-        }
-
-        // 3. update R_0
-        vecMinus(X_in, X_out, R_0, SIZE);
-
-        { // compute residuals
-            if (step == 2) {
-                initialResidual = vecL2Norm(R_0, SIZE);
-                if (debugMe) { // write aitken factor to shell
-                    /*stringstream ss;
-                     ss << "Aitken initial residual: " << initialResidual;
-                     INDENT_OUT(1, ss.str(), infoOut);*/
-                }
-            }
-            currentResidual = vecL2Norm(R_0, SIZE);
-            if (debugMe) { // write aitken factor to shell
-                /*stringstream ss;
-                 ss << "Aitken relative residual: " << currentResidual / initialResidual;
-                 INDENT_OUT(1, ss.str(), infoOut);*/
-            }
-        }
-
-        // 4. calculate new X_out
-        double tmp = 1.0 - w_1;
-
-        assert(tmp != 1.0);
-        // when tmp == 1.0, w_1<1e-16, then x_k+1=x_k, does not make sense
-
-        vecCopy(X_in, tmpMemory, SIZE);
-        vecScalarMultiply(tmpMemory, w_1, SIZE);
-        vecScalarMultiply(X_out, tmp, SIZE);
-        vecPlusEqual(X_out, tmpMemory, SIZE);
-
-        // 5. set w_0 for next step
-        w_0 = w_1;
-        delete tmpMemory;
-    }
-
-    // updata output
-    for (int i = 0; i < SIZE; i++)
-        dataOut[i] = X_out[i];
-    step++;
 }
 
-void Aitken::setZeroState() {
+void Aitken::computeRelaxationFactor() {
+	MathLibrary::copyDenseVector(tmpVec,globalResidual,globalResidualSize);
+	MathLibrary::computeDenseVectorMultiplicationScalar(tmpVec,-1.0,globalResidualSize);
+	MathLibrary::computeDenseVectorAddition(tmpVec,globalResidualOld,1.0,globalResidualSize);
+	/// tmpVec holds now globalResidualOld - globalResidual
+	double denominator = MathLibrary::computeDenseEuclideanNorm(tmpVec,globalResidualSize);
+	denominator*=denominator;
+	double numerator = MathLibrary::computeDenseDotProduct(globalResidualOld, tmpVec, globalResidualSize);
+    if(denominator>1e-10)
+    {
+    	relaxationFactor = relaxationFactorOld * (numerator/denominator);
+    }
+    stringstream toOutput;
+    toOutput << scientific;
+    toOutput << "Aitken relaxation factor: " << relaxationFactor;
+    INDENT_OUT(1, toOutput.str(), infoOut);
+    cout.unsetf(ios_base::floatfield);
+}
 
+void Aitken::startNewTimeStep() {
+	relaxationFactor   =INIT_RELAXATION_FACTOR;
+	relaxationFactorOld=INIT_RELAXATION_FACTOR;
+	memset(globalResidual   ,0,sizeof(double)*globalResidualSize);
+	memset(globalResidualOld,0,sizeof(double)*globalResidualSize);
+}
+
+void Aitken::init() {
+    // determine global residual vector size
+    globalResidualSize =0;
+    for (map<int, Residual*>::iterator it = residuals.begin(); it != residuals.end(); it++) {
+    	globalResidualSize +=it->second->size;
+    }
+    globalResidual    = new double [globalResidualSize];
+    globalResidualOld = new double [globalResidualSize];
+    tmpVec            = new double [globalResidualSize];
+    startNewTimeStep();
 }
 
 } /* namespace EMPIRE */

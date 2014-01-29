@@ -62,77 +62,17 @@ public:
         filter->addOutput(connectionOutput);
         filter->init();
     }
-    static void setupIOForCouplingAlgorithm(AbstractCouplingAlgorithm *couplingAlgorithm,
-            AbstractMesh *meshIn, DataField *in, AbstractMesh *meshOut, DataField *out) {
-        ConnectionIO *connectionInput = new ConnectionIO();
-        connectionInput->type = EMPIRE_ConnectionIO_DataField;
-        connectionInput->mesh = meshIn;
-        connectionInput->dataField = in;
-        ConnectionIO *connectionOutput = new ConnectionIO();
-        connectionOutput->type = EMPIRE_ConnectionIO_DataField;
-        connectionOutput->mesh = meshOut;
-        connectionOutput->dataField = out;
-        couplingAlgorithm->setInputAndOutput(connectionInput, connectionOutput);
+    static ConnectionIO *constructDummyConnectionIO(DataField *dataField) {
+        ConnectionIO *dummy = new ConnectionIO();
+        dummy->type = EMPIRE_ConnectionIO_DataField;
+        dummy->dataField = dataField;
+        return dummy;
     }
-    static void setupIOForCouplingAlgorithm(AbstractCouplingAlgorithm *couplingAlgorithm,
-            Signal *in, Signal *out) {
-        ConnectionIO *connectionInput = new ConnectionIO();
-        connectionInput->type = EMPIRE_ConnectionIO_Signal;
-        connectionInput->signal = in;
-        ConnectionIO *connectionOutput = new ConnectionIO();
-        connectionOutput->type = EMPIRE_ConnectionIO_Signal;
-        connectionOutput->signal = out;
-        couplingAlgorithm->setInputAndOutput(connectionInput, connectionOutput);
-    }
-    static void setupIOForExtrapolator(AbstractExtrapolator *extrapolator, AbstractMesh *meshIn,
-            DataField *in, AbstractMesh *meshOut, DataField *out) {
-        ConnectionIO *connectionInput = new ConnectionIO();
-        connectionInput->type = EMPIRE_ConnectionIO_DataField;
-        connectionInput->mesh = meshIn;
-        connectionInput->dataField = in;
-        ConnectionIO *connectionOutput = new ConnectionIO();
-        connectionOutput->type = EMPIRE_ConnectionIO_DataField;
-        connectionOutput->mesh = meshOut;
-        connectionOutput->dataField = out;
-        extrapolator->setInputAndOutput(connectionInput, connectionOutput);
-    }
-    static void addInputForExtrapolator(AbstractExtrapolator *extrapolator, AbstractMesh *meshIn,
-            DataField *in) {
-        ConnectionIO *connectionInput = new ConnectionIO();
-        connectionInput->type = EMPIRE_ConnectionIO_DataField;
-        connectionInput->mesh = meshIn;
-        connectionInput->dataField = in;
-        extrapolator->addInput(connectionInput);
-    }
-    static void addOutputForExtrapolator(AbstractExtrapolator *extrapolator, AbstractMesh *meshOut,
-            DataField *out) {
-        ConnectionIO *connectionOutput = new ConnectionIO();
-        connectionOutput->type = EMPIRE_ConnectionIO_DataField;
-        connectionOutput->mesh = meshOut;
-        connectionOutput->dataField = out;
-        extrapolator->addOutput(connectionOutput);
-    }
-    static void setupIOForExtrapolator(AbstractExtrapolator *extrapolator, Signal *in,
-            Signal *out) {
-        ConnectionIO *connectionInput = new ConnectionIO();
-        connectionInput->type = EMPIRE_ConnectionIO_Signal;
-        connectionInput->signal = in;
-        ConnectionIO *connectionOutput = new ConnectionIO();
-        connectionOutput->type = EMPIRE_ConnectionIO_Signal;
-        connectionOutput->signal = out;
-        extrapolator->setInputAndOutput(connectionInput, connectionOutput);
-    }
-    static void addInputForExtrapolator(AbstractExtrapolator *extrapolator, Signal *in) {
-        ConnectionIO *connectionInput = new ConnectionIO();
-        connectionInput->type = EMPIRE_ConnectionIO_Signal;
-        connectionInput->signal = in;
-        extrapolator->addInput(connectionInput);
-    }
-    static void addOutputForExtrapolator(AbstractExtrapolator *extrapolator, Signal *out) {
-        ConnectionIO *connectionOutput = new ConnectionIO();
-        connectionOutput->type = EMPIRE_ConnectionIO_Signal;
-        connectionOutput->signal = out;
-        extrapolator->addOutput(connectionOutput);
+    static ConnectionIO *constructDummyConnectionIO(Signal *signal) {
+        ConnectionIO *dummy = new ConnectionIO();
+        dummy->type = EMPIRE_ConnectionIO_Signal;
+        dummy->signal = signal;
+        return dummy;
     }
 };
 

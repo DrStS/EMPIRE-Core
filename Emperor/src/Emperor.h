@@ -41,8 +41,10 @@ class MapperAdapter;
 class AbstractCouplingAlgorithm;
 class AbstractExtrapolator;
 class AbstractCouplingLogic;
+class ConnectionIO;
 struct structCouplingLogic;
 struct structDataFieldRef;
+struct structConnectionIO;
 /********//**
  * \brief This class manages the program, provides the interface functions of the program
  *        which are called in the main function
@@ -135,6 +137,11 @@ private:
      * \author Stefan Sicklinger
      ***********/
     void doCoSimulation();
+    /***********************************************************************************************
+     * \brief Construct ConnectionIO, avoid copying same code in different places
+     * \author Tianyang Wang
+     ***********/
+    ConnectionIO *constructConnectionIO(const structConnectionIO &settingConnectionIO);
 
     /// Get ClientCode instance by its name
     std::map<std::string, ClientCode*> nameToClientCodeMap;

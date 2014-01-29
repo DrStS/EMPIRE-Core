@@ -63,6 +63,10 @@ ConnectionIO::ConnectionIO(ClientCode *_clientCode, Signal *_signal) {
 }
 
 ConnectionIO::ConnectionIO() {
+    clientCode = NULL;
+    signal = NULL;
+    mesh = NULL;
+    dataField = NULL;
 }
 
 ConnectionIO::~ConnectionIO() {

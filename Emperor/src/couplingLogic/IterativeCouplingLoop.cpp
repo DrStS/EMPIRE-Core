@@ -35,7 +35,7 @@ using namespace std;
 namespace EMPIRE {
 
 IterativeCouplingLoop::IterativeCouplingLoop() :
-        AbstractCouplingLogic(), convergenceObserverVec(), couplingAlgorithmVec(), convergenceChecker(
+        AbstractCouplingLogic(), convergenceObserverVec(), couplingAlgorithm(NULL), convergenceChecker(
                 NULL) {
     outputCounter = 0;
 }
@@ -44,7 +44,7 @@ IterativeCouplingLoop::~IterativeCouplingLoop() {
     delete convergenceChecker;
 }
 
-void IterativeCouplingLoop::initConvergenceChecker(ConvergenceChecker *_convergenceChecker) {
+void IterativeCouplingLoop::setConvergenceChecker(ConvergenceChecker *_convergenceChecker) {
     assert(_convergenceChecker!=NULL);
     assert(convergenceChecker==NULL);
     convergenceChecker = _convergenceChecker;
@@ -53,12 +53,11 @@ void IterativeCouplingLoop::initConvergenceChecker(ConvergenceChecker *_converge
 void IterativeCouplingLoop::doCoupling() {
     assert(convergenceChecker!=NULL);
     int count = 0;
-    // notify the coupling algorithms the start of the iteration
-    for (int i = 0; i < couplingAlgorithmVec.size(); i++) {
-        couplingAlgorithmVec[i]->setNewLoop();
-    }
+    // notify the coupling algorithms the start of a new time step
+    if (couplingAlgorithm != NULL)
+        couplingAlgorithm->setNewTimeStep();
 
-    // initialize output files, in each iterative coupling the previous files are overwritten
+    // initialize output files
     outputCounter++;
     stringstream rearPart;
     rearPart << outputCounter;
@@ -70,6 +69,9 @@ void IterativeCouplingLoop::doCoupling() {
         stringstream ss;
         ss << "iteration step: " << count;
         HEADING_OUT(4, "IterativeCouplingLoop", ss.str(), infoOut);
+        // update data in coupling algorithm
+        if (couplingAlgorithm != NULL)
+            couplingAlgorithm->updateAtIterationBeginning();
 
         // do coupling
         for (int i = 0; i < couplingLogicSequence.size(); i++)
@@ -79,6 +81,14 @@ void IterativeCouplingLoop::doCoupling() {
         for (int i = 0; i < dataOutputVec.size(); i++)
             dataOutputVec[i]->writeCurrentStep(count);
 
+        // update data in coupling algorithm
+        if (couplingAlgorithm != NULL)
+            couplingAlgorithm->updateAtIterationEnd();
+
+        // compute the new output of the coupling algorithm
+        if (couplingAlgorithm != NULL)
+            couplingAlgorithm->calcNewValue();
+
         // broadcast convergence
         if (convergenceChecker->isConvergent()) {
             broadcastConvergenceToClients(true);
@@ -87,6 +97,7 @@ void IterativeCouplingLoop::doCoupling() {
             broadcastConvergenceToClients(false);
         }
         assert(count == convergenceChecker->getcurrentNumOfIterations());
+
     }
     //std::cout << "number of iterative coupling loops: " << count << std::endl;
 }
@@ -101,8 +112,9 @@ void IterativeCouplingLoop::broadcastConvergenceToClients(bool convergent) {
     }
 }
 
-void IterativeCouplingLoop::addCouplingAlgorithm(AbstractCouplingAlgorithm *couplingAlgorithm) {
-    couplingAlgorithmVec.push_back(couplingAlgorithm);
+void IterativeCouplingLoop::setCouplingAlgorithm(AbstractCouplingAlgorithm *_couplingAlgorithm) {
+    assert(couplingAlgorithm == NULL);
+    couplingAlgorithm = _couplingAlgorithm;
 }
 
 void IterativeCouplingLoop::addDataOutput(DataOutput *dataOutput) {

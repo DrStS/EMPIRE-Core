@@ -25,42 +25,16 @@
 namespace EMPIRE {
 
 AbstractExtrapolator::AbstractExtrapolator(std::string _name) :
-        name(_name), doExtrapolate(false) {
+        name(_name) {
+    currentTimeStepNumber = 0;
 }
 
 AbstractExtrapolator::~AbstractExtrapolator() {
 }
 
-  void AbstractExtrapolator::setInputAndOutput(const ConnectionIO *_input, ConnectionIO *_output) {
-    assert(inputVec.size()==0);
-    assert(outputVec.size()==0);
-    assert(_input!=NULL);
-    assert(_output!=NULL);
-    inputVec.push_back(_input);
-    outputVec.push_back(_output);
-    assert(_input->type == _output->type);
-  }
-
-  void AbstractExtrapolator::addInput(const ConnectionIO *_input) {
-    assert(_input!=NULL);
-    inputVec.push_back(_input);
-
-    if (inputVec.size() > 1) {
-      assert(inputVec.back()->type == inputVec[0]->type);
-    }
-  }
-
-  void AbstractExtrapolator::addOutput(ConnectionIO *_output) {
-    assert(_output!=NULL);
-    outputVec.push_back(_output);
-
-    if (outputVec.size() > 1) {
-      assert(outputVec.back()->type == outputVec[0]->type);
-    }
-  }
-
-void AbstractExtrapolator::setDoExtrapolate() {
-    doExtrapolate = true;
+void AbstractExtrapolator::addConnectionIO(ConnectionIO *io) {
+    assert(io!=NULL);
+    connectionIOs.push_back(io);
 }
 
 } /* namespace EMPIRE */

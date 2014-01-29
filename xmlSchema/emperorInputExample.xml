@@ -10,6 +10,8 @@
 				dimension="vector" typeOfQuantity="field" />
 			<dataField name="forces" location="atNode" dimension="vector"
 				typeOfQuantity="fieldIntegral" />
+			<dataField name="tractionsNode" location="atNode"
+				dimension="vector" typeOfQuantity="field" />
 		</mesh>
 		<signal name="signal1" size="5" />
 	</clientCode>
@@ -31,6 +33,8 @@
 			dataFieldName="displacements" />
 		<dataFieldRef clientCodeName="carat" meshName="myMesh1"
 			dataFieldName="forces" />
+		<dataFieldRef clientCodeName="carat" meshName="myMesh1"
+			dataFieldName="tractionsNode" />
 		<dataFieldRef clientCodeName="OpenFOAM" meshName="myMesh1"
 			dataFieldName="displacements" />
 		<dataFieldRef clientCodeName="OpenFOAM" meshName="myMesh1"
@@ -43,6 +47,8 @@
 			dataFieldName="displacements" />
 		<dataFieldRef clientCodeName="carat" meshName="myMesh1"
 			dataFieldName="forces" />
+		<dataFieldRef clientCodeName="carat" meshName="myMesh1"
+			dataFieldName="tractionsNode" />
 		<dataFieldRef clientCodeName="OpenFOAM" meshName="myMesh1"
 			dataFieldName="displacements" />
 		<dataFieldRef clientCodeName="OpenFOAM" meshName="myMesh1"
@@ -83,8 +89,9 @@
 			<meshRef clientCodeName="OpenFOAM" meshName="myMesh1" />
 		</meshB>
 	</mapper>
-	<mapper name="IGAMortar1" type="IGAMortarMapper">	  
-		<IGAMortarMapper tolProjectionDistance = "1e-6" numGPsTriangle="16" numGPsQuad="25" />
+	<mapper name="IGAMortar1" type="IGAMortarMapper">
+		<IGAMortarMapper tolProjectionDistance="1e-6"
+			numGPsTriangle="16" numGPsQuad="25" />
 		<meshA>
 			<meshRef clientCodeName="carat" meshName="myMesh1" />
 		</meshA>
@@ -92,24 +99,49 @@
 			<meshRef clientCodeName="OpenFOAM" meshName="myMesh1" />
 		</meshB>
 	</mapper>
-	
+
 
 	<!-- ================ define couplingAlgorithms ================================== -->
-	<couplingAlgorithm type="aitken" name="aitken">
-		<aitken initialAitkenFactor="0.3" />
+	<couplingAlgorithm type="constantRelaxation" name="myConstantRelaxation">
+		<residual index="1">
+			<component coefficient="-1" timeToUpdate="iterationBeginning">
+				<dataFieldRef clientCodeName="carat" meshName="myMesh1"
+					dataFieldName="displacements" />
+			</component>
+			<component coefficient="1" timeToUpdate="iterationEnd">
+				<dataFieldRef clientCodeName="carat" meshName="myMesh1"
+					dataFieldName="displacements" />
+			</component>
+		</residual>
+		<output index="1">
+			<dataFieldRef clientCodeName="carat" meshName="myMesh1"
+				dataFieldName="displacements" />
+		</output>
+		<constantRelaxation relaxationFactor="0.1" />
 	</couplingAlgorithm>
-	<couplingAlgorithm type="constantRelaxation" name="constantRelaxation">
-		<constantRelaxation relaxationFactor="0.3" />
+
+	<couplingAlgorithm type="aitken" name="myAitkenRelaxation">
+		<residual index="1">
+			<component coefficient="-1" timeToUpdate="iterationBeginning">
+				<dataFieldRef clientCodeName="carat" meshName="myMesh1"
+					dataFieldName="displacements" />
+			</component>
+			<component coefficient="1" timeToUpdate="iterationEnd">
+				<dataFieldRef clientCodeName="carat" meshName="myMesh1"
+					dataFieldName="displacements" />
+			</component>
+		</residual>
+		<output index="1">
+			<dataFieldRef clientCodeName="carat" meshName="myMesh1"
+				dataFieldName="displacements" />
+		</output>
+		<aitken initialRelaxationFactor="0.1" />
 	</couplingAlgorithm>
 
 	<!-- ================ define extrapolators ================================= -->
-	<extrapolator type="simpleExtrapolator" name="simple" />
-	<extrapolator name="displacement extrapolator" type="genMSExtrapolator">
-		<genMSExtrapolator numInput="2" seqLen="1"
-			sumOutput="false" deltaTime="3e-6">
-			<coefficientDot0 value="1.0" />
-			<coefficientDot1 value="0.5" />
-		</genMSExtrapolator>
+	<extrapolator name="displacement extrapolator" type="linearExtrapolator">
+		<dataFieldRef clientCodeName="carat" meshName="myMesh1"
+			dataFieldName="displacements" />
 	</extrapolator>
 
 	<!-- ================ define connections ========================================= -->
@@ -123,28 +155,6 @@
 				dataFieldName="displacements" />
 		</output>
 		<sequence>
-			<filter type="extrapolatingFilter">
-				<inputAndOutput>
-					<dataFieldRef clientCodeName="carat" meshName="myMesh1"
-						dataFieldName="displacements" />
-				</inputAndOutput>
-				<extrapolatingFilter>
-					<extrapolatorRef extrapolatorName="simple" />
-				</extrapolatingFilter>
-			</filter>
-			<filter type="couplingAlgorithmFilter">
-				<input>
-					<dataFieldRef clientCodeName="carat" meshName="myMesh1"
-						dataFieldName="displacements" />
-				</input>
-				<output>
-					<dataFieldRef clientCodeName="carat" meshName="myMesh1"
-						dataFieldName="displacements" />
-				</output>
-				<couplingAlgorithmFilter>
-					<couplingAlgorithmRef couplingAlgorithmName="aitken" />
-				</couplingAlgorithmFilter>
-			</filter>
 			<filter type="mappingFilter">
 				<input>
 					<dataFieldRef clientCodeName="carat" meshName="myMesh1"
@@ -193,9 +203,22 @@
 					<mapperRef mapperName="mortar1" />
 				</mappingFilter>
 			</filter>
+			<filter type="dataFieldIntegrationFilter">
+				<input>
+					<dataFieldRef clientCodeName="carat" meshName="myMesh1"
+						dataFieldName="forces" />
+				</input>
+				<output>
+					<dataFieldRef clientCodeName="carat" meshName="myMesh1"
+						dataFieldName="tractionsNode" />
+				</output>
+				<dataFieldIntegrationFilter>
+					<meshRef clientCodeName="carat" meshName="myMesh1" />
+				</dataFieldIntegrationFilter>
+			</filter>
 		</sequence>
 	</connection>
-	
+
 
 	<connection name="transfer signal1">
 		<input>
@@ -221,31 +244,32 @@
 			</filter>
 		</sequence>
 	</connection>
-    <connection name="set initial value">
+	<connection name="set initial value">
 		<sequence>
 			<filter type="setFilter">
 				<inputAndOutput>
 					<signalRef clientCodeName="generatorUnit" signalName="forcesRotorMoment" />
 				</inputAndOutput>
 				<setFilter value="0.0 1.0 2.0" />
-	        </filter>
-	   </sequence>
+			</filter>
+		</sequence>
 	</connection>
 	<!-- ================ define coSimulation process ================================ -->
 	<coSimulation>
 		<sequence>
 			<couplingLogic type="timeStepLoop">
 				<timeStepLoop numTimeSteps="1000">
-					<extrapolatorRef extrapolatorName="simple" />
+					<extrapolatorRef extrapolatorName="displacement extrapolator" />
 					<dataOutputRef dataOutputName="timeStep" />
 				</timeStepLoop>
 				<sequence>
 					<couplingLogic type="iterativeCouplingLoop">
 						<iterativeCouplingLoop>
-							<convergenceChecker absoluteTolerance="1E-8"
-								relativeTolerance="1E-4" maxNumOfIterations="1000">
-								<dataFieldRef clientCodeName="carat" meshName="myMesh1"
-									dataFieldName="displacements" />
+							<convergenceChecker maxNumOfIterations="6">
+								<checkResidual relativeTolerance="1E-6"
+									absoluteTolerance="1E-8">
+									<residualRef couplingAlgorithmName="aitken" index="1" />
+								</checkResidual>
 							</convergenceChecker>
 							<convergenceObserver>
 								<clientCodeRef clientCodeName="carat" />

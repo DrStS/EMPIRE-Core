@@ -53,9 +53,9 @@ IGAMortarMapper::IGAMortarMapper(std::string _name, IGAMesh *_meshIGA, FEMesh *_
 
     projectedCoords = new vector<map<int, double*> >(meshFE->numNodes);
 
-    C_NR = new MathLibrary::SparseMatrix<double>(meshFE->numNodes,
-            (unsigned long) meshIGA->getNumControlPoints());
-    C_NN = new MathLibrary::SparseMatrix<double>(meshFE->numNodes, true);
+    C_NR = new MathLibrary::SparseMatrix<double>((const size_t)meshFE->numNodes,
+            (const size_t)meshIGA->getNumControlPoints());
+    C_NN = new MathLibrary::SparseMatrix<double>((const size_t)meshFE->numNodes, true);
 
     gaussTriangle = new IGAMortarMath::GaussQuadratureOnTriangle(numGPsTri);
     gaussQuad = new IGAMortarMath::GaussQuadratureOnQuad(numGPsQuad);

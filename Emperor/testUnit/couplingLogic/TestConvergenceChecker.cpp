@@ -27,6 +27,8 @@
 #include "Signal.h"
 #include "Aitken.h"
 #include "ConvergenceChecker.h"
+#include "Residual.h"
+#include "ConstantRelaxation.h"
 
 #include <math.h>
 #include <iostream>
@@ -51,159 +53,84 @@ public:
      *        is 3.1, 3.01, 3.001, etc.
      ***********/
     void testConvergenceCheck() {
-        const double REL_TOL = 2e-6;
         const int NUM_TIME_STEP = 5;
-        { // data field with relative residual
-            DataField *df = new DataField("", EMPIRE_DataField_atNode, 10, EMPIRE_DataField_vector,
-                    EMPIRE_DataField_field);
+        { // relative residual
+            const double REL_TOL = 2e-6;
+            ConvergenceChecker *checker = new ConvergenceChecker(100);
+            Residual *residual = new Residual(1);
+            ConstantRelaxation *constantRelaxation = new ConstantRelaxation("", 1.0);
+            constantRelaxation->addResidual(residual, 1);
+            checker->addCheckResidual(-1.0, REL_TOL, constantRelaxation, 1);
 
-            ConvergenceChecker *checker = new ConvergenceChecker(-1.0, REL_TOL, 100);
             checker->debugResidual = false;
-            checker->setDataField(df);
-            CPPUNIT_ASSERT(checker->whichRef == EMPIRE_ConvergenceChecker_dataFieldRef);
-            int size = df->numLocations * df->dimension;
             for (int i = 1; i <= NUM_TIME_STEP; i++) {
-                double solution = (double) i;
-                for (int j = 0; j < size; j++)
-                    df->data[j] = solution;
-
                 int count = 0;
                 do {
                     count++;
-                    for (int j = 0; j < size; j++)
-                        df->data[j] = solution + pow(10, (double) (-count));
-                } while (!checker->isConvergent());
-                /*std::cout << std::endl;
-                 std::cout << "Time step: " << i << ", no. of inner loop steps: " << count
-                 << std::endl;*/
-                CPPUNIT_ASSERT(count==8);
-            }
-
-            delete checker;
-            delete df;
-        }
-        { // signal with relative residual
-            Signal *signal = new Signal("", 2, 1, 1);
-            ConvergenceChecker *checker = new ConvergenceChecker(-1.0, REL_TOL, 100);
-            checker->debugResidual = false;
-            checker->setSignal(signal);
-            CPPUNIT_ASSERT(checker->whichRef == EMPIRE_ConvergenceChecker_signalRef);
-
-            int size = signal->size;
-            for (int i = 1; i <= NUM_TIME_STEP; i++) {
-                double solution = (double) i;
-                for (int j = 0; j < size; j++)
-                    signal->array[j] = solution;
-
-                int count = 0;
-                do {
-                    count++;
-                    for (int j = 0; j < size; j++)
-                        signal->array[j] = solution + pow(10, (double) (-count));
-                } while (!checker->isConvergent());
-                /*std::cout << std::endl;
-                 std::cout << "Time step: " << i << ", no. of inner loop steps: " << count
-                 << std::endl;*/
-                CPPUNIT_ASSERT(count==8);
-            }
-            delete signal;
-            delete checker;
-        }
-        { // coupling algorithm with relative residual
-            Aitken *aitken = new Aitken("", 0.9);
-            ConvergenceChecker *checker = new ConvergenceChecker(-1.0, REL_TOL, 100);
-            checker->debugResidual = false;
-            checker->setCouplingAlgorithm(aitken);
-            CPPUNIT_ASSERT(checker->whichRef == EMPIRE_ConvergenceChecker_couplingAlgorithmRef);
-
-            for (int i = 1; i <= NUM_TIME_STEP; i++) {
-                aitken->initialResidual = 0.01;
-                int count = 0;
-                do {
-                    count++;
-                    aitken->currentResidual = pow(10, (double) (-count));
-                } while (!checker->isConvergent());
-                /*std::cout << std::endl;
-                 std::cout << "Time step: " << i << ", no. of inner loop steps: " << count
-                 << std::endl;*/
-                CPPUNIT_ASSERT(count==8);
-            }
-            delete aitken;
-            delete checker;
-        }
-        { // signal with absolute tolerance
-            const double ABS_TOL = 2e-6;
-            Signal *signal = new Signal("", 2, 1, 1);
-            ConvergenceChecker *checker = new ConvergenceChecker(ABS_TOL, -1.0, 100);
-            checker->debugResidual = false;
-            checker->setSignal(signal);
-            CPPUNIT_ASSERT(checker->whichRef == EMPIRE_ConvergenceChecker_signalRef);
-
-            int size = signal->size;
-            for (int i = 1; i <= NUM_TIME_STEP; i++) {
-                double solution = (double) i;
-                for (int j = 0; j < size; j++)
-                    signal->array[j] = solution;
-
-                int count = 0;
-                do {
-                    count++;
-                    for (int j = 0; j < size; j++)
-                        signal->array[j] = solution + pow(10, (double) (-count));
+                    residual->residualVectorL2Norm = pow(10, (double) (-count));
                 } while (!checker->isConvergent());
                 /*std::cout << std::endl;
                  std::cout << "Time step: " << i << ", no. of inner loop steps: " << count
                  << std::endl;*/
                 CPPUNIT_ASSERT(count==7);
             }
-            delete signal;
+
             delete checker;
+            delete constantRelaxation;
         }
-        { // signal with maximum number of iterations
+
+        { // absolute residual
             const double ABS_TOL = 2e-6;
-            Signal *signal = new Signal("", 2, 1, 1);
-            ConvergenceChecker *checker = new ConvergenceChecker(ABS_TOL, REL_TOL, 3);
+            ConvergenceChecker *checker = new ConvergenceChecker(100);
+            Residual *residual = new Residual(1);
+            ConstantRelaxation *constantRelaxation = new ConstantRelaxation("", 1.0);
+            constantRelaxation->addResidual(residual, 1);
+            checker->addCheckResidual(ABS_TOL, -1.0, constantRelaxation, 1);
+
             checker->debugResidual = false;
-            checker->setSignal(signal);
-            CPPUNIT_ASSERT(checker->whichRef == EMPIRE_ConvergenceChecker_signalRef);
-
-            int size = signal->size;
-            for (int i = 1; i <= 1; i++) {
-                double solution = (double) i;
-                for (int j = 0; j < size; j++)
-                    signal->array[j] = solution;
-
+            for (int i = 1; i <= NUM_TIME_STEP; i++) {
                 int count = 0;
                 do {
                     count++;
-                    for (int j = 0; j < size; j++)
-                        signal->array[j] = solution + pow(10, (double) (-count));
+                    residual->residualVectorL2Norm = pow(10, (double) (-count));
                 } while (!checker->isConvergent());
                 /*std::cout << std::endl;
                  std::cout << "Time step: " << i << ", no. of inner loop steps: " << count
                  << std::endl;*/
-                CPPUNIT_ASSERT(count==3);
+                CPPUNIT_ASSERT(count==6);
             }
-            delete signal;
+
             delete checker;
+            delete constantRelaxation;
         }
-    }
-    /***********************************************************************************************
-     * \brief Test case: Test the function ConvergenceChecker::calcDifferenceL2Norm().
-     *        Compare the result with hand calculated result.
-     ***********/
-    void testCalcDifferenceL2Norm() {
-        double array1[] = { 4, 4, 4, 4 };
-        double array2[] = { 2, 2, 2, 2 };
-        int size = 4;
-        double result = ConvergenceChecker::calcDifferenceL2Norm(array1, array2, size);
-        double resultByHand = 2.0;
-        CPPUNIT_ASSERT(fabs(result-resultByHand)<1e-12);
+
+        { // maximum number of iterations
+            ConvergenceChecker *checker = new ConvergenceChecker(100.0);
+            Residual *residual = new Residual(1);
+            ConstantRelaxation *constantRelaxation = new ConstantRelaxation("", 1.0);
+            constantRelaxation->addResidual(residual, 1);
+            checker->addCheckResidual(-1.0, -1.0, constantRelaxation, 1);
+
+            checker->debugResidual = false;
+            for (int i = 1; i <= NUM_TIME_STEP; i++) {
+                int count = 0;
+                do {
+                    count++;
+                    residual->residualVectorL2Norm = pow(10, (double) (-count));
+                } while (!checker->isConvergent());
+                /*std::cout << std::endl;
+                 std::cout << "Time step: " << i << ", no. of inner loop steps: " << count
+                 << std::endl;*/
+                CPPUNIT_ASSERT(count==100.0);
+            }
+
+            delete checker;
+            delete constantRelaxation;
+        }
     }
 
 CPPUNIT_TEST_SUITE( TestConvergenceChecker );
         CPPUNIT_TEST( testConvergenceCheck);
-        CPPUNIT_TEST( testCalcDifferenceL2Norm);
     CPPUNIT_TEST_SUITE_END();
 };
 

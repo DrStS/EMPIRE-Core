@@ -18,23 +18,48 @@
  *  You should have received a copy of the GNU General Public License
  *  along with EMPIRE.  If not, see http://www.gnu.org/licenses/.
  */
+/***********************************************************************************************//**
+ * \file ConstantRelaxation.h
+ * This file holds the class ConstantRelaxation
+ * \date 12/19/2013
+ **************************************************************************************************/
 #ifndef CONSTANTRELAXATION_H_
 #define CONSTANTRELAXATION_H_
 
 #include "AbstractCouplingAlgorithm.h"
 
 namespace EMPIRE {
-
+/********//**
+ * \brief Class ConstantRelaxation does a constant relaxation
+ ***********/
 class ConstantRelaxation: public AbstractCouplingAlgorithm {
 public:
+    /***********************************************************************************************
+     * \brief Constructor
+     * \param[in] _name the name of the coupling algorithm
+     * \param[in] _relaxationFactor the constant relaxation factor
+     * \author Tianyang Wang
+     ***********/
     ConstantRelaxation(std::string _name, double _relaxationFactor);
+    /***********************************************************************************************
+     * \brief Destructor
+     * \author Tianyang Wang
+     ***********/
     virtual ~ConstantRelaxation();
-    virtual void setInputAndOutput(const ConnectionIO *_input, ConnectionIO *_output);
+    /***********************************************************************************************
+     * \brief Calculate the new value of the output
+     * \author Tianyang Wang
+     ***********/
     void calcNewValue();
+    /***********************************************************************************************
+     * \brief Init constant relaxation
+     * \author Stefan Sicklinger
+     ***********/
+    void init(){}
 private:
+    /// relaxation factor
     const double RELAXATION_FACTOR;
-    double *X_out;
-    int SIZE;
+    /// friend class in unit test
     friend class TestConstantRelaxation;
     /// whether output numbers or not
     bool debugMe;
