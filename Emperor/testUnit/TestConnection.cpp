@@ -47,9 +47,9 @@ public:
      ***********/
     void setUp() {
         connection = new Connection("connection");
-        filter1 = new CopyFilter();
-        filter2 = new CopyFilter();
-        filter3 = new CopyFilter();
+        filter1 = new CopyFilter(0);
+        filter2 = new CopyFilter(0);
+        filter3 = new CopyFilter(0);
     }
     void tearDown() {
         delete connection;

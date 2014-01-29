@@ -27,8 +27,12 @@
 
 namespace EMPIRE {
 
-CopyFilter::CopyFilter() :
-        AbstractFilter() {
+
+
+CopyFilter::CopyFilter(int _signalOffset) :
+        AbstractFilter(), signalOffset(_signalOffset) {
+
+	std::cout << "SERVUS: " << signalOffset <<std::endl;
 }
 CopyFilter::~CopyFilter() {
 }
@@ -63,7 +67,7 @@ void CopyFilter::filtering() {
 
         if (sizeIn >= sizeOut) {
             for (int i = 0; i < sizeOut; i++)
-                outSignal->array[i] = inSignal->array[i];
+                outSignal->array[i] = inSignal->array[i+signalOffset];
         } else {
             for (int i = 0; i < sizeIn; i++)
                 outSignal->array[i] = inSignal->array[i];

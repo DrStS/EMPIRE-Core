@@ -435,6 +435,12 @@ void MetaDatabase::fillSettingConnectionVec() {
                     }
                 } else if (xmlFilter->GetAttribute("type") == "copyFilter") {
                     filter.type = EMPIRE_CopyFilter;
+                    filter.copyFilter.signalOffset=0;
+                    ticpp::Element *pXMLElement = xmlFilter->FirstChildElement("copyFilter",false);
+                	if (pXMLElement != NULL) {
+                		filter.copyFilter.signalOffset = pXMLElement->GetAttribute<int>("signalOffset");
+                	}
+
                 } else if (xmlFilter->GetAttribute("type") == "dataFieldIntegrationFilter") {
                     filter.type = EMPIRE_DataFieldIntegrationFilter;
                     ticpp::Element *xmlMeshRef = xmlFilter->FirstChildElement(
