@@ -273,7 +273,17 @@ void MortarMapper::computeC_BB() {
             for (int k = 0; k < 3; k++)
                 elem[j * 3 + k] = masterNodeCoors[pos[j] * 3 + k];
         }
-
+        //altug debug
+        //cout.precision(15);
+        /*cout<<"Writing element coordinates"<<endl;
+        for (int a=0; a<numNodesMasterElem; a++){
+        	cout<<"Node: "<<a+1<<" ";
+        	for(int b=0; b<3;b++){
+        		cout<<b+1<< ": "<<setprecision(10)<< elem[a*3+b]<<" ";
+        	}
+        	cout<<endl;
+        }*/
+    	//altug debug end
         if (numNodesMasterElem == 4) { // replace the master element by the projection of it on its "element plane"
             double masterElemNormal[3];
             MortarMath::computeNormalOfQuad(elem, true, masterElemNormal);
