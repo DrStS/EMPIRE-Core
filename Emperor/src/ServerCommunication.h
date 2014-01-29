@@ -89,19 +89,19 @@ public:
          */
 
         if (typeid(T) == typeid(int)) {
-            MPI_Send(message, size, MPI_INT, 0, 0, client);
+            MPI_Ssend(message, size, MPI_INT, 0, 0, client);
         } else if (typeid(T) == typeid(double)) {
-            MPI_Send(message, size, MPI_DOUBLE, 0, 0, client);
+            MPI_Ssend(message, size, MPI_DOUBLE, 0, 0, client);
         } else if (typeid(T) == typeid(float)) {
-            MPI_Send(message, size, MPI_FLOAT, 0, 0, client);
+            MPI_Ssend(message, size, MPI_FLOAT, 0, 0, client);
         } else if (typeid(T) == typeid(unsigned char)) {
-            MPI_Send(message, size, MPI_UNSIGNED_CHAR, 0, 0, client);
+            MPI_Ssend(message, size, MPI_UNSIGNED_CHAR, 0, 0, client);
         } else if (typeid(T) == typeid(long double)) {
-            MPI_Send(message, size, MPI_LONG_DOUBLE, 0, 0, client);
+            MPI_Ssend(message, size, MPI_LONG_DOUBLE, 0, 0, client);
         } else if (typeid(T) == typeid(short)) {
-            MPI_Send(message, size, MPI_SHORT, 0, 0, client);
+            MPI_Ssend(message, size, MPI_SHORT, 0, 0, client);
         } else if (typeid(T) == typeid(char)) {
-            MPI_Send(message, size, MPI_CHAR, 0, 0, client);
+            MPI_Ssend(message, size, MPI_CHAR, 0, 0, client);
         }
     }
     /***********************************************************************************************
