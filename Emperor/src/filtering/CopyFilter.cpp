@@ -31,8 +31,6 @@ namespace EMPIRE {
 
 CopyFilter::CopyFilter(int _signalOffset) :
         AbstractFilter(), signalOffset(_signalOffset) {
-
-	std::cout << "SERVUS: " << signalOffset <<std::endl;
 }
 CopyFilter::~CopyFilter() {
 }
