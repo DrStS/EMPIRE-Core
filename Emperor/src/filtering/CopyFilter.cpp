@@ -67,10 +67,10 @@ void CopyFilter::filtering() {
             for (int i = 0; i < sizeOut; i++)
                 outSignal->array[i] = inSignal->array[i+signalOffset];
         } else {
-            for (int i = 0; i < sizeIn; i++)
-                outSignal->array[i] = inSignal->array[i];
             for (int i = sizeIn; i < sizeOut; i++)
                 outSignal->array[i] = 0.0;
+            for (int i = 0; i < sizeIn; i++)
+                outSignal->array[i+signalOffset] = inSignal->array[i];
         }
     } else {
         assert(false);

@@ -202,7 +202,11 @@ AbstractMesh *ClientCode::getMeshByName(std::string meshName) {
 }
 
 void ClientCode::addSignal(std::string signalName, int size0, int size1, int size2) {
-    assert(nameToSignalMap.find(signalName) == nameToSignalMap.end());
+
+	if (nameToSignalMap.find(signalName) != nameToSignalMap.end()){
+		ERROR_OUT() << "Signal name: "<< signalName <<" already used!"<< endl;
+		assert(false);
+	}
     nameToSignalMap.insert(
             pair<string, Signal*>(signalName, new Signal(signalName, size0, size1, size2)));
 }
@@ -222,9 +226,19 @@ void ClientCode::recvSignal(std::string signalName) {
     { // output to shell
         string info = "Signal name received is \"" + tmp + "\"";
         INDENT_OUT(2, info, infoOut);
-    }assert(signalName.compare(tmp) == 0);
+    }
+	if (signalName.compare(tmp)!=0){
+		ERROR_OUT() << "Signal name received is "<< tmp <<", however " << signalName << " expected!"<< endl;
+		assert(false);
+	}
+
+
     serverComm->receiveFromClientBlocking<int>(name, 1, &signalSizeReceive);
-    assert(signalSizeReceive==signal->size);
+	if (signalSizeReceive!=signal->size){
+		ERROR_OUT() << "Signal "<< signalSizeReceive <<" size received is " <<
+				signalSizeReceive <<", however " << signal->size << " expected!"<< endl;
+		assert(false);
+	}
     serverComm->receiveFromClientBlocking<double>(name, signal->size, signal->array);
     DEBUG_OUT() << (*signal) << endl;
 }

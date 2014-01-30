@@ -385,6 +385,14 @@
 						</attribute>
 					</complexType>
 				</element>
+				<element name="copyFilter" maxOccurs="1"
+					minOccurs="0">
+					<complexType>
+						<attribute name="signalOffset" type="integer"
+							use="optional">
+						</attribute>
+					</complexType>
+				</element>
 				<element name="setFilter" maxOccurs="1" minOccurs="0">
 					<complexType>
 						<attribute name="value" type="string"
