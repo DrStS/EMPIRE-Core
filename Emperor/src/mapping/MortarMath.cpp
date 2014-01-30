@@ -366,7 +366,7 @@ bool computeLocalCoorInTriangle(const double *triangle, int planeToProject, cons
 
     for (int i = 0; i < 3; i++) {
         if (localCoor[i] > 1.0)
-            return false;
+        	return false;
         if (localCoor[i] < 0.0)
             return false;
     }
@@ -424,7 +424,8 @@ bool computeLocalCoorInQuad(const double *quad, int planeToProject, const double
                 if (localCoor[i] < -2.0)
                     return false;
             }
-            assert(false);
+            cout<<"WARNING: More than 10 iterations are necessary for computing local coordinates in quad"<<endl;
+            //assert(false);
         }
         J_T[0] = b1 + d1 * localCoor[1];
         J_T[2] = c1 + d1 * localCoor[0];

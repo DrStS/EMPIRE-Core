@@ -44,6 +44,7 @@
 #include <set>
 #include <assert.h>
 #include <omp.h>
+#include "Message.h"
 
 using namespace std;
 namespace EMPIRE {
@@ -274,7 +275,6 @@ void MortarMapper::computeC_BB() {
             for (int k = 0; k < 3; k++)
                 elem[j * 3 + k] = masterNodeCoors[pos[j] * 3 + k];
         }
-
         if (numNodesMasterElem == 4) { // replace the master element by the projection of it on its "element plane"
             double masterElemNormal[3];
             MortarMath::computeNormalOfQuad(elem, true, masterElemNormal);
@@ -1126,6 +1126,7 @@ void MortarMapper::ShapeFunctionProduct::computeShapeFunctionProducts() {
     for (int i = 0; i < numNodesMasterElem * numNodesSlaveElem; i++)
         shapeFunctionProducts[i] = new double[numGaussPoints];
 
+    cout.precision(15);	// set precision for debug output
     for (int i = 0; i < numGaussPoints; i++) {
         double *gaussPoint = &gaussPoints[i * 3];
         // *. compute shape function values on master element (on the Gauss point)
@@ -1134,6 +1135,16 @@ void MortarMapper::ShapeFunctionProduct::computeShapeFunctionProducts() {
             double localCoor[3];
             bool inside = MortarMath::computeLocalCoorInTriangle(masterElem, planeToProject,
                     gaussPoint, localCoor);
+            // debug
+            if (!inside){
+            	cout<<"Error in computing local coordinates in tria master element"<<endl;
+                cout<<"GP coordinates: "<<gaussPoint[0]<<"\t"<<gaussPoint[1]<<"\t"<<gaussPoint[2]<<endl;
+                cout<<"Element nodes:"<<endl;
+                for(int ctr=0;ctr<numNodesMasterElem;ctr++){
+                	cout<<ctr+1<<": "<<masterElem[ctr*3]<<"\t"<<masterElem[ctr*3+1]<<"\t"<<masterElem[ctr*3+2]<<endl;
+                }
+            }
+            // debug end
             assert(inside);
             for (int j = 0; j < 3; j++) {
                 shapeFuncValueMasterElem[j] = localCoor[j];
@@ -1142,6 +1153,16 @@ void MortarMapper::ShapeFunctionProduct::computeShapeFunctionProducts() {
             double localCoor[2];
             bool inside = MortarMath::computeLocalCoorInQuad(masterElem, planeToProject, gaussPoint,
                     localCoor);
+            // debug
+            if (!inside){
+            	cout<<"Error in computing local coordinates in quad master element"<<endl;
+            	cout<<"GP coordinates: "<<gaussPoint[0]<<"\t"<<gaussPoint[1]<<"\t"<<gaussPoint[2]<<endl;
+            	cout<<"Element nodes:"<<endl;
+                for(int ctr=0;ctr<numNodesMasterElem;ctr++){
+                	cout<<ctr+1<<": "<<masterElem[ctr*3]<<"\t"<<masterElem[ctr*3+1]<<"\t"<<masterElem[ctr*3+2]<<endl;
+                }
+             }
+            // debug end
             assert(inside);
             MortarMath::computeShapeFuncOfQuad(localCoor, shapeFuncValueMasterElem);
 
@@ -1154,6 +1175,16 @@ void MortarMapper::ShapeFunctionProduct::computeShapeFunctionProducts() {
             double localCoor[3];
             bool inside = MortarMath::computeLocalCoorInTriangle(slaveElem, planeToProject,
                     gaussPoint, localCoor);
+            // debug
+            if (!inside){
+            	cout<<"Error in computing local coordinates in quad slave element"<<endl;
+                cout<<"GP coordinates: "<<gaussPoint[0]<<"\t"<<gaussPoint[1]<<"\t"<<gaussPoint[2]<<endl;
+                cout<<"Element nodes:"<<endl;
+                for(int ctr=0;ctr<numNodesSlaveElem;ctr++){
+                	cout<<ctr+1<<": "<<slaveElem[ctr*3]<<slaveElem[ctr*3+1]<<slaveElem[ctr*3+2]<<endl;
+                }
+            }
+            // debug end
             assert(inside);
             for (int j = 0; j < 3; j++) {
                 shapeFuncValueSlaveElem[j] = localCoor[j];
@@ -1162,7 +1193,18 @@ void MortarMapper::ShapeFunctionProduct::computeShapeFunctionProducts() {
             double localCoor[2];
             bool inside = MortarMath::computeLocalCoorInQuad(slaveElem, planeToProject, gaussPoint,
                     localCoor);
+            // debug
+            if (!inside){
+            	cout<<"Error in computing local coordinates in quad slave element"<<endl;
+            	cout<<"GP coordinates: "<<gaussPoint[0]<<"\t"<<gaussPoint[1]<<"\t"<<gaussPoint[2]<<endl;
+            	cout<<"Element nodes:"<<endl;
+            	for(int ctr=0;ctr<numNodesSlaveElem;ctr++){
+            		cout<<ctr+1<<": "<<slaveElem[ctr*3]<<slaveElem[ctr*3+1]<<slaveElem[ctr*3+2]<<endl;
+            	}
+            }
+            // debug end
             assert(inside);
+
             MortarMath::computeShapeFuncOfQuad(localCoor, shapeFuncValueSlaveElem);
         } else {
             assert(false);
