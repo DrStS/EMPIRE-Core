@@ -38,9 +38,10 @@ class CopyFilter: public AbstractFilter {
 public:
     /***********************************************************************************************
      * \brief Constructor
-     * \author Tianyang Wang
+     * \param[in] _factor for scaling
+     * \author Tianyang Wang, Stefan Sicklinger
      ***********/
-    CopyFilter();
+    CopyFilter(int _signalOffset);
     /***********************************************************************************************
      * \brief Destructor
      * \author Tianyang Wang
@@ -56,7 +57,11 @@ public:
      * \author Tianyang Wang
      ***********/
     void init();
+private:
+/// Signal offset value 0--> no offset
+int signalOffset;
 };
+
 
 } /* namespace EMPIRE */
 #endif /* COPYFILTER_H_ */

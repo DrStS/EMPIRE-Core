@@ -145,6 +145,9 @@ struct structFilter {
     struct structScalingFilter {
         double factor;
     };
+    struct structCopyFilter {
+        int signalOffset;
+    };
     struct structSetFilter {
         std::vector<double> value;
     };
@@ -155,6 +158,7 @@ struct structFilter {
     structMappingFilter mappingFilter;
     structScalingFilter scalingFilter;
     structSetFilter setFilter;
+    structCopyFilter copyFilter;
     structDataFieldIntegrationFilter dataFieldIntegrationFilter;
 
     std::vector<structConnectionIO> inputs;
