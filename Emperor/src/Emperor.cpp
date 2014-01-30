@@ -409,7 +409,7 @@ void Emperor::initConnections() {
             } else if (settingFilter.type == EMPIRE_SetFilter) {
                 filter = new SetFilter(settingFilter.setFilter.value);
             } else if (settingFilter.type == EMPIRE_CopyFilter) {
-                filter = new CopyFilter();
+                filter = new CopyFilter(settingFilter.copyFilter.signalOffset);
             } else if (settingFilter.type == EMPIRE_DataFieldIntegrationFilter) {
                 const structMeshRef &meshRef = settingFilter.dataFieldIntegrationFilter.meshRef;
                 assert(
