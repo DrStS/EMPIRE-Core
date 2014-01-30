@@ -114,14 +114,13 @@ void MetaDatabase::fillSettingClientCodesVec() {
     for (xmlClientCode = xmlClientCode.begin(xmlEMPEROR); xmlClientCode != xmlClientCode.end();
             xmlClientCode++) {
         structClientCode clientCode;
-        assert(xmlClientCode->HasAttribute("name"));
-        clientCode.name = xmlClientCode->GetAttribute("name");
+        clientCode.name = xmlClientCode->GetAttribute<string>("name");
 
         ticpp::Iterator<Element> xmlMesh("mesh");
 
         for (xmlMesh = xmlMesh.begin(xmlClientCode.Get()); xmlMesh != xmlMesh.end(); xmlMesh++) {
             structClientCode::structMesh mesh;
-            mesh.name = xmlMesh->GetAttribute("name");
+            mesh.name = xmlMesh->GetAttribute<string>("name");
             if (xmlMesh->HasAttribute("type")) {
                 string meshType = xmlMesh->GetAttribute("type");
                 if (meshType == "FEMesh") {
@@ -142,22 +141,22 @@ void MetaDatabase::fillSettingClientCodesVec() {
                 assert(xmlDataField->HasAttribute("dimension"));
                 assert(xmlDataField->HasAttribute("location"));
                 assert(xmlDataField->HasAttribute("typeOfQuantity"));
-                dataField.name = xmlDataField->GetAttribute("name");
-                if (xmlDataField->GetAttribute("dimension") == "vector")
+                dataField.name = xmlDataField->GetAttribute<string>("name");
+                if (xmlDataField->GetAttribute<string>("dimension") == "vector")
                     dataField.dimension = EMPIRE_DataField_vector;
-                else if (xmlDataField->GetAttribute("dimension") == "scalar")
+                else if (xmlDataField->GetAttribute<string>("dimension") == "scalar")
                     dataField.dimension = EMPIRE_DataField_scalar;
                 else
                     assert(false);
-                if (xmlDataField->GetAttribute("location") == "atNode")
+                if (xmlDataField->GetAttribute<string>("location") == "atNode")
                     dataField.location = EMPIRE_DataField_atNode;
-                else if (xmlDataField->GetAttribute("location") == "atElemCentroid")
+                else if (xmlDataField->GetAttribute<string>("location") == "atElemCentroid")
                     dataField.location = EMPIRE_DataField_atElemCentroid;
                 else
                     assert(false);
-                if (xmlDataField->GetAttribute("typeOfQuantity") == "field")
+                if (xmlDataField->GetAttribute<string>("typeOfQuantity") == "field")
                     dataField.typeOfQuantity = EMPIRE_DataField_field;
-                else if (xmlDataField->GetAttribute("typeOfQuantity") == "fieldIntegral")
+                else if (xmlDataField->GetAttribute<string>("typeOfQuantity") == "fieldIntegral")
                     dataField.typeOfQuantity = EMPIRE_DataField_fieldIntegral;
                 else
                     assert(false);
@@ -171,8 +170,8 @@ void MetaDatabase::fillSettingClientCodesVec() {
         for (xmlSignal = xmlSignal.begin(xmlClientCode.Get()); xmlSignal != xmlSignal.end();
                 xmlSignal++) {
             structClientCode::structSignal signal;
-            signal.name = xmlSignal->GetAttribute("name");
-            string size = xmlSignal->GetAttribute("size");
+            signal.name = xmlSignal->GetAttribute<string>("name");
+            string size = xmlSignal->GetAttribute<string>("size");
             { // get the size
                 stringstream ss(size);
                 int count = 0;
@@ -214,7 +213,7 @@ void MetaDatabase::fillSettingDataOutputVec() {
     for (xmlDataOutput = xmlDataOutput.begin(xmlEMPEROR); xmlDataOutput != xmlDataOutput.end();
             xmlDataOutput++) {
         structDataOutput dataOutput;
-        dataOutput.name = xmlDataOutput->GetAttribute("name");
+        dataOutput.name = xmlDataOutput->GetAttribute<string>("name");
         dataOutput.interval = xmlDataOutput->GetAttribute<int>("interval");
         dataOutput.connectionIOs = parseConnectionIORefs(xmlDataOutput.Get());
 
@@ -228,41 +227,41 @@ void MetaDatabase::fillSettingMapperVec() {
     ticpp::Iterator<Element> xmlMapper("mapper");
     for (xmlMapper = xmlMapper.begin(xmlEMPEROR); xmlMapper != xmlMapper.end(); xmlMapper++) {
         structMapper mapper;
-        mapper.name = xmlMapper->GetAttribute("name");
+        mapper.name = xmlMapper->GetAttribute<string>("name");
         ticpp::Element *xmlMeshRefA = xmlMapper->FirstChildElement("meshA")->FirstChildElement(
                 "meshRef");
-        mapper.meshRefA.clientCodeName = xmlMeshRefA->GetAttribute("clientCodeName");
-        mapper.meshRefA.meshName = xmlMeshRefA->GetAttribute("meshName");
+        mapper.meshRefA.clientCodeName = xmlMeshRefA->GetAttribute<string>("clientCodeName");
+        mapper.meshRefA.meshName = xmlMeshRefA->GetAttribute<string>("meshName");
         ticpp::Element *xmlMeshRefB = xmlMapper->FirstChildElement("meshB")->FirstChildElement(
                 "meshRef");
-        mapper.meshRefB.clientCodeName = xmlMeshRefB->GetAttribute("clientCodeName");
-        mapper.meshRefB.meshName = xmlMeshRefB->GetAttribute("meshName");
-        if (xmlMapper->GetAttribute("type") == "mortarMapper") {
+        mapper.meshRefB.clientCodeName = xmlMeshRefB->GetAttribute<string>("clientCodeName");
+        mapper.meshRefB.meshName = xmlMeshRefB->GetAttribute<string>("meshName");
+        if (xmlMapper->GetAttribute<string>("type") == "mortarMapper") {
             mapper.type = EMPIRE_MortarMapper;
             ticpp::Element *xmlMortarMapper = xmlMapper->FirstChildElement("mortarMapper");
-            if (xmlMortarMapper->GetAttribute("oppositeSurfaceNormal") == "true")
+            if (xmlMortarMapper->GetAttribute<string>("oppositeSurfaceNormal") == "true")
                 mapper.mortarMapper.oppositeSurfaceNormal = true;
-            else if (xmlMortarMapper->GetAttribute("oppositeSurfaceNormal") == "false")
+            else if (xmlMortarMapper->GetAttribute<string>("oppositeSurfaceNormal") == "false")
                 mapper.mortarMapper.oppositeSurfaceNormal = false;
             else
                 assert(false);
-            if (xmlMortarMapper->GetAttribute("dual") == "true")
+            if (xmlMortarMapper->GetAttribute<string>("dual") == "true")
                 mapper.mortarMapper.dual = true;
-            else if (xmlMortarMapper->GetAttribute("dual") == "false")
+            else if (xmlMortarMapper->GetAttribute<string>("dual") == "false")
                 mapper.mortarMapper.dual = false;
             else
                 assert(false);
-            if (xmlMortarMapper->GetAttribute("enforceConsistency") == "true")
+            if (xmlMortarMapper->GetAttribute<string>("enforceConsistency") == "true")
                 mapper.mortarMapper.enforceConsistency = true;
-            else if (xmlMortarMapper->GetAttribute("enforceConsistency") == "false")
+            else if (xmlMortarMapper->GetAttribute<string>("enforceConsistency") == "false")
                 mapper.mortarMapper.enforceConsistency = false;
             else
                 assert(false);
-        } else if (xmlMapper->GetAttribute("type") == "nearestNeighborMapper") {
+        } else if (xmlMapper->GetAttribute<string>("type") == "nearestNeighborMapper") {
             mapper.type = EMPIRE_NearestNeighborMapper;
-        } else if (xmlMapper->GetAttribute("type") == "barycentricInterpolationMapper") {
+        } else if (xmlMapper->GetAttribute<string>("type") == "barycentricInterpolationMapper") {
             mapper.type = EMPIRE_BarycentricInterpolationMapper;
-        } else if (xmlMapper->GetAttribute("type") == "IGAMortarMapper") {
+        } else if (xmlMapper->GetAttribute<string>("type") == "IGAMortarMapper") {
             mapper.type = EMPIRE_IGAMortarMapper;
             ticpp::Element *xmlIGAMortar = xmlMapper->FirstChildElement("IGAMortarMapper");
             mapper.igaMortarMapper.tolProjectionDistance = xmlIGAMortar->GetAttribute<double>(
@@ -283,7 +282,7 @@ void MetaDatabase::fillSettingCouplingAlgorithmVec() {
     ticpp::Iterator<Element> xmlCoupAlg("couplingAlgorithm");
     for (xmlCoupAlg = xmlCoupAlg.begin(xmlEMPEROR); xmlCoupAlg != xmlCoupAlg.end(); xmlCoupAlg++) {
         structCouplingAlgorithm coupAlg;
-        coupAlg.name = xmlCoupAlg->GetAttribute("name");
+        coupAlg.name = xmlCoupAlg->GetAttribute<string>("name");
 
         { // residuals
             ticpp::Iterator<Element> xmlResidual("residual");
@@ -319,12 +318,12 @@ void MetaDatabase::fillSettingCouplingAlgorithmVec() {
                 coupAlg.outputs.push_back(output);
             }
         }
-        if (xmlCoupAlg->GetAttribute("type") == "aitken") {
+        if (xmlCoupAlg->GetAttribute<string>("type") == "aitken") {
             coupAlg.type = EMPIRE_Aitken;
             ticpp::Element *xmlAitken = xmlCoupAlg->FirstChildElement("aitken");
             double tmpDouble = xmlAitken->GetAttribute<double>("initialRelaxationFactor");
             coupAlg.aitken.initialRelaxationFactor = tmpDouble;
-        } else if (xmlCoupAlg->GetAttribute("type") == "constantRelaxation") {
+        } else if (xmlCoupAlg->GetAttribute<string>("type") == "constantRelaxation") {
             coupAlg.type = EMPIRE_ConstantRelaxation;
             ticpp::Element *xmlAitken = xmlCoupAlg->FirstChildElement("constantRelaxation");
             double tmpDouble = xmlAitken->GetAttribute<double>("relaxationFactor");
@@ -343,8 +342,8 @@ void MetaDatabase::fillSettingExtrapolatorVec() {
     for (xmlExtrapolator = xmlExtrapolator.begin(xmlEMPEROR);
             xmlExtrapolator != xmlExtrapolator.end(); xmlExtrapolator++) {
         structExtrapolator settingExtrapolator;
-        settingExtrapolator.name = xmlExtrapolator->GetAttribute("name");
-        if (xmlExtrapolator->GetAttribute("type") == "linearExtrapolator") {
+        settingExtrapolator.name = xmlExtrapolator->GetAttribute<string>("name");
+        if (xmlExtrapolator->GetAttribute<string>("type") == "linearExtrapolator") {
             settingExtrapolator.type = EMPIRE_LinearExtrapolator;
         } else {
             assert(false);
@@ -361,7 +360,7 @@ void MetaDatabase::fillSettingConnectionVec() {
     for (xmlConnection = xmlConnection.begin(xmlEMPEROR); xmlConnection != xmlConnection.end();
             xmlConnection++) {
         structConnection connection;
-        connection.name = xmlConnection->GetAttribute("name");
+        connection.name = xmlConnection->GetAttribute<string>("name");
         // inputs and outputs
         if (xmlConnection->FirstChildElement("inputAndOutput", false) != NULL) {
             ticpp::Element *xmlIO = xmlConnection->FirstChildElement("inputAndOutput");
@@ -411,19 +410,19 @@ void MetaDatabase::fillSettingConnectionVec() {
                     }
                 }
                 // filter type
-                if (xmlFilter->GetAttribute("type") == "mappingFilter") {
+                if (xmlFilter->GetAttribute<string>("type") == "mappingFilter") {
                     filter.type = EMPIRE_MappingFilter;
                     filter.mappingFilter.mapperName =
                             xmlFilter->FirstChildElement("mappingFilter")->FirstChildElement(
-                                    "mapperRef")->GetAttribute("mapperName");
-                } else if (xmlFilter->GetAttribute("type") == "locationFilter") {
+                                    "mapperRef")->GetAttribute<string>("mapperName");
+                } else if (xmlFilter->GetAttribute<string>("type") == "locationFilter") {
                     filter.type = EMPIRE_LocationFilter;
-                } else if (xmlFilter->GetAttribute("type") == "scalingFilter") {
+                } else if (xmlFilter->GetAttribute<string>("type") == "scalingFilter") {
                     filter.type = EMPIRE_ScalingFilter;
                     filter.scalingFilter.factor =
                             xmlFilter->FirstChildElement("scalingFilter")->GetAttribute<double>(
                                     "factor");
-                } else if (xmlFilter->GetAttribute("type") == "setFilter") {
+                } else if (xmlFilter->GetAttribute<string>("type") == "setFilter") {
                     filter.type = EMPIRE_SetFilter;
                     string valueString = xmlFilter->FirstChildElement("setFilter")->GetAttribute<
                             string>("value");
@@ -433,15 +432,15 @@ void MetaDatabase::fillSettingConnectionVec() {
                         ss >> value;
                         filter.setFilter.value.push_back(value);
                     }
-                } else if (xmlFilter->GetAttribute("type") == "copyFilter") {
+                } else if (xmlFilter->GetAttribute<string>("type") == "copyFilter") {
                     filter.type = EMPIRE_CopyFilter;
-                } else if (xmlFilter->GetAttribute("type") == "dataFieldIntegrationFilter") {
+                } else if (xmlFilter->GetAttribute<string>("type") == "dataFieldIntegrationFilter") {
                     filter.type = EMPIRE_DataFieldIntegrationFilter;
                     ticpp::Element *xmlMeshRef = xmlFilter->FirstChildElement(
                             "dataFieldIntegrationFilter")->FirstChildElement("meshRef");
                     filter.dataFieldIntegrationFilter.meshRef.clientCodeName =
-                            xmlMeshRef->GetAttribute("clientCodeName");
-                    filter.dataFieldIntegrationFilter.meshRef.meshName = xmlMeshRef->GetAttribute(
+                            xmlMeshRef->GetAttribute<string>("clientCodeName");
+                    filter.dataFieldIntegrationFilter.meshRef.meshName = xmlMeshRef->GetAttribute<string>(
                             "meshName");
 
                 } else {
@@ -457,7 +456,7 @@ void MetaDatabase::fillSettingConnectionVec() {
 void parseCouplingLogicBlock(ticpp::Iterator<Element> &xmlCouplingLogicIn,
         structCouplingLogic &couplingLogicIn) { // a global function instead of a member function
     // 1. parse coupling logic setting
-    if (xmlCouplingLogicIn->GetAttribute("type") == "timeStepLoop") {
+    if (xmlCouplingLogicIn->GetAttribute<string>("type") == "timeStepLoop") {
         couplingLogicIn.type = EMPIRE_TimeStepLoop;
         ticpp::Element *xmlTimeStepLoop = xmlCouplingLogicIn->FirstChildElement("timeStepLoop");
         int numTimeSteps = xmlTimeStepLoop->GetAttribute<int>("numTimeSteps");
@@ -469,7 +468,7 @@ void parseCouplingLogicBlock(ticpp::Iterator<Element> &xmlCouplingLogicIn,
             if (xmlExtrapolatorRef != NULL) {
                 couplingLogicIn.timeStepLoop.extrapolatorRef.first = true;
                 couplingLogicIn.timeStepLoop.extrapolatorRef.second =
-                        xmlExtrapolatorRef->GetAttribute("extrapolatorName");
+                        xmlExtrapolatorRef->GetAttribute<string>("extrapolatorName");
             } else {
                 couplingLogicIn.iterativeCouplingLoop.couplingAlgorithmRef.first = false;
             }
@@ -479,11 +478,11 @@ void parseCouplingLogicBlock(ticpp::Iterator<Element> &xmlCouplingLogicIn,
             ticpp::Iterator<Element> xmlDataOutputRef("dataOutputRef");
             for (xmlDataOutputRef = xmlDataOutputRef.begin(xmlTimeStepLoop);
                     xmlDataOutputRef != xmlDataOutputRef.end(); xmlDataOutputRef++) {
-                string dataOutputName = xmlDataOutputRef->GetAttribute("dataOutputName");
+                string dataOutputName = xmlDataOutputRef->GetAttribute<string>("dataOutputName");
                 couplingLogicIn.timeStepLoop.dataOutputRefs.push_back(dataOutputName);
             }
         }
-    } else if (xmlCouplingLogicIn->GetAttribute("type") == "iterativeCouplingLoop") {
+    } else if (xmlCouplingLogicIn->GetAttribute<string>("type") == "iterativeCouplingLoop") {
         couplingLogicIn.type = EMPIRE_IterativeCouplingLoop;
         ticpp::Element *xmlIterativeCouplingLoop = xmlCouplingLogicIn->FirstChildElement(
                 "iterativeCouplingLoop");
@@ -517,7 +516,7 @@ void parseCouplingLogicBlock(ticpp::Iterator<Element> &xmlCouplingLogicIn,
                     xmlConvergenceObserver != xmlConvergenceObserver.end();
                     xmlConvergenceObserver++) {
                 string tmpString =
-                        xmlConvergenceObserver->FirstChildElement("clientCodeRef")->GetAttribute(
+                        xmlConvergenceObserver->FirstChildElement("clientCodeRef")->GetAttribute<string>(
                                 "clientCodeName");
                 couplingLogicIn.iterativeCouplingLoop.convergenceObservers.push_back(tmpString);
             }
@@ -530,7 +529,7 @@ void parseCouplingLogicBlock(ticpp::Iterator<Element> &xmlCouplingLogicIn,
             if (xmlCouplingAlgorithmRef != NULL) {
                 couplingLogicIn.iterativeCouplingLoop.couplingAlgorithmRef.first = true;
                 couplingLogicIn.iterativeCouplingLoop.couplingAlgorithmRef.second =
-                        xmlCouplingAlgorithmRef->GetAttribute("couplingAlgorithmName");
+                        xmlCouplingAlgorithmRef->GetAttribute<string>("couplingAlgorithmName");
             } else {
                 couplingLogicIn.iterativeCouplingLoop.couplingAlgorithmRef.first = false;
             }
@@ -539,7 +538,7 @@ void parseCouplingLogicBlock(ticpp::Iterator<Element> &xmlCouplingLogicIn,
             ticpp::Iterator<Element> xmlDataOutputRef("dataOutputRef");
             for (xmlDataOutputRef = xmlDataOutputRef.begin(xmlIterativeCouplingLoop);
                     xmlDataOutputRef != xmlDataOutputRef.end(); xmlDataOutputRef++) {
-                string dataOutputName = xmlDataOutputRef->GetAttribute("dataOutputName");
+                string dataOutputName = xmlDataOutputRef->GetAttribute<string>("dataOutputName");
                 couplingLogicIn.iterativeCouplingLoop.dataOutputRefs.push_back(dataOutputName);
             }
         }
@@ -547,10 +546,10 @@ void parseCouplingLogicBlock(ticpp::Iterator<Element> &xmlCouplingLogicIn,
         if (couplingLogicIn.iterativeCouplingLoop.convergenceChecker.checkResiduals.size() > 0) {
             assert(couplingLogicIn.iterativeCouplingLoop.couplingAlgorithmRef.first);
         }
-    } else if (xmlCouplingLogicIn->GetAttribute("type") == "connection") {
+    } else if (xmlCouplingLogicIn->GetAttribute<string>("type") == "connection") {
         couplingLogicIn.type = EMPIRE_connection;
         couplingLogicIn.connectionRef.connectionName = xmlCouplingLogicIn->FirstChildElement(
-                "connectionRef")->GetAttribute("connectionName");
+                "connectionRef")->GetAttribute<string>("connectionName");
     } else {
         assert(false);
     }
@@ -591,15 +590,15 @@ structConnectionIO MetaDatabase::parseConnectionIORef(ticpp::Element *xmlElement
     structConnectionIO settingConnectionIO;
     if (xmlDataFieldRef != NULL) {
         settingConnectionIO.type = EMPIRE_ConnectionIO_DataField;
-        settingConnectionIO.dataFieldRef.clientCodeName = xmlDataFieldRef->GetAttribute(
+        settingConnectionIO.dataFieldRef.clientCodeName = xmlDataFieldRef->GetAttribute<string>(
                 "clientCodeName");
-        settingConnectionIO.dataFieldRef.meshName = xmlDataFieldRef->GetAttribute("meshName");
-        settingConnectionIO.dataFieldRef.dataFieldName = xmlDataFieldRef->GetAttribute(
+        settingConnectionIO.dataFieldRef.meshName = xmlDataFieldRef->GetAttribute<string>("meshName");
+        settingConnectionIO.dataFieldRef.dataFieldName = xmlDataFieldRef->GetAttribute<string>(
                 "dataFieldName");
     } else if (xmlSignalRef != NULL) {
         settingConnectionIO.type = EMPIRE_ConnectionIO_Signal;
-        settingConnectionIO.signalRef.clientCodeName = xmlSignalRef->GetAttribute("clientCodeName");
-        settingConnectionIO.signalRef.signalName = xmlSignalRef->GetAttribute("signalName");
+        settingConnectionIO.signalRef.clientCodeName = xmlSignalRef->GetAttribute<string>("clientCodeName");
+        settingConnectionIO.signalRef.signalName = xmlSignalRef->GetAttribute<string>("signalName");
     } else {
         assert(false);
     }
@@ -613,9 +612,9 @@ std::vector<structConnectionIO> MetaDatabase::parseConnectionIORefs(ticpp::Eleme
             xmlDataFieldRef != xmlDataFieldRef.end(); xmlDataFieldRef++) {
         structConnectionIO io;
         io.type = EMPIRE_ConnectionIO_DataField;
-        io.dataFieldRef.clientCodeName = xmlDataFieldRef->GetAttribute("clientCodeName");
-        io.dataFieldRef.meshName = xmlDataFieldRef->GetAttribute("meshName");
-        io.dataFieldRef.dataFieldName = xmlDataFieldRef->GetAttribute("dataFieldName");
+        io.dataFieldRef.clientCodeName = xmlDataFieldRef->GetAttribute<string>("clientCodeName");
+        io.dataFieldRef.meshName = xmlDataFieldRef->GetAttribute<string>("meshName");
+        io.dataFieldRef.dataFieldName = xmlDataFieldRef->GetAttribute<string>("dataFieldName");
         settingConnectionIOs.push_back(io);
     }
     ticpp::Iterator<Element> xmlSignalRef("signalRef");
@@ -623,8 +622,8 @@ std::vector<structConnectionIO> MetaDatabase::parseConnectionIORefs(ticpp::Eleme
             xmlSignalRef++) {
         structConnectionIO io;
         io.type = EMPIRE_ConnectionIO_Signal;
-        io.signalRef.clientCodeName = xmlSignalRef->GetAttribute("clientCodeName");
-        io.signalRef.signalName = xmlSignalRef->GetAttribute("signalName");
+        io.signalRef.clientCodeName = xmlSignalRef->GetAttribute<string>("clientCodeName");
+        io.signalRef.signalName = xmlSignalRef->GetAttribute<string>("signalName");
         settingConnectionIOs.push_back(io);
     }
     return settingConnectionIOs;
