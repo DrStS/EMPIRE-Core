@@ -30,6 +30,7 @@ LINK_DIRECTORIES("${INSTALL_DIR}/libflann_s.a")
 SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 #------------------------------------------------------------------------------------#
 get_git_head_revision(GIT_REFSPEC GIT_SHA1)
+git_describe(GIT_TAG --tags)
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/src/tools/AuxiliaryParameters.cpp.in" 
 "${CMAKE_CURRENT_SOURCE_DIR}/src/tools/AuxiliaryParameters.cpp" @ONLY)
 #------------------------------------------------------------------------------------#
