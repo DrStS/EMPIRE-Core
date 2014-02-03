@@ -73,7 +73,7 @@ void EMPIRE_API_Connect(char* inputFileName);
 char *EMPIRE_API_getUserDefinedText(char *elementName);
 /***********************************************************************************************
  * \brief Send the mesh to the server
- * \param[in] name name of the field
+ * \param[in] name name of the mesh
  * \param[in] numNodes number of nodes
  * \param[in] numElems number of elements
  * \param[in] nodes coordinates of all nodes
