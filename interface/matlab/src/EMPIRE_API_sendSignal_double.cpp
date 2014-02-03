@@ -9,20 +9,28 @@ void mexFunction( int nlhs, mxArray *plhs[],
   assert(nrhs==3);
   assert(nlhs==0);
 
+#define NAME_IN   prhs[0]
+#define SIZE_IN   prhs[1]
+#define SIGNAL_IN prhs[2]
+
   // signal name
-  assert(mxIsChar(prhs[0]));
+  assert(mxIsChar(NAME_IN));
   char name[EMPIRE_API_NAME_STRING_LENGTH];
-  mxGetNChars(prhs[0], name, EMPIRE_API_NAME_STRING_LENGTH);
+  mxGetNChars(NAME_IN, name, EMPIRE_API_NAME_STRING_LENGTH);
 
   // size of array
-  assert(mxIsDouble(prhs[1]));
-  assert(mxGetNumberOfElements(prhs[1]) == 1);
-  int sizeOfArray = (int)mxGetPr(prhs[1])[0]; // cast from double to int
+  assert(mxIsDouble(SIZE_IN));
+  assert(mxGetNumberOfElements(SIZE_IN) == 1);
+  int sizeOfArray = (int)mxGetPr(SIZE_IN)[0]; // cast from double to int
 
   // signal array
-  assert(mxIsDouble(prhs[2]));
-  assert(mxGetNumberOfElements(prhs[2]) == sizeOfArray);
-  double *signal = mxGetPr(prhs[2]);
+  assert(mxIsDouble(SIGNAL_IN));
+  assert(mxGetNumberOfElements(SIGNAL_IN) == sizeOfArray);
+  double *signal = mxGetPr(SIGNAL_IN);
 
   EMPIRE_API_sendSignal_double(name, sizeOfArray, signal);
+
+#undef NAME_IN
+#undef SIZE_IN
+#undef SIGNAL_IN
 }
