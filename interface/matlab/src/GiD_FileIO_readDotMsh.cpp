@@ -35,43 +35,42 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     NUM_NODES_OUT = mxCreateDoubleScalar((double) numNodes);
 
     // nodeCoors
-    NODES_OUT = mxCreateDoubleMatrix(numNodes, 3, mxREAL);
+    NODES_OUT = mxCreateDoubleMatrix(3, numNodes, mxREAL);
     for (int i=0; i<numNodes * 3; i++) {
         mxGetPr(NODES_OUT)[i] = nodeCoors[i];
     }
     delete[] nodeCoors;
 
     // nodeIDs
-    NODE_IDS_OUT = mxCreateDoubleMatrix(numNodes, 1, mxREAL);
+    NODE_IDS_OUT = mxCreateDoubleMatrix(1, numNodes, mxREAL);
     for (int i=0; i<numNodes; i++) {
         mxGetPr(NODE_IDS_OUT)[i] = (double) nodeIDs[i];
     }
     delete[] nodeIDs;
 
     // numNodesPerElem
-    NUM_NODES_PER_ELEMENT_OUT = mxCreateDoubleMatrix(numElems, 1, mxREAL);
+    NUM_NODES_PER_ELEMENT_OUT = mxCreateDoubleMatrix(1, numElems, mxREAL);
     for (int i=0; i<numElems; i++) {
         mxGetPr(NUM_NODES_PER_ELEMENT_OUT)[i] = (double) numNodesPerElem[i];
     }
-    delete[] numNodesPerElem;
-
-    // elemTable
     int elemsArrayLength = 0;
     for (int i = 0; i < numElems; i++)
         elemsArrayLength += numNodesPerElem[i];
-    ELEMENT_TABLE_OUT = mxCreateDoubleMatrix(elemsArrayLength, 1, mxREAL);
+    delete[] numNodesPerElem;
+
+    // elemTable
+    ELEMENT_TABLE_OUT = mxCreateDoubleMatrix(1, elemsArrayLength, mxREAL);
     for (int i=0; i<elemsArrayLength; i++) {
         mxGetPr(ELEMENT_TABLE_OUT)[i] = (double) elemTable[i];
     }
     delete[] elemTable;
 
     // elemIDs
-    ELEMENT_IDS_OUT = mxCreateDoubleMatrix(numElems, 1, mxREAL);
+    ELEMENT_IDS_OUT = mxCreateDoubleMatrix(1, numElems, mxREAL);
     for (int i=0; i<numElems; i++) {
         mxGetPr(ELEMENT_IDS_OUT)[i] = (double) elemIDs[i];
     }
     delete[] elemIDs;
-
 
 #undef FILE_NAME_IN
 #undef NUM_NODES_OUT

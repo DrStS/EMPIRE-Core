@@ -4,6 +4,9 @@
 #include "EMPIRE_API.h"
 #include "HelperFunctions.h"
 
+#include <iostream>
+using namespace std;
+
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     assert(nrhs==7);
     assert(nlhs==0);
@@ -55,6 +58,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     int *elems = doubleArrayToIntArray(mxGetPr(ELEMENT_TABLE_IN), elemsArrayLength);
 
     EMPIRE_API_sendMesh(name, numNodes, numElems, nodes, nodeIDs, numNodesPerElem, elems);
+
     delete[] nodeIDs;
     delete[] numNodesPerElem;
     delete[] elems;
