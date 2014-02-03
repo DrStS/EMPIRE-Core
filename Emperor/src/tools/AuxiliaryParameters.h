@@ -44,6 +44,9 @@ public:
 
     /// Git hash is determined during configure by cmake
     static const std::string gitSHA1;
+
+    /// Git tag is determined during configure by cmake
+    static const std::string gitTAG;
 };
 
 } /* namespace EMPIRE */

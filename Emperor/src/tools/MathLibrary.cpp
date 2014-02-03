@@ -46,7 +46,7 @@ void copyDenseVector(double *vec1, const double *vec2, const int elements){
 }
 
 double computeDenseEuclideanNorm(const double *vec1, const int elements){
-	cblas_dnrm2 (elements, vec1, 1);
+	return cblas_dnrm2 (elements, vec1, 1);
 }
 
 void computeDenseVectorAddition(double *vec1, const double *vec2 ,const double a, const int elements){

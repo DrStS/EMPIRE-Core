@@ -24,6 +24,7 @@
 #include "DataField.h"
 #include "Signal.h"
 #include "ConnectionIO.h"
+#include "Message.h"
 
 namespace EMPIRE {
 
@@ -64,13 +65,21 @@ void CopyFilter::filtering() {
         int sizeOut = outSignal->size;
 
         if (sizeIn >= sizeOut) {
-            for (int i = 0; i < sizeOut; i++)
+            for (int i = 0; i < sizeOut; i++){
                 outSignal->array[i] = inSignal->array[i+signalOffset];
+                DEBUG_OUT() << std::endl;
+                DEBUG_OUT() << "Copy from "<< inSignal->name <<"[" << i+signalOffset << "]"<< " to " << outSignal->name <<"[" << i << "]"<<" value: "<<outSignal->array[i]<<std::endl;
+                DEBUG_OUT() << std::endl;
+            }
         } else {
-            for (int i = 0; i < sizeIn; i++)
-                outSignal->array[i] = inSignal->array[i];
-            for (int i = sizeIn; i < sizeOut; i++)
+            for (int i = 0; i < sizeOut; i++)
                 outSignal->array[i] = 0.0;
+            for (int i = 0; i < sizeIn; i++){
+                outSignal->array[i+signalOffset] = inSignal->array[i];
+                DEBUG_OUT() << std::endl;
+                DEBUG_OUT() << "Copy from "<< inSignal->name <<"[" << i << "]"<< " to " << outSignal->name <<"[" << i+signalOffset << "]"<<" value: "<<outSignal->array[i]<<std::endl;
+                DEBUG_OUT() << std::endl;
+            }
         }
     } else {
         assert(false);

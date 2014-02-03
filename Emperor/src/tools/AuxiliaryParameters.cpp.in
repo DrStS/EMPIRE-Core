@@ -21,6 +21,7 @@
 #include "AuxiliaryParameters.h"
 #include <limits>
 #define GIT_SHA1 "@GIT_SHA1@" //Cmake will set this value
+#define GIT_TAG  "@GIT_TAG@"  //Cmake will set this value
 
 namespace EMPIRE {
 
@@ -28,4 +29,5 @@ const int AuxiliaryParameters::mklSetNumThreads = 1;
 const int AuxiliaryParameters::mapperSetNumThreads= 1;
 const double AuxiliaryParameters::machineEpsilon= std::numeric_limits<double>::epsilon();
 const std::string AuxiliaryParameters::gitSHA1(GIT_SHA1);
+const std::string AuxiliaryParameters::gitTAG(GIT_TAG);
 } /* namespace EMPIRE */
