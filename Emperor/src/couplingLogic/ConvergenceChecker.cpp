@@ -155,7 +155,7 @@ void ConvergenceChecker::addCheckResidual(double _absoluteTolerance, double _rel
                     _residualIndex));
 }
 
-int ConvergenceChecker::getcurrentNumOfIterations() {
+int ConvergenceChecker::getCurrentNumOfIterations() {
     return currentNumOfIterations;
 }
 

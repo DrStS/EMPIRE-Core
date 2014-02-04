@@ -97,6 +97,12 @@ public:
      ***********/
     void sendConvergenceSignal(bool convergent);
     /***********************************************************************************************
+     * \brief Receive the convergence signal from the client
+     * \return true if convergent, false otherwise
+     * \author Tianyang Wang
+     ***********/
+    bool recvConvergenceSignal();
+    /***********************************************************************************************
      * \brief Get mesh by its name
      * \return a pointer to the mesh
      * \author Tianyang Wang

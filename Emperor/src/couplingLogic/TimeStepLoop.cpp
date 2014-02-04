@@ -33,7 +33,7 @@ namespace EMPIRE {
 using namespace std;
 
 TimeStepLoop::TimeStepLoop(int _numTimeSteps) :
-        AbstractCouplingLogic(), numTimeSteps(_numTimeSteps), extrapolator(NULL), dataOutputVec() {
+        AbstractCouplingLogic(), numTimeSteps(_numTimeSteps), extrapolator(NULL) {
     assert(numTimeSteps > 0);
 }
 
@@ -68,10 +68,6 @@ void TimeStepLoop::doCoupling() {
 
 void TimeStepLoop::setExtrapolator(AbstractExtrapolator *_extrapolator) {
     extrapolator = _extrapolator;
-}
-
-void TimeStepLoop::addDataOutput(DataOutput *dataOutput) {
-    dataOutputVec.push_back(dataOutput);
 }
 
 } /* namespace EMPIRE */

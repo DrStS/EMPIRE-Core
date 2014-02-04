@@ -73,7 +73,7 @@ public:
      * \return the current number of iterations
      * \author Tianyang Wang
      ***********/
-    int getcurrentNumOfIterations();
+    int getCurrentNumOfIterations();
 
 private:
     /********//**

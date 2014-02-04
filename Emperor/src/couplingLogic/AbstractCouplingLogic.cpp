@@ -19,7 +19,8 @@
  *  along with EMPIRE.  If not, see http://www.gnu.org/licenses/.
  */
 #include "AbstractCouplingLogic.h"
-#include  "Connection.h"
+#include "Connection.h"
+#include "DataOutput.h"
 
 namespace EMPIRE {
 
@@ -38,6 +39,10 @@ void AbstractCouplingLogic::addCouplingLogic(AbstractCouplingLogic *couplingLogi
 
 int AbstractCouplingLogic::size() {
     return couplingLogicSequence.size();
+}
+
+void AbstractCouplingLogic::addDataOutput(DataOutput *dataOutput) {
+    dataOutputVec.push_back(dataOutput);
 }
 
 

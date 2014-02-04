@@ -19,60 +19,62 @@
  *  along with EMPIRE.  If not, see http://www.gnu.org/licenses/.
  */
 /***********************************************************************************************//**
- * \file TimeStepLoop.h
- * This file holds the class TimeStepLoop
- * \date 5/15/2012
+ * \file OptimizationLoop.h
+ * This file holds the class OptimizationLoop
+ * \date 2/4/2014
  **************************************************************************************************/
-#ifndef TIMESTEPLOOP_H_
-#define TIMESTEPLOOP_H_
-
-#include <vector>
+#ifndef OPTIMIZATIONLOOP_H_
+#define OPTIMIZATIONLOOP_H_
 
 #include "AbstractCouplingLogic.h"
-#include "EMPEROR_Enum.h"
 
 namespace EMPIRE {
-
-class AbstractExtrapolator;
+class ClientCode;
 
 /********//**
- * \brief Class TimeStepLoop performs time step loop on the sequence of coupling logics
- * \author Tianyang Wang
+ * \brief Class OptimizationLoop performs optimization loop
  ***********/
-class TimeStepLoop: public AbstractCouplingLogic {
+class OptimizationLoop: public AbstractCouplingLogic {
 public:
     /***********************************************************************************************
-     * \brief Constructor
+     * \brief Constructor initialize memories of all containers
+     * \param[in] _maxNumOfIterations maximum number of iterations
      * \author Tianyang Wang
      ***********/
-    TimeStepLoop(int _numTimeSteps);
+    OptimizationLoop(int _maxNumOfIterations);
     /***********************************************************************************************
      * \brief Destructor
      * \author Tianyang Wang
      ***********/
-    virtual ~TimeStepLoop();
+    virtual ~OptimizationLoop();
     /***********************************************************************************************
-     * \brief Do time step coupling
+     * \brief Do iterative coupling
      * \author Tianyang Wang
      ***********/
     void doCoupling();
     /***********************************************************************************************
-     * \brief Set the extrapolator which will do extrapolation at the beginning of the time step
-     * \param[in] _extrapolator the extrapolator
+     * \brief Set the convergence signal sender
+     * \param[in] _convergenceSignalSender the convergence signal sender
      * \author Tianyang Wang
      ***********/
-    void setExtrapolator(AbstractExtrapolator *_extrapolator);
+    void setConvergenceSignalSender(ClientCode *_convergenceSignalSender);
+    /***********************************************************************************************
+     * \brief Set the convergence signal receiver
+     * \param[in] convergenceSignalReceiver the convergence signal receiver
+     * \author Tianyang Wang
+     ***********/
+    void addConvergenceSignalReceiver(ClientCode *convergenceSignalReceiver);
 
 private:
-    /// number of time steps
-    int numTimeSteps;
-    /// Extrapolator
-    AbstractExtrapolator *extrapolator;
-
-    /// the unit test classes
-    friend class TestLoops;
-    friend class TestEmperor;
+    /// convergence signal sender
+    ClientCode *convergenceSignalSender;
+    /// vector of convergence signal receivers
+    std::vector<ClientCode*> convergenceSignalReceiverVec;
+    /// current number of iterations
+    int currentNumOfIterations;
+    /// maximun number of iterations
+    int maxNumOfIterations;
 };
 
 } /* namespace EMPIRE */
-#endif /* TIMESTEPLOOP_H_ */
+#endif /* OPTIMIZATIONLOOP_H_ */

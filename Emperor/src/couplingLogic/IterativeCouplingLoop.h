@@ -36,7 +36,6 @@ namespace EMPIRE {
 class ConvergenceChecker;
 class ClientCode;
 class AbstractCouplingAlgorithm;
-class DataOutput;
 
 /********//**
  * \brief Class IterativeCouplingLoop performs iterative coupling of a certain time step
@@ -77,12 +76,7 @@ public:
      * \author Tianyang Wang
      ***********/
     void setCouplingAlgorithm(AbstractCouplingAlgorithm *_couplingAlgorithm);
-    /***********************************************************************************************
-     * \brief Add a dataOutput which will write data of current iteration
-     * \param[in] dataOutput the data output writer
-     * \author Tianyang Wang
-     ***********/
-    void addDataOutput(DataOutput *dataOutput);
+
 private:
     /// convergence checker
     ConvergenceChecker *convergenceChecker;
@@ -90,8 +84,6 @@ private:
     AbstractCouplingAlgorithm* couplingAlgorithm;
     /// vector of convergence observers
     std::vector<ClientCode*> convergenceObserverVec;
-    /// dataOutputs
-    std::vector<DataOutput*> dataOutputVec;
     /// output counter
     int outputCounter;
 

@@ -63,8 +63,8 @@ void ClientCode::recvMesh(std::string meshName, EMPIRE_Mesh_type meshType) {
         const int BUFFER_SIZE = 2;
         int meshInfo[BUFFER_SIZE]; // number of nodes, number of elements, number of nodes per element
         { // output to shell
-            HEADING_OUT(3, "ClientCode",
-                    "receiving mesh (" + meshName + ") from [" + name + "]...", infoOut);
+            HEADING_OUT(3, "ClientCode", "receiving mesh (" + meshName + ") from [" + name + "]...",
+                    infoOut);
         }
         serverComm->receiveFromClientBlocking<int>(name, BUFFER_SIZE, meshInfo);
         int numNodes = meshInfo[0];
@@ -84,57 +84,61 @@ void ClientCode::recvMesh(std::string meshName, EMPIRE_Mesh_type meshType) {
         }
     } else if (meshType == EMPIRE_Mesh_IGAMesh) {
 
-		const int BUFFER_SIZE_MESH = 2;
-		int meshInfo[BUFFER_SIZE_MESH];
-		{ // output to shell
-			HEADING_OUT(3, "ClientCode", "receiving IGA Mesh (" + meshName + ") from [" + name + "]...", infoOut);
-		}
-		serverComm->receiveFromClientBlocking<int>(name, BUFFER_SIZE_MESH, meshInfo);
+        const int BUFFER_SIZE_MESH = 2;
+        int meshInfo[BUFFER_SIZE_MESH];
+        { // output to shell
+            HEADING_OUT(3, "ClientCode",
+                    "receiving IGA Mesh (" + meshName + ") from [" + name + "]...", infoOut);
+        }
+        serverComm->receiveFromClientBlocking<int>(name, BUFFER_SIZE_MESH, meshInfo);
 
+        int numPatches = meshInfo[0];
+        int numControlPoints = meshInfo[1];
 
-		int numPatches = meshInfo[0];
-		int numControlPoints = meshInfo[1];
+        double* globalControlPoints = new double[numControlPoints * 4];
+        int* controlPointID = new int[numControlPoints];
 
-		double* globalControlPoints = new double[numControlPoints * 4];
-		int* controlPointID = new int[numControlPoints];
+        serverComm->receiveFromClientBlocking<double>(name, numControlPoints * 4,
+                globalControlPoints);
+        serverComm->receiveFromClientBlocking<int>(name, numControlPoints, controlPointID);
 
-		serverComm->receiveFromClientBlocking<double>(name, numControlPoints * 4, globalControlPoints);
-		serverComm->receiveFromClientBlocking<int>(name, numControlPoints, controlPointID);
+        IGAMesh* theIGAMesh = new IGAMesh(meshName, numControlPoints, globalControlPoints,
+                controlPointID);
 
-		IGAMesh* theIGAMesh = new IGAMesh(meshName, numControlPoints, globalControlPoints, controlPointID);
+        const int BUFFER_SIZE_PATCH = 6;
+        int patchInfo[BUFFER_SIZE_PATCH];
+        for (int patchCount = 0; patchCount < numPatches; patchCount++) {
 
-		const int BUFFER_SIZE_PATCH = 6;
-		int patchInfo[BUFFER_SIZE_PATCH];
-		for (int patchCount = 0; patchCount < numPatches; patchCount++){
+            serverComm->receiveFromClientBlocking<int>(name, BUFFER_SIZE_PATCH, patchInfo);
 
-			serverComm->receiveFromClientBlocking<int>(name, BUFFER_SIZE_PATCH, patchInfo);
+            int pDegree = patchInfo[0];
+            int uNoKnots = patchInfo[1];
+            int qDegree = patchInfo[2];
+            int vNoKnots = patchInfo[3];
+            int uNoControlPoints = patchInfo[4];
+            int vNoControlPoints = patchInfo[5];
 
-			int pDegree = patchInfo[0];
-			int uNoKnots = patchInfo[1];
-			int qDegree = patchInfo[2];
-			int vNoKnots = patchInfo[3];
-			int uNoControlPoints = patchInfo[4];
-			int vNoControlPoints = patchInfo[5];
+            double* uKnotVector = new double[uNoKnots];
+            double* vKnotVector = new double[vNoKnots];
+            int* controlPointNetID = new int[uNoControlPoints * vNoControlPoints];
 
-			double* uKnotVector = new double[uNoKnots];
-			double* vKnotVector = new double[vNoKnots];
-			int* controlPointNetID = new int[uNoControlPoints * vNoControlPoints];
+            serverComm->receiveFromClientBlocking<double>(name, uNoKnots, uKnotVector);
+            serverComm->receiveFromClientBlocking<double>(name, vNoKnots, vKnotVector);
+            serverComm->receiveFromClientBlocking<int>(name, uNoControlPoints * vNoControlPoints,
+                    controlPointNetID);
 
-			serverComm->receiveFromClientBlocking<double>(name, uNoKnots, uKnotVector);
-			serverComm->receiveFromClientBlocking<double>(name, vNoKnots, vKnotVector);
-			serverComm->receiveFromClientBlocking<int>(name, uNoControlPoints * vNoControlPoints, controlPointNetID);
+            theIGAMesh->addPatch(pDegree, uNoKnots, uKnotVector, qDegree, vNoKnots, vKnotVector,
+                    uNoControlPoints, vNoControlPoints, controlPointNetID);
 
-			theIGAMesh->addPatch(pDegree, uNoKnots, uKnotVector, qDegree, vNoKnots, vKnotVector, uNoControlPoints, vNoControlPoints, controlPointNetID);
+        }
 
-		}
+        { // output to shell
+            INFO_OUT() << (*theIGAMesh) << endl;
+        }
 
-		{ // output to shell
-			INFO_OUT() << (*theIGAMesh) << endl;
-		}
+        nameToMeshMap.insert(pair<string, AbstractMesh*>(meshName, theIGAMesh));
 
-		nameToMeshMap.insert(pair<string, AbstractMesh*>(meshName, theIGAMesh));
-
-	} else {
+    } else {
         assert(false);
     }
 }
@@ -196,6 +200,24 @@ void ClientCode::sendConvergenceSignal(bool convergent) {
     serverComm->sendToClientBlocking<int>(name, 1, &tmpInt);
 }
 
+bool ClientCode::recvConvergenceSignal() {
+    assert(serverComm!=NULL);
+    int tmpInt;
+    serverComm->receiveFromClientBlocking<int>(name, 1, &tmpInt);
+    bool convergent = (bool) tmpInt;
+    { // output to shell
+        string converg;
+        if (convergent)
+            converg = "true";
+        else
+            converg = "false";
+        string info = "Emperor is receiving convergence signal (" + converg + ") from [" + name
+                + "] ...";
+        INDENT_OUT(1, info, infoOut);
+    }
+    return convergent;
+}
+
 AbstractMesh *ClientCode::getMeshByName(std::string meshName) {
     assert(nameToMeshMap.find(meshName) != nameToMeshMap.end());
     return nameToMeshMap[meshName];
@@ -203,10 +225,10 @@ AbstractMesh *ClientCode::getMeshByName(std::string meshName) {
 
 void ClientCode::addSignal(std::string signalName, int size0, int size1, int size2) {
 
-	if (nameToSignalMap.find(signalName) != nameToSignalMap.end()){
-		ERROR_OUT() << "Signal name: "<< signalName <<" already used!"<< endl;
-		assert(false);
-	}
+    if (nameToSignalMap.find(signalName) != nameToSignalMap.end()) {
+        ERROR_OUT() << "Signal name: " << signalName << " already used!" << endl;
+        assert(false);
+    }
     nameToSignalMap.insert(
             pair<string, Signal*>(signalName, new Signal(signalName, size0, size1, size2)));
 }
@@ -227,18 +249,18 @@ void ClientCode::recvSignal(std::string signalName) {
         string info = "Signal name received is \"" + tmp + "\"";
         INDENT_OUT(2, info, infoOut);
     }
-	if (signalName.compare(tmp)!=0){
-		ERROR_OUT() << "Signal name received is "<< tmp <<", however " << signalName << " expected!"<< endl;
-		assert(false);
-	}
-
+    if (signalName.compare(tmp) != 0) {
+        ERROR_OUT() << "Signal name received is " << tmp << ", however " << signalName
+                << " expected!" << endl;
+        assert(false);
+    }
 
     serverComm->receiveFromClientBlocking<int>(name, 1, &signalSizeReceive);
-	if (signalSizeReceive!=signal->size){
-		ERROR_OUT() << "Signal "<< signalSizeReceive <<" size received is " <<
-				signalSizeReceive <<", however " << signal->size << " expected!"<< endl;
-		assert(false);
-	}
+    if (signalSizeReceive != signal->size) {
+        ERROR_OUT() << "Signal " << signalSizeReceive << " size received is " << signalSizeReceive
+                << ", however " << signal->size << " expected!" << endl;
+        assert(false);
+    }
     serverComm->receiveFromClientBlocking<double>(name, signal->size, signal->array);
     DEBUG_OUT() << (*signal) << endl;
 }
@@ -262,13 +284,14 @@ void ClientCode::sendSignal(std::string signalName) {
 }
 
 Signal *ClientCode::getSignalByName(std::string signalName) {
-    if(nameToSignalMap.find(signalName) == nameToSignalMap.end()){
-    	ERROR_OUT("Signal name: "+signalName+" not found!");
-    	for(map<std::string, Signal*>::iterator it=nameToSignalMap.begin(); it!=nameToSignalMap.end();it++){
-    		ERROR_OUT("Possible signal names for client "+name+" are : "+it->first);
-    	}
+    if (nameToSignalMap.find(signalName) == nameToSignalMap.end()) {
+        ERROR_OUT("Signal name: "+signalName+" not found!");
+        for (map<std::string, Signal*>::iterator it = nameToSignalMap.begin();
+                it != nameToSignalMap.end(); it++) {
+            ERROR_OUT("Possible signal names for client "+name+" are : "+it->first);
+        }
 
-    	assert(nameToSignalMap.find(signalName) != nameToSignalMap.end());
+        assert(nameToSignalMap.find(signalName) != nameToSignalMap.end());
     }
     return nameToSignalMap[signalName];
 }

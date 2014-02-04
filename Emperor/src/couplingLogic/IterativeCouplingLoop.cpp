@@ -96,7 +96,7 @@ void IterativeCouplingLoop::doCoupling() {
         } else {
             broadcastConvergenceToClients(false);
         }
-        assert(count == convergenceChecker->getcurrentNumOfIterations());
+        assert(count == convergenceChecker->getCurrentNumOfIterations());
 
     }
     //std::cout << "number of iterative coupling loops: " << count << std::endl;
@@ -115,10 +115,6 @@ void IterativeCouplingLoop::broadcastConvergenceToClients(bool convergent) {
 void IterativeCouplingLoop::setCouplingAlgorithm(AbstractCouplingAlgorithm *_couplingAlgorithm) {
     assert(couplingAlgorithm == NULL);
     couplingAlgorithm = _couplingAlgorithm;
-}
-
-void IterativeCouplingLoop::addDataOutput(DataOutput *dataOutput) {
-    dataOutputVec.push_back(dataOutput);
 }
 
 } /* namespace EMPIRE */

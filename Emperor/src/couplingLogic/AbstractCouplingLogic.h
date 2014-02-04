@@ -29,7 +29,7 @@
 #include <vector>
 
 namespace EMPIRE {
-
+class DataOutput;
 /***********************************************************************************************
  * \brief Class AbstractCouplingLogic is the mother class of all coupling logics. A coupling logic is
  *              the topmost control unit of the total coupling process. It may contain several sub
@@ -63,9 +63,17 @@ public:
      * \author Tianyang Wang
      ***********/
     int size();
+    /***********************************************************************************************
+     * \brief Add a dataOutput which will write data of current iteration
+     * \param[in] dataOutput the data output writer
+     * \author Tianyang Wang
+     ***********/
+    void addDataOutput(DataOutput *dataOutput);
 protected:
     /// a sequence of coupling logics
     std::vector<AbstractCouplingLogic*> couplingLogicSequence;
+    /// dataOutputs
+    std::vector<DataOutput*> dataOutputVec;
     /// the unit test class
     friend class TestEmperor;
 };
