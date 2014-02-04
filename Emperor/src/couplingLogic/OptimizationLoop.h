@@ -69,11 +69,14 @@ private:
     /// convergence signal sender
     ClientCode *convergenceSignalSender;
     /// vector of convergence signal receivers
-    std::vector<ClientCode*> convergenceSignalReceiverVec;
+    std::vector<ClientCode*> convergenceSignalReceivers;
     /// current number of iterations
     int currentNumOfIterations;
     /// maximun number of iterations
     int maxNumOfIterations;
+
+    /// unit test class
+    friend class TestEmperor;
 };
 
 } /* namespace EMPIRE */

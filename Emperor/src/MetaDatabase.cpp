@@ -434,20 +434,22 @@ void MetaDatabase::fillSettingConnectionVec() {
                     }
                 } else if (xmlFilter->GetAttribute<string>("type") == "copyFilter") {
                     filter.type = EMPIRE_CopyFilter;
-                    filter.copyFilter.signalOffset=0;
-                    ticpp::Element *pXMLElement = xmlFilter->FirstChildElement("copyFilter",false);
-                	if (pXMLElement != NULL) {
-                		filter.copyFilter.signalOffset = pXMLElement->GetAttribute<int>("signalOffset");
-                	}
+                    filter.copyFilter.signalOffset = 0;
+                    ticpp::Element *pXMLElement = xmlFilter->FirstChildElement("copyFilter", false);
+                    if (pXMLElement != NULL) {
+                        filter.copyFilter.signalOffset = pXMLElement->GetAttribute<int>(
+                                "signalOffset");
+                    }
 
-                } else if (xmlFilter->GetAttribute<string>("type") == "dataFieldIntegrationFilter") {
+                } else if (xmlFilter->GetAttribute<string>("type")
+                        == "dataFieldIntegrationFilter") {
                     filter.type = EMPIRE_DataFieldIntegrationFilter;
                     ticpp::Element *xmlMeshRef = xmlFilter->FirstChildElement(
                             "dataFieldIntegrationFilter")->FirstChildElement("meshRef");
                     filter.dataFieldIntegrationFilter.meshRef.clientCodeName =
                             xmlMeshRef->GetAttribute<string>("clientCodeName");
-                    filter.dataFieldIntegrationFilter.meshRef.meshName = xmlMeshRef->GetAttribute<string>(
-                            "meshName");
+                    filter.dataFieldIntegrationFilter.meshRef.meshName = xmlMeshRef->GetAttribute<
+                            string>("meshName");
 
                 } else {
                     assert(false);
@@ -522,8 +524,8 @@ void parseCouplingLogicBlock(ticpp::Iterator<Element> &xmlCouplingLogicIn,
                     xmlConvergenceObserver != xmlConvergenceObserver.end();
                     xmlConvergenceObserver++) {
                 string tmpString =
-                        xmlConvergenceObserver->FirstChildElement("clientCodeRef")->GetAttribute<string>(
-                                "clientCodeName");
+                        xmlConvergenceObserver->FirstChildElement("clientCodeRef")->GetAttribute<
+                                string>("clientCodeName");
                 couplingLogicIn.iterativeCouplingLoop.convergenceObservers.push_back(tmpString);
             }
         }
@@ -556,6 +558,43 @@ void parseCouplingLogicBlock(ticpp::Iterator<Element> &xmlCouplingLogicIn,
         couplingLogicIn.type = EMPIRE_connection;
         couplingLogicIn.connectionRef.connectionName = xmlCouplingLogicIn->FirstChildElement(
                 "connectionRef")->GetAttribute<string>("connectionName");
+    } else if (xmlCouplingLogicIn->GetAttribute<string>("type") == "optimizationLoop") {
+        couplingLogicIn.type = EMPIRE_OptimizationLoop;
+        ticpp::Element *xmlOptimizationLoop = xmlCouplingLogicIn->FirstChildElement(
+                "optimizationLoop");
+        couplingLogicIn.optimizationLoop.maxNumOfIterations =
+                xmlOptimizationLoop->GetAttribute<int>("maxNumOfIterations");
+        { // add convergence signal sender
+            ticpp::Element *xmlConvergenceSignalSender = xmlOptimizationLoop->FirstChildElement(
+                    "convergenceSignalSender");
+            string tmpString =
+                    xmlConvergenceSignalSender->FirstChildElement("clientCodeRef")->GetAttribute<
+                            string>("clientCodeName");
+            couplingLogicIn.optimizationLoop.convergenceSignalSender = tmpString;
+        }
+
+        { // add convergence signal receivers
+            ticpp::Iterator<Element> xmlConvergenceSignalReceiver("convergenceSignalReceiver");
+            for (xmlConvergenceSignalReceiver = xmlConvergenceSignalReceiver.begin(
+                    xmlOptimizationLoop);
+                    xmlConvergenceSignalReceiver != xmlConvergenceSignalReceiver.end();
+                    xmlConvergenceSignalReceiver++) {
+                string tmpString =
+                        xmlConvergenceSignalReceiver->FirstChildElement("clientCodeRef")->GetAttribute<
+                                string>("clientCodeName");
+                couplingLogicIn.optimizationLoop.convergenceSignalReceivers.push_back(tmpString);
+            }
+
+        }
+
+        { // add dataOutputs
+            ticpp::Iterator<Element> xmlDataOutputRef("dataOutputRef");
+            for (xmlDataOutputRef = xmlDataOutputRef.begin(xmlOptimizationLoop);
+                    xmlDataOutputRef != xmlDataOutputRef.end(); xmlDataOutputRef++) {
+                string dataOutputName = xmlDataOutputRef->GetAttribute<string>("dataOutputName");
+                couplingLogicIn.iterativeCouplingLoop.dataOutputRefs.push_back(dataOutputName);
+            }
+        }
     } else {
         assert(false);
     }
@@ -598,12 +637,14 @@ structConnectionIO MetaDatabase::parseConnectionIORef(ticpp::Element *xmlElement
         settingConnectionIO.type = EMPIRE_ConnectionIO_DataField;
         settingConnectionIO.dataFieldRef.clientCodeName = xmlDataFieldRef->GetAttribute<string>(
                 "clientCodeName");
-        settingConnectionIO.dataFieldRef.meshName = xmlDataFieldRef->GetAttribute<string>("meshName");
+        settingConnectionIO.dataFieldRef.meshName = xmlDataFieldRef->GetAttribute<string>(
+                "meshName");
         settingConnectionIO.dataFieldRef.dataFieldName = xmlDataFieldRef->GetAttribute<string>(
                 "dataFieldName");
     } else if (xmlSignalRef != NULL) {
         settingConnectionIO.type = EMPIRE_ConnectionIO_Signal;
-        settingConnectionIO.signalRef.clientCodeName = xmlSignalRef->GetAttribute<string>("clientCodeName");
+        settingConnectionIO.signalRef.clientCodeName = xmlSignalRef->GetAttribute<string>(
+                "clientCodeName");
         settingConnectionIO.signalRef.signalName = xmlSignalRef->GetAttribute<string>("signalName");
     } else {
         assert(false);

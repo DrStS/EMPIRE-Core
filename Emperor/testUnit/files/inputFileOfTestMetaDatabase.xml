@@ -1,13 +1,4 @@
-<!-- Copyright (c) 2013, TU Muenchen, Chair of Structural Analysis, Stefan 
-	Sicklinger, Tianyang Wang, Munich. All rights reserved. This file is part 
-	of EMPIRE. EMPIRE is free software: you can redistribute it and/or modify 
-	it under the terms of the GNU General Public License as published by the 
-	Free Software Foundation, either version 3 of the License, or (at your option) 
-	any later version. EMPIRE is distributed in the hope that it will be useful, 
-	but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
-	or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for 
-	more details. You should have received a copy of the GNU General Public License 
-	along with EMPIRE. If not, see http://www.gnu.org/licenses/. -->
+<?xml version="1.0" encoding="UTF-8"?>
 <EMPEROR>
 	<clientCode name="meshClientA">
 		<mesh name="myMesh">
@@ -29,6 +20,13 @@
 		</mesh>
 		<signal name="signal" size="5" />
 	</clientCode>
+	<clientCode name="optimizer">
+		<signal name="design" size="1" />
+		<signal name="objective" size="1" />
+	</clientCode>
+	
+	
+	
 	<dataOutput name="timeStep" interval="5">
 		<dataFieldRef clientCodeName="meshClientA" meshName="myMesh"
 			dataFieldName="displacements" />
@@ -45,6 +43,9 @@
 		<signalRef clientCodeName="meshClientA" signalName="signal" />
 		<signalRef clientCodeName="meshClientB" signalName="signal" />
 	</dataOutput>
+	
+	
+	
 	<mapper name="mortar1" type="mortarMapper">
 		<meshA>
 			<meshRef clientCodeName="meshClientA" meshName="myMesh" />
@@ -75,6 +76,9 @@
 			<meshRef clientCodeName="meshClientB" meshName="myMesh" />
 		</meshB>
 	</mapper>
+	
+	
+	
 	<couplingAlgorithm type="constantRelaxation" name="cr">
 		<residual index="1">
 			<component coefficient="1" timeToUpdate="iterationBeginning">
@@ -89,10 +93,16 @@
 		</output>
 		<constantRelaxation relaxationFactor="0.3" />
 	</couplingAlgorithm>
+	
+	
+	
 	<extrapolator type="linearExtrapolator" name="extrapolate displacement">
 		<dataFieldRef clientCodeName="meshClientA" meshName="myMesh"
 			dataFieldName="displacements" />
 	</extrapolator>
+	
+	
+	
 	<connection name="transfer displacements">
 		<input>
 			<dataFieldRef clientCodeName="meshClientA" meshName="myMesh"
@@ -171,40 +181,59 @@
 			</filter>
 		</sequence>
 	</connection>
+	
+	
+	
 	<coSimulation>
 		<sequence>
-			<couplingLogic type="timeStepLoop">
-				<timeStepLoop numTimeSteps="5">
-					<dataOutputRef dataOutputName="timeStep" />
-					<extrapolatorRef extrapolatorName="extrapolate displacement" />
-				</timeStepLoop>
+			<couplingLogic type="optimizationLoop">
+				<optimizationLoop maxNumOfIterations="5000">
+					<convergenceSignalSender>
+						<clientCodeRef clientCodeName="optimizer" />
+					</convergenceSignalSender>
+					<convergenceSignalReceiver>
+						<clientCodeRef clientCodeName="meshClientA" />
+					</convergenceSignalReceiver>
+					<convergenceSignalReceiver>
+						<clientCodeRef clientCodeName="meshClientB" />
+					</convergenceSignalReceiver>
+				</optimizationLoop>
 				<sequence>
-					<couplingLogic type="iterativeCouplingLoop">
-						<iterativeCouplingLoop>
-							<convergenceChecker maxNumOfIterations="100">
-								<checkResidual relativeTolerance="0"
-									absoluteTolerance="1e-5">
-									<residualRef couplingAlgorithmName="cr" index="1" />
-								</checkResidual>
-							</convergenceChecker>
-							<convergenceObserver>
-								<clientCodeRef clientCodeName="meshClientA" />
-							</convergenceObserver>
-							<convergenceObserver>
-								<clientCodeRef clientCodeName="meshClientB" />
-							</convergenceObserver>
-							<couplingAlgorithmRef couplingAlgorithmName="cr" />
-							<dataOutputRef dataOutputName="iterativeCoupling" />
-						</iterativeCouplingLoop>
+					<couplingLogic type="timeStepLoop">
+						<timeStepLoop numTimeSteps="5">
+							<dataOutputRef dataOutputName="timeStep" />
+							<extrapolatorRef extrapolatorName="extrapolate displacement" />
+						</timeStepLoop>
 						<sequence>
-							<couplingLogic type="connection">
-								<connectionRef connectionName="transfer displacements" />
-							</couplingLogic>
-							<couplingLogic type="connection">
-								<connectionRef connectionName="transfer forces" />
-							</couplingLogic>
-							<couplingLogic type="connection">
-								<connectionRef connectionName="transfer signal" />
+							<couplingLogic type="iterativeCouplingLoop">
+								<iterativeCouplingLoop>
+									<convergenceChecker maxNumOfIterations="100">
+										<checkResidual relativeTolerance="0"
+											absoluteTolerance="1e-5">
+											<residualRef couplingAlgorithmName="cr" index="1" />
+										</checkResidual>
+									</convergenceChecker>
+									<convergenceObserver>
+										<clientCodeRef clientCodeName="meshClientA" />
+									</convergenceObserver>
+									<convergenceObserver>
+										<clientCodeRef clientCodeName="meshClientB" />
+									</convergenceObserver>
+									<couplingAlgorithmRef
+										couplingAlgorithmName="cr" />
+									<dataOutputRef dataOutputName="iterativeCoupling" />
+								</iterativeCouplingLoop>
+								<sequence>
+									<couplingLogic type="connection">
+										<connectionRef connectionName="transfer displacements" />
+									</couplingLogic>
+									<couplingLogic type="connection">
+										<connectionRef connectionName="transfer forces" />
+									</couplingLogic>
+									<couplingLogic type="connection">
+										<connectionRef connectionName="transfer signal" />
+									</couplingLogic>
+								</sequence>
 							</couplingLogic>
 						</sequence>
 					</couplingLogic>

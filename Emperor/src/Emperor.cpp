@@ -52,6 +52,7 @@
 #include "CouplingLogicSequence.h"
 #include "IterativeCouplingLoop.h"
 #include "TimeStepLoop.h"
+#include "OptimizationLoop.h"
 #include "PseudoCodeOutput.h"
 #include "ConvergenceChecker.h"
 #include "AuxiliaryParameters.h"
@@ -523,6 +524,36 @@ AbstractCouplingLogic *Emperor::parseStructCouplingLogic(
             }
         }
         couplingLogic = timeStepLoop;
+    } else if (settingCouplingLogic.type == EMPIRE_OptimizationLoop) {
+        structCouplingLogic::structOptimizationLoop &settingOptLoop =
+                settingCouplingLogic.optimizationLoop;
+        OptimizationLoop *optimizationLoop = new OptimizationLoop(
+                settingOptLoop.maxNumOfIterations);
+        { // convergence signal sender
+            assert(
+                    nameToClientCodeMap.find(settingOptLoop.convergenceSignalSender)!=nameToClientCodeMap.end());
+            ClientCode *clientCodeTmp = nameToClientCodeMap.at(
+                    settingOptLoop.convergenceSignalSender);
+            optimizationLoop->setConvergenceSignalSender(clientCodeTmp);
+        }
+
+        { // convergence signal receivers
+            for (int i = 0; i < settingOptLoop.convergenceSignalReceivers.size(); i++) {
+                assert(
+                        nameToClientCodeMap.find(settingOptLoop.convergenceSignalReceivers[i])!=nameToClientCodeMap.end());
+                ClientCode *clientCodeTmp = nameToClientCodeMap.at(settingOptLoop.convergenceSignalReceivers[i]);
+                optimizationLoop->addConvergenceSignalReceiver(clientCodeTmp);
+            }
+        }
+        { // add dataOutputs
+            const vector<string> &dataOutputRefs = settingOptLoop.dataOutputRefs;
+            for (int i = 0; i < dataOutputRefs.size(); i++) {
+                assert(nameToDataOutputMap.find(dataOutputRefs[i])!=nameToDataOutputMap.end());
+                DataOutput *dataOutput = nameToDataOutputMap.at(dataOutputRefs[i]);
+                optimizationLoop->addDataOutput(dataOutput);
+            }
+        }
+        couplingLogic = optimizationLoop;
     } else {
         assert(false);
     }

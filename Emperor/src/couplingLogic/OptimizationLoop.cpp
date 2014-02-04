@@ -41,8 +41,8 @@ void OptimizationLoop::doCoupling() {
         // receive/send convergence signal
         assert(convergenceSignalSender != NULL);
         bool convergent = convergenceSignalSender->recvConvergenceSignal();
-        for (int i = 0; i < convergenceSignalReceiverVec.size(); i++) {
-            convergenceSignalReceiverVec[i]->sendConvergenceSignal(convergent);
+        for (int i = 0; i < convergenceSignalReceivers.size(); i++) {
+            convergenceSignalReceivers[i]->sendConvergenceSignal(convergent);
         }
 
         if (convergent)
@@ -56,7 +56,7 @@ void OptimizationLoop::setConvergenceSignalSender(ClientCode *_convergenceSignal
 }
 
 void OptimizationLoop::addConvergenceSignalReceiver(ClientCode *convergenceSignalReceiver) {
-    convergenceSignalReceiverVec.push_back(convergenceSignalReceiver);
+    convergenceSignalReceivers.push_back(convergenceSignalReceiver);
 }
 
 } /* namespace EMPIRE */

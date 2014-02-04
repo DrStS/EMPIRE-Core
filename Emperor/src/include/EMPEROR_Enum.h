@@ -77,7 +77,8 @@ enum EMPIRE_CouplingLogic_type {
     EMPIRE_IterativeCouplingLoop,
     EMPIRE_TimeStepLoop,
     EMPIRE_connection,
-    EMPIRE_CouplingLogicSequence
+    EMPIRE_CouplingLogicSequence,
+    EMPIRE_OptimizationLoop
 };
 
 enum EMPIRE_Extrapolator_type {

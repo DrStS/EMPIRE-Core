@@ -202,11 +202,18 @@ struct structCouplingLogic {
         std::pair<bool, std::string> couplingAlgorithmRef; // bool: has the ref or not
         std::vector<std::string> dataOutputRefs;
     };
+    struct structOptimizationLoop {
+        int maxNumOfIterations;
+        std::vector<std::string> convergenceSignalReceivers;
+        std::string convergenceSignalSender;
+        std::vector<std::string> dataOutputRefs;
+    };
     EMPIRE_CouplingLogic_type type;
     std::vector<structCouplingLogic> sequence;
     structConnectionRef connectionRef;
     structTimeStepLoop timeStepLoop;
     structIterativeCouplingLoop iterativeCouplingLoop;
+    structOptimizationLoop optimizationLoop;
 };
 
 } /* namespace EMPIRE */

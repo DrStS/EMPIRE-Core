@@ -38,6 +38,7 @@
 #include "Connection.h"
 #include "CouplingLogicSequence.h"
 #include "TimeStepLoop.h"
+#include "OptimizationLoop.h"
 #include "IterativeCouplingLoop.h"
 #include "ConvergenceChecker.h"
 #include "DataOutput.h"
@@ -157,24 +158,42 @@ public:
         timeStepLoop.timeStepLoop.extrapolatorRef.second = STRING_EXTRAPOLATOR;
         timeStepLoop.timeStepLoop.dataOutputRefs.push_back(STRING_DUMMY);
 
+        structCouplingLogic optimizationLoop;
+        optimizationLoop.type = EMPIRE_OptimizationLoop;
+        optimizationLoop.optimizationLoop.maxNumOfIterations = INTY;
+        optimizationLoop.optimizationLoop.convergenceSignalSender = STRING_CLIENT_A;
+        optimizationLoop.optimizationLoop.convergenceSignalReceivers.push_back(STRING_CLIENT_B);
+        optimizationLoop.sequence.push_back(timeStepLoop);
+
         structCouplingLogic coSimulation;
         coSimulation.type = EMPIRE_CouplingLogicSequence;
-        coSimulation.sequence.push_back(timeStepLoop);
+        coSimulation.sequence.push_back(optimizationLoop);
         // Finally, test initCouplingLogic()
         MetaDatabase::getSingleton()->settingGlobalCouplingLogic = coSimulation;
         emperor->initGlobalCouplingLogic(); // This is actually what is being tested
 
         CPPUNIT_ASSERT(typeid(*(emperor->globalCouplingLogic)) == typeid(CouplingLogicSequence));
         CPPUNIT_ASSERT(emperor->globalCouplingLogic->couplingLogicSequence.size() == 1);
-        AbstractCouplingLogic *tsl = emperor->globalCouplingLogic->couplingLogicSequence[0];
+
+        AbstractCouplingLogic *opt = emperor->globalCouplingLogic->couplingLogicSequence[0];
+        CPPUNIT_ASSERT( typeid(*opt) == typeid(OptimizationLoop));
+        OptimizationLoop *opt2 = dynamic_cast<OptimizationLoop*>(opt);
+        CPPUNIT_ASSERT( opt2->maxNumOfIterations == INTY);
+        CPPUNIT_ASSERT( opt2->convergenceSignalSender == clientA);
+        CPPUNIT_ASSERT( opt2->convergenceSignalReceivers.size() == 1);
+        CPPUNIT_ASSERT( opt2->convergenceSignalReceivers[0] == clientB);
+        CPPUNIT_ASSERT( opt2->dataOutputVec.size() == 0);
+        CPPUNIT_ASSERT( opt2->couplingLogicSequence.size() == 1);
+
+        AbstractCouplingLogic *tsl = opt->couplingLogicSequence[0];
         CPPUNIT_ASSERT( typeid(*tsl) == typeid(TimeStepLoop));
         TimeStepLoop *tsl2 = dynamic_cast<TimeStepLoop*>(tsl);
         CPPUNIT_ASSERT( tsl2->numTimeSteps == INTY);
         CPPUNIT_ASSERT( tsl2->dataOutputVec.size() == 1);
         CPPUNIT_ASSERT( tsl2->dataOutputVec[0] == dataOutput);
         CPPUNIT_ASSERT( tsl2->extrapolator == linearExtrapolator);
-
         CPPUNIT_ASSERT(tsl->couplingLogicSequence.size() == 1);
+
         AbstractCouplingLogic *icl = tsl->couplingLogicSequence[0];
         CPPUNIT_ASSERT(typeid(*icl) == typeid(IterativeCouplingLoop));
         IterativeCouplingLoop *icl2 = dynamic_cast<IterativeCouplingLoop*>(icl);

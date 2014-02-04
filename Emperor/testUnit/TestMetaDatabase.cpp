@@ -72,7 +72,7 @@ public:
                 MetaDatabase::getSingleton()->settingGlobalCouplingLogic;
 
         { // check block client codes
-            CPPUNIT_ASSERT(settingClientCodesVec.size() == 2);
+            CPPUNIT_ASSERT(settingClientCodesVec.size() == 3);
             structClientCode client0 = settingClientCodesVec[0];
             CPPUNIT_ASSERT(client0.name == "meshClientA");
             CPPUNIT_ASSERT(client0.meshes.size() == 1);
@@ -108,6 +108,11 @@ public:
             CPPUNIT_ASSERT(client1.signals[0].size3D[0] == 1);
             CPPUNIT_ASSERT(client1.signals[0].size3D[1] == 1);
             CPPUNIT_ASSERT(client1.signals[0].size3D[2] == 5);
+
+            structClientCode client3 = settingClientCodesVec[2];
+            CPPUNIT_ASSERT(client3.name == "optimizer");
+            CPPUNIT_ASSERT(client3.meshes.size() == 0);
+            CPPUNIT_ASSERT(client3.signals.size() == 2);
         }
         { // check block data outputs
             CPPUNIT_ASSERT(settingDataOutputVec.size()==2);
@@ -120,10 +125,13 @@ public:
                 CPPUNIT_ASSERT(dataOutput.connectionIOs[1].type==EMPIRE_ConnectionIO_DataField);
                 CPPUNIT_ASSERT(dataOutput.connectionIOs[2].type==EMPIRE_ConnectionIO_Signal);
                 CPPUNIT_ASSERT(dataOutput.connectionIOs[3].type==EMPIRE_ConnectionIO_Signal);
-                CPPUNIT_ASSERT(dataOutput.connectionIOs[0].dataFieldRef.clientCodeName=="meshClientA");
+                CPPUNIT_ASSERT(
+                        dataOutput.connectionIOs[0].dataFieldRef.clientCodeName=="meshClientA");
                 CPPUNIT_ASSERT(dataOutput.connectionIOs[0].dataFieldRef.meshName=="myMesh");
-                CPPUNIT_ASSERT(dataOutput.connectionIOs[0].dataFieldRef.dataFieldName=="displacements");
-                CPPUNIT_ASSERT(dataOutput.connectionIOs[1].dataFieldRef.clientCodeName=="meshClientB");
+                CPPUNIT_ASSERT(
+                        dataOutput.connectionIOs[0].dataFieldRef.dataFieldName=="displacements");
+                CPPUNIT_ASSERT(
+                        dataOutput.connectionIOs[1].dataFieldRef.clientCodeName=="meshClientB");
                 CPPUNIT_ASSERT(dataOutput.connectionIOs[1].dataFieldRef.meshName=="myMesh");
                 CPPUNIT_ASSERT(dataOutput.connectionIOs[1].dataFieldRef.dataFieldName=="forces");
                 CPPUNIT_ASSERT(dataOutput.connectionIOs[2].signalRef.clientCodeName=="meshClientA");
@@ -140,10 +148,13 @@ public:
                 CPPUNIT_ASSERT(dataOutput.connectionIOs[1].type==EMPIRE_ConnectionIO_DataField);
                 CPPUNIT_ASSERT(dataOutput.connectionIOs[2].type==EMPIRE_ConnectionIO_Signal);
                 CPPUNIT_ASSERT(dataOutput.connectionIOs[3].type==EMPIRE_ConnectionIO_Signal);
-                CPPUNIT_ASSERT(dataOutput.connectionIOs[0].dataFieldRef.clientCodeName=="meshClientA");
+                CPPUNIT_ASSERT(
+                        dataOutput.connectionIOs[0].dataFieldRef.clientCodeName=="meshClientA");
                 CPPUNIT_ASSERT(dataOutput.connectionIOs[0].dataFieldRef.meshName=="myMesh");
-                CPPUNIT_ASSERT(dataOutput.connectionIOs[0].dataFieldRef.dataFieldName=="displacements");
-                CPPUNIT_ASSERT(dataOutput.connectionIOs[1].dataFieldRef.clientCodeName=="meshClientB");
+                CPPUNIT_ASSERT(
+                        dataOutput.connectionIOs[0].dataFieldRef.dataFieldName=="displacements");
+                CPPUNIT_ASSERT(
+                        dataOutput.connectionIOs[1].dataFieldRef.clientCodeName=="meshClientB");
                 CPPUNIT_ASSERT(dataOutput.connectionIOs[1].dataFieldRef.meshName=="myMesh");
                 CPPUNIT_ASSERT(dataOutput.connectionIOs[1].dataFieldRef.dataFieldName=="forces");
                 CPPUNIT_ASSERT(dataOutput.connectionIOs[2].signalRef.clientCodeName=="meshClientA");
@@ -194,18 +205,28 @@ public:
             CPPUNIT_ASSERT(settingCoupAlg.residuals.size() == 1);
             CPPUNIT_ASSERT(settingCoupAlg.residuals[0].components.size() == 2);
             CPPUNIT_ASSERT(settingCoupAlg.residuals[0].components[0].coefficient == 1.0);
-            CPPUNIT_ASSERT(settingCoupAlg.residuals[0].components[0].timeToUpdate == "iterationBeginning");
-            CPPUNIT_ASSERT(settingCoupAlg.residuals[0].components[0].connectionIO.type == EMPIRE_ConnectionIO_Signal);
-            CPPUNIT_ASSERT(settingCoupAlg.residuals[0].components[0].connectionIO.signalRef.clientCodeName == "meshClientA");
-            CPPUNIT_ASSERT(settingCoupAlg.residuals[0].components[0].connectionIO.signalRef.signalName == "signal");
+            CPPUNIT_ASSERT(
+                    settingCoupAlg.residuals[0].components[0].timeToUpdate == "iterationBeginning");
+            CPPUNIT_ASSERT(
+                    settingCoupAlg.residuals[0].components[0].connectionIO.type == EMPIRE_ConnectionIO_Signal);
+            CPPUNIT_ASSERT(
+                    settingCoupAlg.residuals[0].components[0].connectionIO.signalRef.clientCodeName == "meshClientA");
+            CPPUNIT_ASSERT(
+                    settingCoupAlg.residuals[0].components[0].connectionIO.signalRef.signalName == "signal");
             CPPUNIT_ASSERT(settingCoupAlg.residuals[0].components[1].coefficient == -1.0);
-            CPPUNIT_ASSERT(settingCoupAlg.residuals[0].components[1].timeToUpdate == "iterationEnd");
-            CPPUNIT_ASSERT(settingCoupAlg.residuals[0].components[1].connectionIO.type == EMPIRE_ConnectionIO_Signal);
-            CPPUNIT_ASSERT(settingCoupAlg.residuals[0].components[1].connectionIO.signalRef.clientCodeName == "meshClientA");
-            CPPUNIT_ASSERT(settingCoupAlg.residuals[0].components[1].connectionIO.signalRef.signalName == "signal");
+            CPPUNIT_ASSERT(
+                    settingCoupAlg.residuals[0].components[1].timeToUpdate == "iterationEnd");
+            CPPUNIT_ASSERT(
+                    settingCoupAlg.residuals[0].components[1].connectionIO.type == EMPIRE_ConnectionIO_Signal);
+            CPPUNIT_ASSERT(
+                    settingCoupAlg.residuals[0].components[1].connectionIO.signalRef.clientCodeName == "meshClientA");
+            CPPUNIT_ASSERT(
+                    settingCoupAlg.residuals[0].components[1].connectionIO.signalRef.signalName == "signal");
             CPPUNIT_ASSERT(settingCoupAlg.outputs.size() == 1);
-            CPPUNIT_ASSERT(settingCoupAlg.outputs[0].connectionIO.type == EMPIRE_ConnectionIO_Signal);
-            CPPUNIT_ASSERT(settingCoupAlg.outputs[0].connectionIO.signalRef.clientCodeName == "meshClientA");
+            CPPUNIT_ASSERT(
+                    settingCoupAlg.outputs[0].connectionIO.type == EMPIRE_ConnectionIO_Signal);
+            CPPUNIT_ASSERT(
+                    settingCoupAlg.outputs[0].connectionIO.signalRef.clientCodeName == "meshClientA");
             CPPUNIT_ASSERT(settingCoupAlg.outputs[0].connectionIO.signalRef.signalName == "signal");
             CPPUNIT_ASSERT(settingCoupAlg.outputs[0].index == 1);
         }
@@ -215,10 +236,13 @@ public:
             CPPUNIT_ASSERT(settingExtrapolator.type == EMPIRE_LinearExtrapolator);
             CPPUNIT_ASSERT(settingExtrapolator.name == "extrapolate displacement");
             CPPUNIT_ASSERT(settingExtrapolator.connectionIOs.size() == 1);
-            CPPUNIT_ASSERT(settingExtrapolator.connectionIOs[0].type == EMPIRE_ConnectionIO_DataField);
-            CPPUNIT_ASSERT(settingExtrapolator.connectionIOs[0].dataFieldRef.clientCodeName == "meshClientA");
+            CPPUNIT_ASSERT(
+                    settingExtrapolator.connectionIOs[0].type == EMPIRE_ConnectionIO_DataField);
+            CPPUNIT_ASSERT(
+                    settingExtrapolator.connectionIOs[0].dataFieldRef.clientCodeName == "meshClientA");
             CPPUNIT_ASSERT(settingExtrapolator.connectionIOs[0].dataFieldRef.meshName == "myMesh");
-            CPPUNIT_ASSERT(settingExtrapolator.connectionIOs[0].dataFieldRef.dataFieldName == "displacements");
+            CPPUNIT_ASSERT(
+                    settingExtrapolator.connectionIOs[0].dataFieldRef.dataFieldName == "displacements");
         }
         { // check block connections
             CPPUNIT_ASSERT(settingConnectionVec.size() == 3);
@@ -346,60 +370,79 @@ public:
                 }
             }
         }
-        // check block coSimulation
-        CPPUNIT_ASSERT(settingCouplingLogic.type == EMPIRE_CouplingLogicSequence);
+        { // check block coSimulation
+            CPPUNIT_ASSERT(settingCouplingLogic.type == EMPIRE_CouplingLogicSequence);
 
-        CPPUNIT_ASSERT(settingCouplingLogic.sequence.size() == 1);
-        structCouplingLogic settingTSL = settingCouplingLogic.sequence[0];
-        CPPUNIT_ASSERT(settingTSL.type == EMPIRE_TimeStepLoop);
-        CPPUNIT_ASSERT(settingTSL.timeStepLoop.numTimeSteps == 5);
-        //CPPUNIT_ASSERT(settingTSL.timeStepLoop.extrapolatorRefs.size() == 1);
-        //CPPUNIT_ASSERT(settingTSL.timeStepLoop.extrapolatorRefs[0] == "transfer displacements");
+            CPPUNIT_ASSERT(settingCouplingLogic.sequence.size() == 1);
+            structCouplingLogic settingOptLoop = settingCouplingLogic.sequence[0];
+            { // optimization loop setting
+                CPPUNIT_ASSERT(settingOptLoop.type == EMPIRE_OptimizationLoop);
+                CPPUNIT_ASSERT(settingOptLoop.optimizationLoop.maxNumOfIterations == 5000);
+                CPPUNIT_ASSERT(
+                        settingOptLoop.optimizationLoop.convergenceSignalSender == "optimizer");
+                CPPUNIT_ASSERT(
+                        settingOptLoop.optimizationLoop.convergenceSignalReceivers.size() == 2);
+                CPPUNIT_ASSERT(
+                        settingOptLoop.optimizationLoop.convergenceSignalReceivers[0] == "meshClientA");
+                CPPUNIT_ASSERT(
+                        settingOptLoop.optimizationLoop.convergenceSignalReceivers[1] == "meshClientB");
+                CPPUNIT_ASSERT(settingOptLoop.sequence.size() == 1);
+            }
 
-        CPPUNIT_ASSERT(settingTSL.timeStepLoop.dataOutputRefs.size() == 1);
-        CPPUNIT_ASSERT(settingTSL.timeStepLoop.dataOutputRefs[0] == "timeStep");
-        CPPUNIT_ASSERT(settingTSL.timeStepLoop.extrapolatorRef.first);
-        CPPUNIT_ASSERT(settingTSL.timeStepLoop.extrapolatorRef.second == "extrapolate displacement");
-        CPPUNIT_ASSERT(settingTSL.sequence.size() == 1);
-        structCouplingLogic settingICL = settingTSL.sequence[0];
-        {
-            CPPUNIT_ASSERT(settingICL.type == EMPIRE_IterativeCouplingLoop);
-            CPPUNIT_ASSERT(
-                    settingICL.iterativeCouplingLoop.convergenceChecker.maxNumOfIterations==100);
-            CPPUNIT_ASSERT(
-                    settingICL.iterativeCouplingLoop.convergenceChecker.checkResiduals.size()==1);
-            CPPUNIT_ASSERT(
-                    settingICL.iterativeCouplingLoop.convergenceChecker.checkResiduals[0].absoluteTolerance==1e-5);
-            CPPUNIT_ASSERT(
-                    settingICL.iterativeCouplingLoop.convergenceChecker.checkResiduals[0].relativeTolerance==0.0);
-            CPPUNIT_ASSERT(
-                    settingICL.iterativeCouplingLoop.convergenceChecker.checkResiduals[0].residualRef.couplingAlgorithmName=="cr");
-            CPPUNIT_ASSERT(
-                    settingICL.iterativeCouplingLoop.convergenceChecker.checkResiduals[0].residualRef.index==1);
-            CPPUNIT_ASSERT(settingICL.iterativeCouplingLoop.convergenceObservers.size() == 2);
-            string stmp;
-            stmp = settingICL.iterativeCouplingLoop.convergenceObservers[0];
-            CPPUNIT_ASSERT(stmp == "meshClientA");
-            stmp = settingICL.iterativeCouplingLoop.convergenceObservers[1];
-            CPPUNIT_ASSERT(stmp == "meshClientB");
-            CPPUNIT_ASSERT(settingICL.iterativeCouplingLoop.couplingAlgorithmRef.first);
-            stmp = settingICL.iterativeCouplingLoop.couplingAlgorithmRef.second;
-            CPPUNIT_ASSERT(stmp == "cr");
-            CPPUNIT_ASSERT(settingICL.iterativeCouplingLoop.dataOutputRefs.size() == 1);
-            stmp = settingICL.iterativeCouplingLoop.dataOutputRefs[0];
-            CPPUNIT_ASSERT(stmp == "iterativeCoupling");
-            CPPUNIT_ASSERT(settingICL.sequence.size() == 3);
-            CPPUNIT_ASSERT(settingICL.sequence[0].type == EMPIRE_connection);
-            stmp = settingICL.sequence[0].connectionRef.connectionName;
-            CPPUNIT_ASSERT(stmp == "transfer displacements");
-            CPPUNIT_ASSERT(settingICL.sequence[1].type == EMPIRE_connection);
-            stmp = settingICL.sequence[1].connectionRef.connectionName;
-            CPPUNIT_ASSERT(stmp == "transfer forces");
-            CPPUNIT_ASSERT(settingICL.sequence[2].type == EMPIRE_connection);
-            stmp = settingICL.sequence[2].connectionRef.connectionName;
-            CPPUNIT_ASSERT(stmp == "transfer signal");
+            structCouplingLogic settingTSL = settingOptLoop.sequence[0];
+            { // time step loop
+                CPPUNIT_ASSERT(settingTSL.type == EMPIRE_TimeStepLoop);
+                CPPUNIT_ASSERT(settingTSL.timeStepLoop.numTimeSteps == 5);
+                //CPPUNIT_ASSERT(settingTSL.timeStepLoop.extrapolatorRefs.size() == 1);
+                //CPPUNIT_ASSERT(settingTSL.timeStepLoop.extrapolatorRefs[0] == "transfer displacements");
+
+                CPPUNIT_ASSERT(settingTSL.timeStepLoop.dataOutputRefs.size() == 1);
+                CPPUNIT_ASSERT(settingTSL.timeStepLoop.dataOutputRefs[0] == "timeStep");
+                CPPUNIT_ASSERT(settingTSL.timeStepLoop.extrapolatorRef.first);
+                CPPUNIT_ASSERT(
+                        settingTSL.timeStepLoop.extrapolatorRef.second == "extrapolate displacement");
+                CPPUNIT_ASSERT(settingTSL.sequence.size() == 1);
+            }
+
+            structCouplingLogic settingICL = settingTSL.sequence[0];
+            { // iterative coupling loop
+                CPPUNIT_ASSERT(settingICL.type == EMPIRE_IterativeCouplingLoop);
+                CPPUNIT_ASSERT(
+                        settingICL.iterativeCouplingLoop.convergenceChecker.maxNumOfIterations==100);
+                CPPUNIT_ASSERT(
+                        settingICL.iterativeCouplingLoop.convergenceChecker.checkResiduals.size()==1);
+                CPPUNIT_ASSERT(
+                        settingICL.iterativeCouplingLoop.convergenceChecker.checkResiduals[0].absoluteTolerance==1e-5);
+                CPPUNIT_ASSERT(
+                        settingICL.iterativeCouplingLoop.convergenceChecker.checkResiduals[0].relativeTolerance==0.0);
+                CPPUNIT_ASSERT(
+                        settingICL.iterativeCouplingLoop.convergenceChecker.checkResiduals[0].residualRef.couplingAlgorithmName=="cr");
+                CPPUNIT_ASSERT(
+                        settingICL.iterativeCouplingLoop.convergenceChecker.checkResiduals[0].residualRef.index==1);
+                CPPUNIT_ASSERT(settingICL.iterativeCouplingLoop.convergenceObservers.size() == 2);
+                string stmp;
+                stmp = settingICL.iterativeCouplingLoop.convergenceObservers[0];
+                CPPUNIT_ASSERT(stmp == "meshClientA");
+                stmp = settingICL.iterativeCouplingLoop.convergenceObservers[1];
+                CPPUNIT_ASSERT(stmp == "meshClientB");
+                CPPUNIT_ASSERT(settingICL.iterativeCouplingLoop.couplingAlgorithmRef.first);
+                stmp = settingICL.iterativeCouplingLoop.couplingAlgorithmRef.second;
+                CPPUNIT_ASSERT(stmp == "cr");
+                CPPUNIT_ASSERT(settingICL.iterativeCouplingLoop.dataOutputRefs.size() == 1);
+                stmp = settingICL.iterativeCouplingLoop.dataOutputRefs[0];
+                CPPUNIT_ASSERT(stmp == "iterativeCoupling");
+                CPPUNIT_ASSERT(settingICL.sequence.size() == 3);
+                CPPUNIT_ASSERT(settingICL.sequence[0].type == EMPIRE_connection);
+                stmp = settingICL.sequence[0].connectionRef.connectionName;
+                CPPUNIT_ASSERT(stmp == "transfer displacements");
+                CPPUNIT_ASSERT(settingICL.sequence[1].type == EMPIRE_connection);
+                stmp = settingICL.sequence[1].connectionRef.connectionName;
+                CPPUNIT_ASSERT(stmp == "transfer forces");
+                CPPUNIT_ASSERT(settingICL.sequence[2].type == EMPIRE_connection);
+                stmp = settingICL.sequence[2].connectionRef.connectionName;
+                CPPUNIT_ASSERT(stmp == "transfer signal");
+            }
         }
-
         // block general
         CPPUNIT_ASSERT(MetaDatabase::getSingleton()->verbosity == "DeBuG");
         /// Test CompareStringInsensitive
