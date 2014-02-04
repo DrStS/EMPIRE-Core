@@ -112,8 +112,10 @@ void Empire::recvSignal_double(char *name, int sizeOfArray, double *signal) {
     char nameRecv[EMPIRE_API_NAME_STRING_LENGTH];
     ClientCommunication::getSingleton()->receiveFromServerBlocking<char>(
             EMPIRE_API_NAME_STRING_LENGTH, nameRecv);
-    if (strcmp(name, nameRecv) != 0)
+    if (strcmp(name, nameRecv) != 0) {
+        cout << "Error: signal names are not matching: " << name << " and, " <<  nameRecv << endl;
         assert(false);
+    }
     int sizeOfArrayRecv = 0;
     ClientCommunication::getSingleton()->receiveFromServerBlocking<int>(1, &sizeOfArrayRecv);
     assert(sizeOfArray == sizeOfArrayRecv);
