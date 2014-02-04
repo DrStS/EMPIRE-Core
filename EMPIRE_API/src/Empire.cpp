@@ -122,6 +122,10 @@ void Empire::recvSignal_double(char *name, int sizeOfArray, double *signal) {
     ClientCommunication::getSingleton()->receiveFromServerBlocking<double>(sizeOfArray, signal);
 }
 
+void Empire::sendConvergenceSignal(int signal) {
+    ClientCommunication::getSingleton()->sendToServerBlocking<int>(1, &signal);
+}
+
 int Empire::recvConvergenceSignal() {
     int signal;
     ClientCommunication::getSingleton()->receiveFromServerBlocking<int>(1, &signal);

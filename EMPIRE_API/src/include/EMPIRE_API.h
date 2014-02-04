@@ -128,10 +128,15 @@ void EMPIRE_API_sendSignal_double(char *name, int sizeOfArray, double *signal);
  ***********/
 void EMPIRE_API_recvSignal_double(char *name, int sizeOfArray, double *signal);
 /***********************************************************************************************
- * \brief Receive the convergence signal of an iterative coupling loop
+ * \brief Receive the convergence signal of an loop
  * \return 1 means convergence, 0 means non-convergence
  ***********/
 int EMPIRE_API_recvConvergenceSignal();
+/***********************************************************************************************
+ * \brief Send the convergence signal of an loop
+ * \param[in] signal 1 means convergence, 0 means non-convergence
+ ***********/
+void EMPIRE_API_sendConvergenceSignal(int signal);
 /***********************************************************************************************
  * \brief A simple debug function showing the content of the data field
  * \param[in] name name of the data field

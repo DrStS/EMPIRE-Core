@@ -79,6 +79,10 @@ int EMPIRE_API_recvConvergenceSignal() {
     return empire->recvConvergenceSignal();
 }
 
+void EMPIRE_API_sendConvergenceSignal(int signal) {
+    empire->sendConvergenceSignal(signal);
+}
+
 void EMPIRE_API_printDataField(char *name, int sizeOfArray, double *dataField) {
     empire->printDataField(name, sizeOfArray, dataField);
 }

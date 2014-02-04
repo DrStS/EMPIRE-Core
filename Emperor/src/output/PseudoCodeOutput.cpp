@@ -107,9 +107,32 @@ void PseudoCodeOutput::addCouplingLogicToServerCode(structCouplingLogic &setting
             for (int i = 0; i < settingCouplingLogic.sequence.size(); i++) {
                 addCouplingLogicToServerCode(settingCouplingLogic.sequence[i]);
             }
-            vector<structClientCode> &settingClientCodesVec = metaDatabase->settingClientCodeVec;
-            for (int i = 0; i < settingClientCodesVec.size(); i++) {
-                string clientCodeName = settingClientCodesVec[i].name;
+            vector<string> &convergenceObservers =
+                    settingCouplingLogic.iterativeCouplingLoop.convergenceObservers;
+            for (int i = 0; i < convergenceObservers.size(); i++) {
+                string clientCodeName = convergenceObservers[i];
+                outputStream << indents << "sendConvergenceSignalTo(" << clientCodeName
+                        << ", isConvergent" << ");" << endl;
+            }
+        }
+        decrementIndents();
+        outputStream << indents << "}" << endl;
+    } else if (settingCouplingLogic.type == EMPIRE_OptimizationLoop) {
+        outputStream << indents << "while (!isConvergent) { // optimization loop" << endl;
+        incrementIndents();
+        {
+            for (int i = 0; i < settingCouplingLogic.sequence.size(); i++) {
+                addCouplingLogicToServerCode(settingCouplingLogic.sequence[i]);
+            }
+            string &convergenceSignalSender =
+                    settingCouplingLogic.optimizationLoop.convergenceSignalSender;
+            outputStream << indents << "receiveConvergenceSignalFrom("
+                    << convergenceSignalSender << ", isConvergent" << ");" << endl;
+
+            vector<string> &convergenceSignalReceivers =
+                    settingCouplingLogic.optimizationLoop.convergenceSignalReceivers;
+            for (int i = 0; i < convergenceSignalReceivers.size(); i++) {
+                string clientCodeName = convergenceSignalReceivers[i];
                 outputStream << indents << "sendConvergenceSignalTo(" << clientCodeName
                         << ", isConvergent" << ");" << endl;
             }
@@ -221,9 +244,38 @@ void PseudoCodeOutput::addCouplingLogicToClientCode(std::string clientCodeName,
                 for (int i = 0; i < settingCouplingLogic.sequence.size(); i++) {
                     addCouplingLogicToClientCode(clientCodeName, settingCouplingLogic.sequence[i]);
                 }
-
-                outputStream << indents << "isConvergent = receiveConvergenceSignalFromServer();"
-                        << endl;
+                vector<string> &convergenceObservers =
+                        settingCouplingLogic.iterativeCouplingLoop.convergenceObservers;
+                for (int i = 0; i < convergenceObservers.size(); i++) {
+                    if (clientCodeName == convergenceObservers[i]) {
+                        outputStream << indents
+                                << "isConvergent = receiveConvergenceSignalFromServer();" << endl;
+                    }
+                }
+            }
+            decrementIndents();
+            outputStream << indents << "}" << endl;
+        } else if (settingCouplingLogic.type == EMPIRE_OptimizationLoop) {
+            outputStream << indents << "while (!isConvergent) { // optimization loop" << endl;
+            incrementIndents();
+            {
+                for (int i = 0; i < settingCouplingLogic.sequence.size(); i++) {
+                    addCouplingLogicToClientCode(clientCodeName, settingCouplingLogic.sequence[i]);
+                }
+                vector<string> &convergenceSignalReceivers =
+                        settingCouplingLogic.optimizationLoop.convergenceSignalReceivers;
+                for (int i = 0; i < convergenceSignalReceivers.size(); i++) {
+                    if (clientCodeName == convergenceSignalReceivers[i]) {
+                        outputStream << indents
+                                << "isConvergent = receiveConvergenceSignalFromServer();" << endl;
+                    }
+                }
+                string convergenceSignalSender =
+                        settingCouplingLogic.optimizationLoop.convergenceSignalSender;
+                if (clientCodeName == convergenceSignalSender) {
+                    outputStream << indents
+                            << "sendConvergenceSignalToServer(isConvergent);" << endl;
+                }
             }
             decrementIndents();
             outputStream << indents << "}" << endl;
