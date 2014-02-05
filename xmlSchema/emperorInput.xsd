@@ -39,6 +39,7 @@
 			<enumeration value="timeStepLoop"></enumeration>
 			<enumeration value="iterativeCouplingLoop"></enumeration>
 			<enumeration value="connection"></enumeration>
+			<enumeration value="optimizationLoop"></enumeration>
 		</restriction>
 	</simpleType>
 
@@ -102,17 +103,19 @@
 	<complexType name="couplingLogicType">
 		<sequence>
 			<choice>
-				<element name="timeStepLoop" maxOccurs="1" minOccurs="0">
+				<element name="timeStepLoop" maxOccurs="1"
+					minOccurs="0">
 					<complexType>
 						<sequence>
-							<element ref="tns:extrapolatorRef" maxOccurs="1"
-								minOccurs="0">
+							<element ref="tns:extrapolatorRef"
+								maxOccurs="1" minOccurs="0">
 							</element>
-							<element ref="tns:dataOutputRef" maxOccurs="unbounded"
-								minOccurs="0">
+							<element ref="tns:dataOutputRef"
+								maxOccurs="unbounded" minOccurs="0">
 							</element>
 						</sequence>
-						<attribute name="numTimeSteps" type="int" use="required">
+						<attribute name="numTimeSteps" type="int"
+							use="required">
 						</attribute>
 					</complexType>
 				</element>
@@ -120,53 +123,83 @@
 					minOccurs="0">
 					<complexType>
 						<sequence>
-							<element name="convergenceChecker" maxOccurs="1"
-								minOccurs="1">
+							<element name="convergenceChecker"
+								maxOccurs="1" minOccurs="1">
 								<complexType>
 									<sequence>
-										<element name="checkResidual" maxOccurs="unbounded"
-											minOccurs="0">
+										<element name="checkResidual"
+											maxOccurs="unbounded" minOccurs="0">
 											<complexType>
 												<sequence>
-													<element ref="tns:residualRef">
+													<element
+														ref="tns:residualRef">
 													</element>
 												</sequence>
-												<attribute name="relativeTolerance" type="double"
-													use="required">
+												<attribute
+													name="relativeTolerance" type="double" use="required">
 												</attribute>
-												<attribute name="absoluteTolerance" type="double"
-													use="required">
+												<attribute
+													name="absoluteTolerance" type="double" use="required">
 												</attribute>
 											</complexType>
 										</element>
 									</sequence>
-                                    
-									<attribute name="maxNumOfIterations" type="double"
-										use="optional">
+
+									<attribute name="maxNumOfIterations"
+										type="double" use="optional">
 									</attribute>
 								</complexType>
 							</element>
-							<element name="convergenceObserver" maxOccurs="unbounded"
-								minOccurs="1">
+							<element name="convergenceObserver"
+								maxOccurs="unbounded" minOccurs="1">
 								<complexType>
 									<sequence>
-										<element ref="tns:clientCodeRef" maxOccurs="unbounded"
-											minOccurs="1">
+										<element ref="tns:clientCodeRef"
+											maxOccurs="unbounded" minOccurs="1">
 										</element>
 									</sequence>
 								</complexType>
 							</element>
-							<element ref="tns:couplingAlgorithmRef" maxOccurs="unbounded"
-								minOccurs="0">
+							<element ref="tns:couplingAlgorithmRef"
+								maxOccurs="unbounded" minOccurs="0">
 							</element>
-							<element ref="tns:dataOutputRef" maxOccurs="unbounded"
-								minOccurs="0">
+							<element ref="tns:dataOutputRef"
+								maxOccurs="unbounded" minOccurs="0">
 							</element>
 						</sequence>
 					</complexType>
 				</element>
-				<element ref="tns:connectionRef" maxOccurs="1" minOccurs="0">
+				<element ref="tns:connectionRef" maxOccurs="1"
+					minOccurs="0">
 				</element>
+				<element name="optimizationLoop" maxOccurs="1" minOccurs="0">
+					<complexType>
+						<sequence>
+							<element name="convergenceSignalSender">
+								<complexType>
+									<sequence>
+										<element
+											ref="tns:clientCodeRef">
+										</element>
+									</sequence>
+								</complexType>
+							</element>
+							<element name="convergenceSignalReceiver"
+								minOccurs="0" maxOccurs="unbounded">
+								<complexType>
+									<sequence>
+										<element
+											ref="tns:clientCodeRef">
+										</element>
+									</sequence>
+								</complexType>
+							</element>
+							<element ref="tns:dataOutputRef" minOccurs="0" maxOccurs="unbounded"></element>
+						</sequence>
+						<attribute name="maxNumOfIterations"
+							type="string" use="required">
+						</attribute>
+					</complexType></element>
 			</choice>
 			<element name="sequence" maxOccurs="1" minOccurs="0">
 				<complexType>
