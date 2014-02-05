@@ -592,7 +592,7 @@ void parseCouplingLogicBlock(ticpp::Iterator<Element> &xmlCouplingLogicIn,
             for (xmlDataOutputRef = xmlDataOutputRef.begin(xmlOptimizationLoop);
                     xmlDataOutputRef != xmlDataOutputRef.end(); xmlDataOutputRef++) {
                 string dataOutputName = xmlDataOutputRef->GetAttribute<string>("dataOutputName");
-                couplingLogicIn.iterativeCouplingLoop.dataOutputRefs.push_back(dataOutputName);
+                couplingLogicIn.optimizationLoop.dataOutputRefs.push_back(dataOutputName);
             }
         }
     } else {

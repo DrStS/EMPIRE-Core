@@ -27,7 +27,7 @@
 	
 	
 	
-	<dataOutput name="timeStep" interval="5">
+	<dataOutput name="dataOutput1" interval="5">
 		<dataFieldRef clientCodeName="meshClientA" meshName="myMesh"
 			dataFieldName="displacements" />
 		<dataFieldRef clientCodeName="meshClientB" meshName="myMesh"
@@ -35,7 +35,7 @@
 		<signalRef clientCodeName="meshClientA" signalName="signal" />
 		<signalRef clientCodeName="meshClientB" signalName="signal" />
 	</dataOutput>
-	<dataOutput name="iterativeCoupling" interval="1">
+	<dataOutput name="dataOutput2" interval="1">
 		<dataFieldRef clientCodeName="meshClientA" meshName="myMesh"
 			dataFieldName="displacements" />
 		<dataFieldRef clientCodeName="meshClientB" meshName="myMesh"
@@ -197,11 +197,12 @@
 					<convergenceSignalReceiver>
 						<clientCodeRef clientCodeName="meshClientB" />
 					</convergenceSignalReceiver>
+					<dataOutputRef dataOutputName="dataOutput1" />
 				</optimizationLoop>
 				<sequence>
 					<couplingLogic type="timeStepLoop">
 						<timeStepLoop numTimeSteps="5">
-							<dataOutputRef dataOutputName="timeStep" />
+							<dataOutputRef dataOutputName="dataOutput1" />
 							<extrapolatorRef extrapolatorName="extrapolate displacement" />
 						</timeStepLoop>
 						<sequence>
@@ -221,7 +222,7 @@
 									</convergenceObserver>
 									<couplingAlgorithmRef
 										couplingAlgorithmName="cr" />
-									<dataOutputRef dataOutputName="iterativeCoupling" />
+									<dataOutputRef dataOutputName="dataOutput2" />
 								</iterativeCouplingLoop>
 								<sequence>
 									<couplingLogic type="connection">

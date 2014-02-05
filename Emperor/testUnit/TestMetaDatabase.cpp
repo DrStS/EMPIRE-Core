@@ -118,7 +118,7 @@ public:
             CPPUNIT_ASSERT(settingDataOutputVec.size()==2);
             { // the 1st dataOutput
                 structDataOutput dataOutput = settingDataOutputVec[0];
-                CPPUNIT_ASSERT(dataOutput.name=="timeStep");
+                CPPUNIT_ASSERT(dataOutput.name=="dataOutput1");
                 CPPUNIT_ASSERT(dataOutput.interval==5);
                 CPPUNIT_ASSERT(dataOutput.connectionIOs.size()==4);
                 CPPUNIT_ASSERT(dataOutput.connectionIOs[0].type==EMPIRE_ConnectionIO_DataField);
@@ -141,7 +141,7 @@ public:
             }
             { // the 2nd dataOutput
                 structDataOutput dataOutput = settingDataOutputVec[1];
-                CPPUNIT_ASSERT(dataOutput.name=="iterativeCoupling");
+                CPPUNIT_ASSERT(dataOutput.name=="dataOutput2");
                 CPPUNIT_ASSERT(dataOutput.interval==1);
                 CPPUNIT_ASSERT(dataOutput.connectionIOs.size()==4);
                 CPPUNIT_ASSERT(dataOutput.connectionIOs[0].type==EMPIRE_ConnectionIO_DataField);
@@ -387,6 +387,10 @@ public:
                 CPPUNIT_ASSERT(
                         settingOptLoop.optimizationLoop.convergenceSignalReceivers[1] == "meshClientB");
                 CPPUNIT_ASSERT(settingOptLoop.sequence.size() == 1);
+                CPPUNIT_ASSERT(
+                        settingOptLoop.optimizationLoop.dataOutputRefs.size() == 1);
+                CPPUNIT_ASSERT(
+                        settingOptLoop.optimizationLoop.dataOutputRefs[0] == "dataOutput1");
             }
 
             structCouplingLogic settingTSL = settingOptLoop.sequence[0];
@@ -397,7 +401,7 @@ public:
                 //CPPUNIT_ASSERT(settingTSL.timeStepLoop.extrapolatorRefs[0] == "transfer displacements");
 
                 CPPUNIT_ASSERT(settingTSL.timeStepLoop.dataOutputRefs.size() == 1);
-                CPPUNIT_ASSERT(settingTSL.timeStepLoop.dataOutputRefs[0] == "timeStep");
+                CPPUNIT_ASSERT(settingTSL.timeStepLoop.dataOutputRefs[0] == "dataOutput1");
                 CPPUNIT_ASSERT(settingTSL.timeStepLoop.extrapolatorRef.first);
                 CPPUNIT_ASSERT(
                         settingTSL.timeStepLoop.extrapolatorRef.second == "extrapolate displacement");
@@ -430,7 +434,7 @@ public:
                 CPPUNIT_ASSERT(stmp == "cr");
                 CPPUNIT_ASSERT(settingICL.iterativeCouplingLoop.dataOutputRefs.size() == 1);
                 stmp = settingICL.iterativeCouplingLoop.dataOutputRefs[0];
-                CPPUNIT_ASSERT(stmp == "iterativeCoupling");
+                CPPUNIT_ASSERT(stmp == "dataOutput2");
                 CPPUNIT_ASSERT(settingICL.sequence.size() == 3);
                 CPPUNIT_ASSERT(settingICL.sequence[0].type == EMPIRE_connection);
                 stmp = settingICL.sequence[0].connectionRef.connectionName;
