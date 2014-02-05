@@ -42,8 +42,11 @@ TimeStepLoop::~TimeStepLoop() {
 
 void TimeStepLoop::doCoupling() {
     // initialize output files
+    outputCounter++;
+    stringstream rearPart;
+    rearPart << "_" << outputCounter;
     for (int i = 0; i < dataOutputVec.size(); i++)
-        dataOutputVec[i]->init("");
+        dataOutputVec[i]->init(rearPart.str());
 
     for (int timeStep = 1; timeStep <= numTimeSteps; timeStep++) {
         // output to shell

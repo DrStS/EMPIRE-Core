@@ -20,6 +20,10 @@ OptimizationLoop::~OptimizationLoop() {
 }
 
 void OptimizationLoop::doCoupling() {
+    // initialize output files
+    for (int i = 0; i < dataOutputVec.size(); i++)
+        dataOutputVec[i]->init("");
+
     while (true) {
         currentNumOfIterations++;
         if (currentNumOfIterations == maxNumOfIterations) {

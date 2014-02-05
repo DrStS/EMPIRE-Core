@@ -60,7 +60,7 @@ void IterativeCouplingLoop::doCoupling() {
     // initialize output files
     outputCounter++;
     stringstream rearPart;
-    rearPart << outputCounter;
+    rearPart << "_" << outputCounter;
     for (int i = 0; i < dataOutputVec.size(); i++)
         dataOutputVec[i]->init(rearPart.str());
 

@@ -68,7 +68,8 @@ private:
     int numTimeSteps;
     /// Extrapolator
     AbstractExtrapolator *extrapolator;
-
+    /// output counter
+    int outputCounter;
     /// the unit test classes
     friend class TestLoops;
     friend class TestEmperor;
