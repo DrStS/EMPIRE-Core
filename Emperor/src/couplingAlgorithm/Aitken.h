@@ -31,7 +31,7 @@
 
 namespace EMPIRE {
 /********//**
- * \brief Class ConstantRelaxation does a constant relaxation
+ * \brief Class Aitken does a dynamic relaxation
  ***********/
 class Aitken: public AbstractCouplingAlgorithm {
 public:
