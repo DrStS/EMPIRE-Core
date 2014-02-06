@@ -20,12 +20,14 @@
  */
 #include <iostream>
 #include <assert.h>
+#include <time.h>
 
 #include "Connection.h"
 #include "ClientCode.h"
 #include "DataField.h"
 #include "AbstractFilter.h"
 #include "ConnectionIO.h"
+#include "Message.h"
 
 using namespace std;
 
@@ -48,12 +50,24 @@ void Connection::doCoupling() {
 }
 
 void Connection::transferData() {
+    // Start time stamps
+    time_t timeStart, timeEnd;
+    stringstream timeMessage;
+
+
     for (unsigned i = 0; i < inputVec.size(); i++)
         inputVec[i]->receive();
-    for (unsigned i = 0; i < filterVec.size(); i++)
+    time(&timeStart);
+    for (unsigned i = 0; i < filterVec.size(); i++){
         filterVec[i]->filtering();
+    }
+    time(&timeEnd);
+    timeMessage << "It took " << difftime(timeEnd, timeStart) << " seconds for filtering";
+    INDENT_OUT(1, timeMessage.str(), infoOut);
+    timeMessage.str("");
     for (unsigned i = 0; i < outputVec.size(); i++)
         outputVec[i]->send();
+
 }
 
 void Connection::addInput(ConnectionIO *input) {
