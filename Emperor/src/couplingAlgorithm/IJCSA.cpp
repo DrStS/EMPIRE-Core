@@ -18,89 +18,114 @@
  *  You should have received a copy of the GNU General Public License
  *  along with EMPIRE.  If not, see http://www.gnu.org/licenses/.
  */
-#include "IJCSA.h"
-#include "DataField.h"
-#include "ConnectionIO.h"
-#include "Signal.h"
-#include "Residual.h"
-#include "MathLibrary.h"
 
 #include <assert.h>
 #include <math.h>
 #include <sstream>
 #include <string.h>
 
+
+#include "IJCSA.h"
+#include "DataField.h"
+#include "ConnectionIO.h"
+#include "Signal.h"
+#include "Residual.h"
+#include "AbstractCouplingAlgorithm.h"
+#include "MathLibrary.h"
+
+
+
 using namespace std;
 
 namespace EMPIRE {
 
 IJCSA::IJCSA(std::string _name) :
-        AbstractCouplingAlgorithm(_name) {
-    debugMe = false;
-    globalResidual = NULL;
-    tmpVec = NULL;
+				AbstractCouplingAlgorithm(_name) {
+	debugMe = false;
+	globalResidual = NULL;
+	correctorVec = NULL;
 }
 
 IJCSA::~IJCSA() {
-    delete[] globalResidual;
-    delete[] tmpVec;
+	delete[] globalResidual;
+	delete[] correctorVec;
+	(*interfaceJacGlobal).cleanPardiso();
 }
 
 void IJCSA::calcNewValue() {
-    /// compute the current residuals
-    for (map<int, Residual*>::iterator it = residuals.begin(); it != residuals.end(); it++) {
-        it->second->computeCurrentResidual();
-    }
-    /// assemble global residual vector
-    int oldSize =0;
-    for (map<int, Residual*>::iterator it = residuals.begin(); it != residuals.end(); it++) {
-        Residual *residual = it->second;
-    	for (int i=0; i<it->second->size; i++) {
-    		globalResidual[i+oldSize]=residual->residualVector[i];
-    	}
-    	oldSize+=it->second->size;;
-    }
-    /// compute Aitken update
 
-    /// apply the new output
-    assert(outputs.size() == residuals.size());
-    for (map<int, Residual*>::iterator it = residuals.begin(); it != residuals.end(); it++) {
-        Residual *residual = it->second;
-        assert(outputs.find(it->first) != outputs.end());
-        CouplingAlgorithmOutput *output = outputs.find(it->first)->second;
-        assert(residual->size == output->size);
-        double *newOuput = new double[residual->size];
-        // U_i_n+1 = U_i_n + alpha R_i_n
-        for (int i=0; i<residual->size; i++) {
-            newOuput[i] = output->outputCopyAtIterationBeginning[i]+ 0.1*residual->residualVector[i] ;
-        }
-        output->overwrite(newOuput);
-        delete[] newOuput;
-    }
+	/// compute the current residuals
+	for (map<int, Residual*>::iterator it = residuals.begin();
+			it != residuals.end(); it++) {
+		it->second->computeCurrentResidual();
+	}
+	/// assemble global residual vector
+	int oldSize = 0;
+	for (map<int, Residual*>::iterator it = residuals.begin();
+			it != residuals.end(); it++) {
+		Residual *residual = it->second;
+		for (int i = 0; i < it->second->size; i++) {
+			globalResidual[i + oldSize] = residual->residualVector[i];
+		}
+		oldSize += it->second->size;
+	}
+	/// get updated values for interface Jacobian
+	assembleInterfaceJSystem();
+	/// compute IJCSA update
+	//(*interfaceJacGlobal).print();
+	(*interfaceJacGlobal).factorize();
+	(*interfaceJacGlobal).solve(correctorVec,globalResidual);
+	/// tmpVec holds -corrector_global
 
-    /// save old values
-    //MathLibrary::copyDenseVector(globalResidualOld,globalResidual,globalResidualSize);
+	/// apply the new output
+	assert(outputs.size() == residuals.size());
+	int oldResidualSize=0;
+	for (map<int, Residual*>::iterator it = residuals.begin();
+			it != residuals.end(); it++) {
+		Residual *residual = it->second;
+		assert(outputs.find(it->first) != outputs.end());
+		CouplingAlgorithmOutput *output = outputs.find(it->first)->second;
+		assert(residual->size == output->size);
+		double *newOuput = new double[residual->size];
+		// U_i_n+1 = U_i_n + alpha R_i_n
+		for (int i = 0; i < residual->size; i++) {
+			newOuput[i] = output->outputCopyAtIterationBeginning[i]
+			                                                     - correctorVec[i+oldResidualSize];
+		}
+		oldResidualSize=residual->size;
+		output->overwrite(newOuput);
+		delete[] newOuput;
+	}
 
 }
 
 void IJCSA::assembleInterfaceJSystem() {
-	/// tmpVec holds now globalResidualOld - globalResidual
-    stringstream toOutput;
-    toOutput << scientific;
-    toOutput << "Aitken relaxation factor: ";
-    INDENT_OUT(1, toOutput.str(), infoOut);
-    cout.unsetf(ios_base::floatfield);
+
 }
 
-
 void IJCSA::init() {
-    // determine global residual vector size
-    globalResidualSize =0;
-    for (map<int, Residual*>::iterator it = residuals.begin(); it != residuals.end(); it++) {
-    	globalResidualSize +=it->second->size;
-    }
-    globalResidual    = new double [globalResidualSize];
-    tmpVec            = new double [globalResidualSize];
+	// determine global residual vector size
+	globalResidualSize = 0;
+	for (map<int, Residual*>::iterator it = residuals.begin();
+			it != residuals.end(); it++) {
+		globalResidualSize += it->second->size;
+	}
+	globalResidual = new double[globalResidualSize];
+	correctorVec   = new double[globalResidualSize];
+	interfaceJacGlobal = new MathLibrary::SparseMatrix<double>(
+			globalResidualSize, false);
+
+	for(int i=0;i<interfaceJacobianEntrys.size();i++){
+		(*interfaceJacGlobal)(interfaceJacobianEntrys[i].indexRow-1,
+				interfaceJacobianEntrys[i].indexColumn-1)=interfaceJacobianEntrys[i].value;
+	}
+}
+
+void IJCSA::addInterfaceJacobianEntry(unsigned int _indexRow,
+		unsigned int _indexColumn, double _value) {
+	interfaceJacobianEntry tmp ={_indexRow,_indexColumn,NULL,_value,false};
+	interfaceJacobianEntrys.push_back(tmp);
+
 }
 
 } /* namespace EMPIRE */

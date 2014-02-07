@@ -322,7 +322,6 @@ void Emperor::initCouplingAlgorithms() {
 		} else if (settingCouplingAlgorithm.type == EMPIRE_IJCSA) {
 			couplingAlgorithm = new IJCSA(name);
 			// add interfaceJacobianConsts
-cout << "SERVUS"<<endl;
 			for (int j = 0; j < settingCouplingAlgorithm.interfaceJacobianConsts.size(); j++) {
 				const structCouplingAlgorithm::structInterfaceJacobianConst &settingInterfaceJacobianConst=
 						settingCouplingAlgorithm.interfaceJacobianConsts[j];

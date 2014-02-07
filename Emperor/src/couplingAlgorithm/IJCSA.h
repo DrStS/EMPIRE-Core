@@ -27,9 +27,17 @@
 #ifndef IJCSA_H_
 #define IJCSA_H_
 
+#include <vector>
 #include "AbstractCouplingAlgorithm.h"
 
 namespace EMPIRE {
+
+namespace MathLibrary{
+template<typename T>
+class SparseMatrix;
+}
+
+class Signal;
 /********//**
  * \brief Class IJCSA does Interface-Jacobian based Co-Simulation
  ***********/
@@ -52,24 +60,52 @@ public:
      ***********/
     void calcNewValue();
     /***********************************************************************************************
-     * \brief Init aitken relaxation
+     * \brief Init IJCSA
      * \author Stefan Sicklinger
      ***********/
     void init();
+    /***********************************************************************************************
+     * \brief add value to interface Jacobian matrix
+     * \param[in] _indexRow    row index of value
+     * \param[in] _indexColumn column index of value
+     * \param[in] _value
+     * \author Stefan Sicklinger
+     ***********/
+    void addInterfaceJacobianEntry(unsigned int _indexRow, unsigned int _indexColumn, double _value);
+    /***********************************************************************************************
+     * \brief add value to interface Jacobian matrix
+     * \param[in] _indexRow    row index of value
+     * \param[in] _indexColumn column index of value
+     * \param[in] _jacobianSignal pointer to Singal
+     * \author Stefan Sicklinger
+     ***********/
+    void addInterfaceJacobianEntry(unsigned int _indexRow, unsigned int _indexColumn, Signal* _jacobianSignal);
 private:
     /***********************************************************************************************
      * \brief Assemble interface system
      * \author Stefan Sicklinger
      ***********/
     void assembleInterfaceJSystem();
+
+    struct interfaceJacobianEntry{
+    	unsigned int indexRow;
+    	unsigned int indexColumn;
+    	Signal * jacobianSignal;
+    	double value;
+    	bool isSignal;
+    };
+    /// vector of all entries of the global interface jacobian matrix
+    std::vector<interfaceJacobianEntry> interfaceJacobianEntrys;
     /// whether output numbers or not
     bool debugMe;
     /// size of global residual vector
     int globalResidualSize;
     /// current global residual vector
     double *globalResidual;
-    /// temp vector of size globalResidualSize
-    double *tmpVec;
+    /// global corrector vector
+    double *correctorVec;
+    /// global interface Jacobian matrix
+    MathLibrary::SparseMatrix<double> *interfaceJacGlobal;
     /// friend class in unit test
     friend class TestIJCSA;
 };

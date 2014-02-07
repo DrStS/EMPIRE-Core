@@ -325,9 +325,23 @@ void MetaDatabase::fillSettingCouplingAlgorithmVec() {
             coupAlg.aitken.initialRelaxationFactor = tmpDouble;
         } else if (xmlCoupAlg->GetAttribute<string>("type") == "constantRelaxation") {
             coupAlg.type = EMPIRE_ConstantRelaxation;
-            ticpp::Element *xmlAitken = xmlCoupAlg->FirstChildElement("constantRelaxation");
-            double tmpDouble = xmlAitken->GetAttribute<double>("relaxationFactor");
+            ticpp::Element *constantRelaxation = xmlCoupAlg->FirstChildElement("constantRelaxation");
+            double tmpDouble = constantRelaxation->GetAttribute<double>("relaxationFactor");
             coupAlg.constantRelaxation.relaxationFactor = tmpDouble;
+        } else if (xmlCoupAlg->GetAttribute<string>("type") == "IJCSA") {
+            { // interfaceJacobian
+                ticpp::Iterator<Element> xmlOutput("interfaceJacobian");
+                for (xmlOutput = xmlOutput.begin(xmlCoupAlg.Get()); xmlOutput != xmlOutput.end();
+                        xmlOutput++) {
+                    structCouplingAlgorithm::structInterfaceJacobianConst interfaceJacobianConst;
+                    interfaceJacobianConst.indexRow    = xmlOutput->GetAttribute<unsigned int>("indexRow");
+                    interfaceJacobianConst.indexColumn = xmlOutput->GetAttribute<unsigned int>("indexColumn");
+                    ticpp::Element *constantValue = xmlOutput->FirstChildElement("constantValue");
+                    interfaceJacobianConst.value  = constantValue->GetAttribute<double>("value");
+                    coupAlg.interfaceJacobianConsts.push_back(interfaceJacobianConst);
+                }
+            }
+            coupAlg.type = EMPIRE_IJCSA;
         } else {
             assert(false);
         }

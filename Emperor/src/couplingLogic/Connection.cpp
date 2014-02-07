@@ -66,8 +66,9 @@ void Connection::transferData() {
     INDENT_OUT(1, timeMessage.str(), infoOut);
     timeMessage.str("");
     for (unsigned i = 0; i < outputVec.size(); i++)
+    {
         outputVec[i]->send();
-
+    }
 }
 
 void Connection::addInput(ConnectionIO *input) {
