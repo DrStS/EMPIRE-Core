@@ -29,8 +29,8 @@ fi
 	echo 'Setting toolchain ICC'
 ######################################################################################
 #Code metric
-export EMP_PATH=$EMPIRE_BASE_DIR/thirdparty/bin:$EMP_PATH
-EMPIRECodeMetric() { cloc-1.56.pl $EMPIRE_BASE_DIR/Emperor/src $EMPIRE_BASE_DIR/Emperor/test/ $EMPIRE_BASE_DIR/EMPIRE_API/src/; }
+export EMP_PATH=$EMPIRE_CORE_BASE_DIR/../EMPIRE-Libraries/bin:$EMP_PATH
+EMPIRECodeMetric() { cloc-1.60.pl $EMPIRE_CORE_BASE_DIR/Emperor/src $EMPIRE_CORE_BASE_DIR/Emperor/testUnit/ $EMPIRE_CORE_BASE_DIR/Emperor/testMapper/ $EMPIRE_CORE_BASE_DIR/EMPIRE_API/src/; }
 ######################################################################################
 export PATH=$EMP_PATH:$PATH
 export LD_LIBRARY_PATH=$EMPIRE_LD_LIBRARY_PATH:$LD_LIBRARY_PATH
