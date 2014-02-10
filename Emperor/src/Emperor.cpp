@@ -482,6 +482,7 @@ AbstractCouplingLogic *Emperor::parseStructCouplingLogic(
 			for (int i = 0; i < settingConvgChecker.checkResiduals.size(); i++) {
 				structCouplingLogic::structIterativeCouplingLoop::structConvergenceChecker::structCheckResidual & settingCheckResidual =
 						settingConvgChecker.checkResiduals[i];
+				assert(nameToCouplingAlgorithmMap.find(settingCheckResidual.residualRef.couplingAlgorithmName) != nameToCouplingAlgorithmMap.end());
 				AbstractCouplingAlgorithm *coupAlgRef =
 						nameToCouplingAlgorithmMap[settingCheckResidual.residualRef.couplingAlgorithmName];
 				checker->addCheckResidual(settingCheckResidual.absoluteTolerance,
