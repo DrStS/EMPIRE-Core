@@ -77,7 +77,7 @@ void CopyFilter::filtering() {
             for (int i = 0; i < sizeIn; i++){
                 outSignal->array[i+signalOffset] = inSignal->array[i];
                 DEBUG_OUT() << std::endl;
-                DEBUG_OUT() << "Copy from "<< inSignal->name <<"[" << i << "]"<< " to " << outSignal->name <<"[" << i+signalOffset << "]"<<" value: "<<outSignal->array[i]<<std::endl;
+                DEBUG_OUT() << "Copy from "<< inSignal->name <<"[" << i << "]"<< " to " << outSignal->name <<"[" << i+signalOffset << "]"<<" value: "<<outSignal->array[i+signalOffset]<<std::endl;
                 DEBUG_OUT() << std::endl;
             }
         }
