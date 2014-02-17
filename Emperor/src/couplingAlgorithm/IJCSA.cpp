@@ -29,6 +29,7 @@
 #include "DataField.h"
 #include "ConnectionIO.h"
 #include "Signal.h"
+#include "Message.h"
 #include "Residual.h"
 #include "AbstractCouplingAlgorithm.h"
 #include "MathLibrary.h"
@@ -76,7 +77,12 @@ void IJCSA::calcNewValue() {
 	(*interfaceJacGlobal).factorize();
 	(*interfaceJacGlobal).solve(correctorVec,globalResidual);
 	/// tmpVec holds -corrector_global
-
+    DEBUG_OUT() << std::endl;
+    DEBUG_OUT() << "Corrector is:"<<std::endl;
+	for (int i=0;i<globalResidualSize; i++) {
+		DEBUG_OUT() << correctorVec[i] << std::endl;
+	}
+    DEBUG_OUT() << std::endl;
 	/// apply the new output
 	assert(outputs.size() == residuals.size());
 	int oldResidualSize=0;
