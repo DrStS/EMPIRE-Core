@@ -75,7 +75,7 @@ void IJCSA::calcNewValue() {
 	assembleInterfaceJacobian();
 
 	/// compute IJCSA update
-	(*interfaceJacGlobal).print();
+	//(*interfaceJacGlobal).print();
 	(*interfaceJacGlobal).factorize();
 	(*interfaceJacGlobal).solve(correctorVec,globalResidual);
 	(*interfaceJacGlobal).resetPardiso();
