@@ -33,9 +33,9 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     int numControlPoints = (int) mxGetPr(NUM_CONTROL_PTS_IN)[0]; // cast from double to int
 
     // global control points
-    assert(mxIsDouble(NUM_CONTROL_PTS_IN));
-    assert(mxGetNumberOfElements(NUM_CONTROL_PTS_IN) == numControlPoints*4);
-    double *globalControlPoints = mxGetPr(NUM_CONTROL_PTS_IN);
+    assert(mxIsDouble(CONTROL_PTS_IN));
+    assert(mxGetNumberOfElements(CONTROL_PTS_IN) == numControlPoints*4);
+    double *globalControlPoints = mxGetPr(CONTROL_PTS_IN);
 
     // IDs of control points
     assert(mxIsDouble(CONTROL_PTS_IDS_IN));
