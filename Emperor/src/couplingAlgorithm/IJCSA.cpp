@@ -1,4 +1,4 @@
- /*  Copyright &copy; 2013, TU Muenchen, Chair of Structural Analysis,
+/*  Copyright &copy; 2013, TU Muenchen, Chair of Structural Analysis,
  *  Stefan Sicklinger, Tianyang Wang, Munich
  *
  *  All rights reserved.
@@ -40,7 +40,7 @@ using namespace std;
 namespace EMPIRE {
 
 IJCSA::IJCSA(std::string _name) :
-				AbstractCouplingAlgorithm(_name) {
+						AbstractCouplingAlgorithm(_name) {
 	debugMe = false;
 	globalResidual = NULL;
 	correctorVec = NULL;
@@ -81,12 +81,12 @@ void IJCSA::calcNewValue() {
 	(*interfaceJacGlobal).resetPardiso();
 
 	/// tmpVec holds -corrector_global
-    DEBUG_OUT() << std::endl;
-    DEBUG_OUT() << "Corrector is:"<<std::endl;
+	DEBUG_OUT() << std::endl;
+	DEBUG_OUT() << "Corrector is:"<<std::endl;
 	for (int i=0;i<globalResidualSize; i++) {
 		DEBUG_OUT() << correctorVec[i] << std::endl;
 	}
-    DEBUG_OUT() << std::endl;
+	DEBUG_OUT() << std::endl;
 	/// apply the new output
 	assert(outputs.size() == residuals.size());
 	int oldResidualSize=0;
@@ -113,10 +113,10 @@ void IJCSA::calcNewValue() {
 void IJCSA::calcInterfaceJacobian() {
 
 	/// For Automatic Differencing
-    double input;
-    double output;
-    double denominator;
-    bool localnewTimeStep;
+	double input;
+	double output;
+	double denominator;
+	bool localnewTimeStep;
 
 	if (newTimeStep)
 	{
@@ -143,24 +143,36 @@ void IJCSA::calcInterfaceJacobian() {
 
 				if(::abs(denominator>1e-10)){
 					interfaceJacobianEntrys[i].value=((output-interfaceJacobianEntrys[i].oldOutput)/denominator)*interfaceJacobianEntrys[i].coefficient;
-                    debugOut() << "Estimated interfaceJacobian[" << interfaceJacobianEntrys[i].indexRow<< " , "<< interfaceJacobianEntrys[i].indexColumn<< "] ="<< interfaceJacobianEntrys[i].value<< endl;
+					debugOut() << "Estimated interfaceJacobian[" << interfaceJacobianEntrys[i].indexRow<< " , "<< interfaceJacobianEntrys[i].indexColumn<< "] ="<< interfaceJacobianEntrys[i].value<< endl;
 				}
 				else{
 					warningOut() << "Avoiding instability in automatic differencing  "<<endl;
 				}
 			}
+
 			interfaceJacobianEntrys[i].oldInput=input;
 			interfaceJacobianEntrys[i].oldOutput=output;
 
 		}
 	}
 
+	// write autoDiff to file
+	autoDiffFile << currentTimeStep << '\t' << currentIteration;
+	autoDiffFile << scientific;
+	for(int i=0;i<interfaceJacobianEntrys.size();i++){
+		if(interfaceJacobianEntrys[i].isAutoDiff==true)
+		{
+			autoDiffFile << '\t' << "[" << interfaceJacobianEntrys[i].indexRow<< " , "<< interfaceJacobianEntrys[i].indexColumn<< "]=\t"<< interfaceJacobianEntrys[i].value << '\t \t';
+		}
+	}
+	autoDiffFile << endl;
+
 }
 
 void IJCSA::assembleInterfaceJacobian(){
 	for(int i=0;i<interfaceJacobianEntrys.size();i++){
-			(*interfaceJacGlobal)(interfaceJacobianEntrys[i].indexRow-1,
-					interfaceJacobianEntrys[i].indexColumn-1)=interfaceJacobianEntrys[i].value;
+		(*interfaceJacGlobal)(interfaceJacobianEntrys[i].indexRow-1,
+				interfaceJacobianEntrys[i].indexColumn-1)=interfaceJacobianEntrys[i].value;
 	}
 }
 
@@ -178,6 +190,12 @@ void IJCSA::init() {
 			globalResidualSize, false);
 
 	assembleInterfaceJacobian();
+	std::string autoDiffFileName = "automaticDifferentiation";
+	autoDiffFileName.append(".log");
+	autoDiffFile.open(autoDiffFileName.c_str(), ios_base::out);
+	autoDiffFile << scientific;
+	autoDiffFile << "timeStep" << '\t' << "iteration" << '\t' << "interfaceJacobian" << '\t'<< endl;
+	assert(!autoDiffFile.fail());
 }
 void IJCSA::addInterfaceJacobianEntry(unsigned int _indexRow,
 		unsigned int _indexColumn, double _value) {

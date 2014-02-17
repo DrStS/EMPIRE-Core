@@ -28,6 +28,7 @@
 #define IJCSA_H_
 
 #include <vector>
+#include <fstream>
 #include "AbstractCouplingAlgorithm.h"
 
 namespace EMPIRE {
@@ -138,6 +139,8 @@ private:
     double functionOutputold;
     /// new function output
     double functionOutput;
+    // ouput file
+	std::fstream autoDiffFile;
 };
 }/* namespace EMPIRE */
 #endif /* IJCSA_H_ */
