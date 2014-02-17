@@ -159,10 +159,11 @@ void IJCSA::calcInterfaceJacobian() {
 	// write autoDiff to file
 	autoDiffFile << currentTimeStep << '\t' << currentIteration;
 	autoDiffFile << scientific;
+	autoDiffFile.precision(10);
 	for(int i=0;i<interfaceJacobianEntrys.size();i++){
 		if(interfaceJacobianEntrys[i].isAutoDiff==true)
 		{
-			autoDiffFile << '\t' << "[" << interfaceJacobianEntrys[i].indexRow<< " , "<< interfaceJacobianEntrys[i].indexColumn<< "]=\t"<< interfaceJacobianEntrys[i].value << '\t \t';
+			autoDiffFile << '\t' << "[" << interfaceJacobianEntrys[i].indexRow<< " , "<< interfaceJacobianEntrys[i].indexColumn<< "]=\t"<< interfaceJacobianEntrys[i].value << "\t \t";
 		}
 	}
 	autoDiffFile << endl;
