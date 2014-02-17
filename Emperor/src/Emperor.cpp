@@ -322,14 +322,20 @@ void Emperor::initCouplingAlgorithms() {
 		} else if (settingCouplingAlgorithm.type == EMPIRE_IJCSA) {
 			couplingAlgorithm = new IJCSA(name);
 			// add interfaceJacobianConsts
-			for (int j = 0; j < settingCouplingAlgorithm.interfaceJacobianConsts.size(); j++) {
-				const structCouplingAlgorithm::structInterfaceJacobianConst &settingInterfaceJacobianConst=
-						settingCouplingAlgorithm.interfaceJacobianConsts[j];
-
+			for (int j = 0; j < settingCouplingAlgorithm.interfaceJacobians.size(); j++) {
+				const structCouplingAlgorithm::structInterfaceJacobian &settingInterfaceJacobian=
+						settingCouplingAlgorithm.interfaceJacobians[j];
 				if (IJCSA* couplingAlgorithmIJCSA = dynamic_cast<IJCSA*>(couplingAlgorithm))
 				{
-					couplingAlgorithmIJCSA->addInterfaceJacobianEntry(settingInterfaceJacobianConst.indexRow,
-							settingInterfaceJacobianConst.indexColumn,settingInterfaceJacobianConst.value);
+					if (settingCouplingAlgorithm.interfaceJacobians[j].isConstant==true){
+						couplingAlgorithmIJCSA->addInterfaceJacobianEntry(settingInterfaceJacobian.indexRow,
+								settingInterfaceJacobian.indexColumn,settingInterfaceJacobian.value);
+					}
+					if (settingCouplingAlgorithm.interfaceJacobians[j].isAutoDiff==true){
+						couplingAlgorithmIJCSA->addInterfaceJacobianEntry(settingInterfaceJacobian.indexRow,
+								settingInterfaceJacobian.indexColumn,constructConnectionIO(settingInterfaceJacobian.functionInput),constructConnectionIO(settingInterfaceJacobian.functionOutput),settingInterfaceJacobian.coefficient);
+					}
+
 				}
 				else{
 					assert(false);
@@ -352,6 +358,7 @@ void Emperor::initCouplingAlgorithms() {
 			residual->init();
 			couplingAlgorithm->addResidual(residual, settingResidual.index);
 		}
+		cout<<" HERE WE AR22E"<<endl;
 		// add outputs
 		for (int j = 0; j < settingCouplingAlgorithm.outputs.size(); j++) {
 			const structCouplingAlgorithm::structOutput &settingOutput =
