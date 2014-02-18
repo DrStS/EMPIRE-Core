@@ -137,7 +137,7 @@ void IJCSA::calcInterfaceJacobian() {
 			input =interfaceJacobianEntrys[i].functionInput->signal->array[0];
 			output=interfaceJacobianEntrys[i].functionOutput->signal->array[0];
 			/// reset if new time step is started
-			if (!localnewTimeStep)
+			if (localnewTimeStep)
 			{
 				interfaceJacobianEntrys[i].value=0.0;
 			}
