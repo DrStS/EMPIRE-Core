@@ -139,6 +139,10 @@ void IJCSA::calcInterfaceJacobian() {
 			/// reset if new time step is started
 			if (!localnewTimeStep)
 			{
+				interfaceJacobianEntrys[i].value=0.0;
+			}
+			if (!localnewTimeStep)
+			{
 				denominator=input-interfaceJacobianEntrys[i].oldInput;
 
 				if(::abs(denominator>1e-10)){
