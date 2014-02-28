@@ -358,7 +358,6 @@ void Emperor::initCouplingAlgorithms() {
 			residual->init();
 			couplingAlgorithm->addResidual(residual, settingResidual.index);
 		}
-		cout<<" HERE WE AR22E"<<endl;
 		// add outputs
 		for (int j = 0; j < settingCouplingAlgorithm.outputs.size(); j++) {
 			const structCouplingAlgorithm::structOutput &settingOutput =
