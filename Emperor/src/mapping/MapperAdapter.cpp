@@ -141,7 +141,7 @@ void MapperAdapter::consistentMapping(const DataField *fieldA, DataField *fieldB
 		assert(fieldA->numLocations == feMeshA->numNodes);
 	} else if (meshA->type == EMPIRE_Mesh_IGAMesh) {
 		IGAMesh *IGAMehsA = dynamic_cast<IGAMesh *>(meshA);
-		assert(fieldA->numLocations == IGAMehsA->getNumControlPoints());
+		assert(fieldA->numLocations == IGAMehsA->getNumNodes());
 	} else {
 		assert(0);
 	}
@@ -176,7 +176,7 @@ void MapperAdapter::conservativeMapping(const DataField *fieldB,DataField *field
 		assert(fieldA->numLocations == feMeshA->numNodes);
 	} else if (meshA->type == EMPIRE_Mesh_IGAMesh) {
 		IGAMesh *IGAMeshA = dynamic_cast<IGAMesh *>(meshA);
-		assert(fieldA->numLocations == IGAMeshA->getNumControlPoints());
+		assert(fieldA->numLocations == IGAMeshA->getNumNodes());
 	} else {
 		assert(0);
 	}

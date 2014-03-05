@@ -45,6 +45,7 @@
 
 	<simpleType name="stringMapperType">
 		<restriction base="string">
+			<enumeration value="IGAMortarMapper"></enumeration>
 			<enumeration value="mortarMapper"></enumeration>
 			<enumeration value="nearestNeighborMapper"></enumeration>
 			<enumeration value="barycentricInterpolationMapper"></enumeration>
@@ -93,6 +94,13 @@
 		<restriction base="string">
 			<enumeration value="field"></enumeration>
 			<enumeration value="fieldIntegral"></enumeration>
+		</restriction>
+	</simpleType>
+	
+	<simpleType name="meshType">
+		<restriction base="string">
+			<enumeration value="FEMesh"></enumeration>
+			<enumeration value="IGAMesh"></enumeration>
 		</restriction>
 	</simpleType>
 
@@ -243,7 +251,7 @@
 						<element ref="tns:meshRef"></element>
 					</sequence>
 				</complexType>
-			</element>
+			</element>			
 			<choice>
 				<element name="mortarMapper" maxOccurs="1" minOccurs="0">
 					<complexType>
@@ -251,6 +259,13 @@
 							use="required"></attribute>
 						<attribute name="dual" type="boolean" use="required"></attribute>
 						<attribute name="enforceConsistency" type="boolean" use="required"></attribute>
+					</complexType>
+				</element>
+				<element name="IGAMortarMapper" maxOccurs="1" minOccurs="0">
+					<complexType>					  
+						<attribute name="tolProjectionDistance" type="double"  use="required"></attribute>
+						<attribute name="numGPsTriangle" type="integer" use="required"></attribute>
+						<attribute name="numGPsQuad" type="integer" use="required"></attribute>
 					</complexType>
 				</element>
 			</choice>
@@ -449,14 +464,17 @@
 			<element name="mesh" maxOccurs="unbounded" minOccurs="0">
 				<complexType>
 					<sequence>
-						<element name="dataField" maxOccurs="unbounded" minOccurs="1">
+						<element name="dataField" maxOccurs="unbounded"
+							minOccurs="1">
 							<complexType>
-								<attribute name="name" type="string" use="required"></attribute>
-								<attribute name="location" type="tns:stringDataFieldLocationType"
+								<attribute name="name" type="string"
 									use="required">
 								</attribute>
-								<attribute name="dimension" type="tns:stringDataFieldDimensionType"
-									use="required">
+								<attribute name="location"
+									type="tns:stringDataFieldLocationType" use="required">
+								</attribute>
+								<attribute name="dimension"
+									type="tns:stringDataFieldDimensionType" use="required">
 								</attribute>
 								<attribute name="typeOfQuantity"
 									type="tns:stringDataFieldTypeOfQuantityType" use="required">
@@ -464,7 +482,10 @@
 							</complexType>
 						</element>
 					</sequence>
-					<attribute name="name" type="string" use="required"></attribute>
+					<attribute name="name" type="string"
+						use="required">
+					</attribute>
+					<attribute name="type" type="tns:meshType" use="optional"></attribute>
 				</complexType>
 			</element>
 			<element name="signal" maxOccurs="unbounded" minOccurs="0">

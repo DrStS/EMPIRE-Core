@@ -363,11 +363,6 @@ bool computeLocalCoordsInQuad(const double *_coordsQuad, const double *_coordsNo
 
         solve2x2LinearSystem(J_T, delta, EPS);
         if (fabs(delta[0]) < EPS && fabs(delta[1]) < EPS) {
-            /*if (i>=10) {
-             printElem(quad,4);
-             printPoint(point);
-             cout << "plane to project:  "<<planeToProject<<endl;
-             }*/
             assert(i < 10);
             break;
         }

@@ -75,22 +75,6 @@ public:
     IGAPatchSurface(int, int, int, double*, int, int, double*, int, int, IGAControlPoint**);
 
     /***********************************************************************************************
-     * \brief Constructor
-     * \param[in] _IDBasis The id of the underlying basis to the IGA 2D patch
-     * \param[in] _pDegree The polynomial degree of the IGA 2D patch in the u-direction
-     * \param[in] _uNoKnots The number of knots for the knot vector in the u-direction
-     * \param[in] _uKnotVector The underlying knot vector of the IGA 2D patch in the u-direction
-     * \param[in] _qDegree The polynomial degree of the IGA 2D patch in the v-direction
-     * \param[in] _vNoKnots The number of knots for the knot vector in the v-direction
-     * \param[in] _vKnotVector The underlying knot vector of the IGA 2D patch in the v-direction
-     * \param[in] _uNoControlPoints The number of the Control Points for the 2D NURBS patch in the u-direction
-     * \param[in] _vNoControlPoints The number of the Control Points for the 2D NURBS patch in the v-direction
-     * \param[in] _controlPointNet The set of the Control Points related to the 2D NURBS patch
-     * \author Andreas Apostolatos
-     ***********/
-    IGAPatchSurface(int, int, int, double*, int, int, double*, int, int, double *);
-
-    /***********************************************************************************************
      * \brief Destructor
      * \author Andreas Apostolatos
      ***********/
@@ -270,9 +254,12 @@ public:
      * \param[in/out] _u Given is the u-surface parameter of the nearest knot intersection.
      * \param[in/out] _v Given is the v-surface parameter of the nearest knot intersection.
      * \param[in] _P Given the Cartesian components of the point to be projected on the NURBS patch
+     * \param[in] _uDiv Given the number of division in u-direction
+     * \param[in] _vDiv Given the number of division in u-direction
      * \author Chenshen Wu
      ***********/
-    void findNearestKnotIntersection(double&, double&, double*);
+    void findInitialGuess4PointProjection(double& _u, double& _v, double* _P, int uDiv = 5,
+            int _vDiv = 5);
 
     /***********************************************************************************************
      * \brief Find the nearest knot intersection on the patch as an initial guess for the projection
@@ -358,11 +345,11 @@ public:
     /// The maximum number of Newton-Raphson iterations for the computation of the orthogonal projection of point on the NURBS patch
     static const int MAX_NUM_ITERATIONS;
 
-    /// Expected number of iterations for convergence for a regular problem set up with small distance between the fluid and the structural mesh
-    static const int REGULAR_NUM_ITERATIONS;
-
     /// The tolerance for the Newton-Raphson iterations for the computation of the orthogonal projection of point on the NURBS patch
     static const double EPS_ORTHOGONALITY_CONDITION;
+
+    /// The tolerance for the Newton-Raphson iterations for the computation of the orthogonal projection of point on the NURBS patch for points which are expected to be projected in irregular locations of the patch
+    static const double EPS_ORTHOGONALITY_CONDITION_RELAXED;
 
     /// The tolerance for the distance of the computed point to the surface
     static const double EPS_DISTANCE;

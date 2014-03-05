@@ -43,19 +43,23 @@ namespace EMPIRE {
 
 IGAMortarMapper::IGAMortarMapper(std::string _name, IGAMesh *_meshIGA, FEMesh *_meshFE,
         double _disTol, int _numGPsTri, int _numGPsQuad) :
-        meshIGA(_meshIGA), meshFE(_meshFE), disTol(_disTol), numGPsTri(_numGPsTri), numGPsQuad(
-                _numGPsQuad) {
+        meshIGA(_meshIGA), disTol(_disTol), numGPsTri(_numGPsTri), numGPsQuad(_numGPsQuad) {
 
     assert(_meshIGA != NULL);
     assert(_meshFE != NULL);
     assert(_meshIGA->type == EMPIRE_Mesh_IGAMesh);
     assert(_meshFE->type == EMPIRE_Mesh_FEMesh);
 
+    if (_meshFE->triangulate() == NULL)
+        meshFE = _meshFE;
+    else
+        meshFE = _meshFE->triangulate();
+
     projectedCoords = new vector<map<int, double*> >(meshFE->numNodes);
 
-    C_NR = new MathLibrary::SparseMatrix<double>((const size_t)meshFE->numNodes,
-            (const size_t)meshIGA->getNumControlPoints());
-    C_NN = new MathLibrary::SparseMatrix<double>((const size_t)meshFE->numNodes, true);
+    C_NR = new MathLibrary::SparseMatrix<double>((const size_t) meshFE->numNodes,
+            (const size_t) meshIGA->getNumNodes());
+    C_NN = new MathLibrary::SparseMatrix<double>((const size_t) meshFE->numNodes, true);
 
     gaussTriangle = new IGAMortarMath::GaussQuadratureOnTriangle(numGPsTri);
     gaussQuad = new IGAMortarMath::GaussQuadratureOnQuad(numGPsQuad);
@@ -68,12 +72,8 @@ IGAMortarMapper::IGAMortarMapper(std::string _name, IGAMesh *_meshIGA, FEMesh *_
 
     C_NN->factorize();
 
-//    cout << "CNN" << endl;
 //    C_NN->printCSR();
-//    cout << "CNR" << endl;
 //    C_NR->printCSR();
-//
-//    exit(-1);
 
 }
 
@@ -119,12 +119,19 @@ void IGAMortarMapper::initTables() {
 
     for (int i = 0; i < meshFE->numElems; i++) {
         const int numNodesPerElem = meshFE->numNodesPerElem[i];
-        for (int j = 0; j < numNodesPerElem; j++)
+
+        for (int j = 0; j < numNodesPerElem; j++) {
+            if (meshFENodesMap->find(meshFE->elems[count + j]) == meshFENodesMap->end()) {
+                ERROR_OUT() << "Cannot find node ID " << meshFE->elems[count + j] << endl;
+                exit(-1);
+            }
             meshFEDirectElemTable[i][j] = meshFENodesMap->at(meshFE->elems[count + j]);
+        }
         count += numNodesPerElem;
     }
 
     delete meshFENodesMap;
+
 }
 
 void IGAMortarMapper::projectPointsToSurface() {
@@ -182,7 +189,7 @@ void IGAMortarMapper::projectPointsToSurface() {
                 cartesianCoords[1] = meshFE->nodes[nodeIndex * 3 + 1];
                 cartesianCoords[2] = meshFE->nodes[nodeIndex * 3 + 2];
 
-                thePatch->findNearestKnotIntersection(initialU, initialV, cartesianCoords);
+                thePatch->findInitialGuess4PointProjection(initialU, initialV, cartesianCoords);
             }
 
             /// 3. Loop over each node at the current element
@@ -215,32 +222,84 @@ void IGAMortarMapper::projectPointsToSurface() {
                         double* coordTmp = new double(2);
                         coordTmp[0] = projectedU;
                         coordTmp[1] = projectedV;
+
                         (*projectedCoords)[nodeIndex].insert(
-                                std::pair<int, double*>(patchCount, coordTmp));                    }
+                                std::pair<int, double*>(patchCount, coordTmp));
+
+                    }
                 }
             }
-
         }
 
         delete[] isProjected;
+    }
+
+    double U, V;
+    double P[3];
+    for (int nodeIndex = 0; nodeIndex < meshFE->numNodes; nodeIndex++) {
+
+        bool isProjected = false;
+        for (int patchCount = 0; patchCount < numPatches; patchCount++) {
+
+            if ((*projectedCoords)[nodeIndex].find(patchCount)
+                    != (*projectedCoords)[nodeIndex].end()) {
+                isProjected = true;
+                break;
+            }
+        }
+
+        if (!isProjected) {
+
+            for (int patchCount = 0; patchCount < numPatches; patchCount++) {
+                IGAPatchSurface* thePatch = meshIGA->getSurfacePatches()[patchCount];
+
+                P[0] = meshFE->nodes[nodeIndex * 3];
+                P[1] = meshFE->nodes[nodeIndex * 3 + 1];
+                P[2] = meshFE->nodes[nodeIndex * 3 + 2];
+
+                thePatch->findInitialGuess4PointProjection(U, V, P, REFINED_NUM_PARAMETRIC_LOCATIONS, REFINED_NUM_PARAMETRIC_LOCATIONS);
+
+                bool isConverge;
+                bool isConvergeInside = thePatch->computePointProjectionOnPatch(U, V, P,
+                        isConverge);
+
+                if (isConvergeInside
+                        && IGAMortarMath::computePointDistance(&meshFE->nodes[nodeIndex * 3], P)
+                                < disTol) {
+                    isProjected = true;
+                    double* coordTmp = new double(2);
+                    coordTmp[0] = U;
+                    coordTmp[1] = V;
+
+                    (*projectedCoords)[nodeIndex].insert(
+                            std::pair<int, double*>(patchCount, coordTmp));
+                }
+            }
+            if (!isProjected) {
+                ERROR_OUT() << " in IGAMortarMapper::projectPointsToSurface" << endl;
+                ERROR_OUT() << "Cannot project node: " << nodeIndex << "  ("
+                        << meshFE->nodes[nodeIndex * 3] << ", " << meshFE->nodes[nodeIndex * 3 + 1]
+                        << ", " << meshFE->nodes[nodeIndex * 3 + 2] << ")" << endl;
+                exit (EXIT_FAILURE);
+            } else {
+            }
+
+        }
     }
 }
 
 void IGAMortarMapper::computeCouplingMatrices() {
     /*
      * Computes the coupling matrices CNR and CNN.
-     *
      * Loop over all the elements in the FE side
      * ->
-     *    1. Find whether the projected FE element is located on one patch
+     * 1. Find whether the projected FE element is located on one patch
      *
-     *    2. Compute the coupling matrices
-     *    ->
-     *       2i. If the current element can be projected on one patch
-     *       2ii. If the current element cannot be projected on one patch
-     *    <-
-     *
-     *
+     * 2. Compute the coupling matrices
+     * ->
+     * 2i. If the current element can be projected on one patch
+     * 2ii. If the current element cannot be projected on one patch
+     * <-
      */
     // The vertices of the canonical polygons
     double parentTriangle[6] = { 0, 0, 1, 0, 0, 1 };
@@ -299,30 +358,31 @@ void IGAMortarMapper::computeCouplingMatrices() {
             }
         }
 
-
         /// 2. Compute the coupling matrices
 
         /// 2i. If the current element can be projected on one patch
         if (isAllNodesOnPatch) {
             // Get the projected coordinates for the current element
             double clippedByPatchProjElementFEUV[numNodesElementFE * 2];
+
             for (int nodeCount = 0; nodeCount < numNodesElementFE; nodeCount++) {
                 int nodeIndex = meshFEDirectElemTable[elemCount][nodeCount];
-                clippedByPatchProjElementFEUV[nodeCount * 2] = (*projectedCoords)[nodeIndex][patchIndex][0];
-                clippedByPatchProjElementFEUV[nodeCount * 2 + 1] = (*projectedCoords)[nodeIndex][patchIndex][1];
+                clippedByPatchProjElementFEUV[nodeCount * 2] =
+                        (*projectedCoords)[nodeIndex][patchIndex][0];
+                clippedByPatchProjElementFEUV[nodeCount * 2 + 1] =
+                        (*projectedCoords)[nodeIndex][patchIndex][1];
             }
-
-            // Compute the coupling matrices for the clipped by patch element
             computeCouplingMatrices4ClippedByPatchProjectedElement(thePatch, numNodesElementFE,
-                        clippedByPatchProjElementFEUV, projectedElementFEWZ, elemCount, numNodesElementFE);
+                    clippedByPatchProjElementFEUV, projectedElementFEWZ, elemCount,
+                    numNodesElementFE);
         }
         /// 2ii. If the current element cannot be projected on one patch
         else {
             // Loop over all the patches in the IGA mesh
-            for (int patchCount = 0; patchCount < meshIGA->getSurfacePatches().size(); patchCount++) {
+            for (int patchCount = 0; patchCount < meshIGA->getSurfacePatches().size();
+                    patchCount++) {
                 IGAPatchSurface* thePatch = meshIGA->getSurfacePatches()[patchCount];
                 int numNodesClippedByPatchProjElementFE = 0;
-
                 // the parameter coordinates in IGA of the sub-element divided by the patch
                 double clippedByPatchProjElementFEUV[16];
 
@@ -331,6 +391,7 @@ void IGAMortarMapper::computeCouplingMatrices() {
 
                 // if the line segment connecting the node with the next one is a edge in the sub-element
                 bool isEdge[8];
+
                 for (int i = 0; i < 8; i++)
                     isEdge[i] = false;
 
@@ -352,64 +413,105 @@ void IGAMortarMapper::computeCouplingMatrices() {
                                 (*projectedCoords)[nodeIndex][patchCount][0];
                         clippedByPatchProjElementFEUV[numNodesClippedByPatchProjElementFE * 2 + 1] =
                                 (*projectedCoords)[nodeIndex][patchCount][1];
-                        clippedByPatchProjElementFEWZ[numNodesClippedByPatchProjElementFE * 2] = projectedElementFEWZ[nodeCount * 2];
-                        clippedByPatchProjElementFEWZ[numNodesClippedByPatchProjElementFE * 2 + 1] = projectedElementFEWZ[nodeCount
-                                * 2 + 1];
+                        clippedByPatchProjElementFEWZ[numNodesClippedByPatchProjElementFE * 2] =
+                                projectedElementFEWZ[nodeCount * 2];
+                        clippedByPatchProjElementFEWZ[numNodesClippedByPatchProjElementFE * 2 + 1] =
+                                projectedElementFEWZ[nodeCount * 2 + 1];
                         isEdge[numNodesClippedByPatchProjElementFE] = true;
                         numNodesClippedByPatchProjElementFE++;
 
                         // if the node is inside and the next node is outside the patch,
                         // find the intersection with patch boundary, and put it into the Clipped By Patch Projected Element
                         if (!isNextNodeInsidePatch) {
-                            double u = 0, v = 0;
+                            double u = (*projectedCoords)[nodeIndex][patchCount][0], v =
+                                    (*projectedCoords)[nodeIndex][patchCount][1];
                             double div, dis;
                             double* P1 = &(meshFE->nodes[nodeIndex * 3]);
                             double* P2 = &(meshFE->nodes[nodeIndexNext * 3]);
 
-                            bool isProjectedOnPatchBoundary = thePatch->computePointProjectionOnPatchBoundary(u, v, div, dis, P1, P2);
+                            bool isProjectedOnPatchBoundary =
+                                    thePatch->computePointProjectionOnPatchBoundary(u, v, div, dis,
+                                            P1, P2);
                             if (isProjectedOnPatchBoundary && dis <= disTol) {
-                                clippedByPatchProjElementFEUV[numNodesClippedByPatchProjElementFE * 2] = u;
-                                clippedByPatchProjElementFEUV[numNodesClippedByPatchProjElementFE * 2 + 1] = v;
+                                clippedByPatchProjElementFEUV[numNodesClippedByPatchProjElementFE
+                                        * 2] = u;
+                                clippedByPatchProjElementFEUV[numNodesClippedByPatchProjElementFE
+                                        * 2 + 1] = v;
                                 double P1x = projectedElementFEWZ[nodeCount * 2];
                                 double P1y = projectedElementFEWZ[nodeCount * 2 + 1];
                                 double P2x = projectedElementFEWZ[nodeCountNext * 2];
                                 double P2y = projectedElementFEWZ[nodeCountNext * 2 + 1];
-                                clippedByPatchProjElementFEWZ[numNodesClippedByPatchProjElementFE * 2] = P1x * (1 - div) + P2x * div;
-                                clippedByPatchProjElementFEWZ[numNodesClippedByPatchProjElementFE * 2 + 1] = P1y * (1 - div) + P2y * div;
+                                clippedByPatchProjElementFEWZ[numNodesClippedByPatchProjElementFE
+                                        * 2] = P1x * (1 - div) + P2x * div;
+                                clippedByPatchProjElementFEWZ[numNodesClippedByPatchProjElementFE
+                                        * 2 + 1] = P1y * (1 - div) + P2y * div;
                                 numNodesClippedByPatchProjElementFE++;
                             } else {
-                                exit(EXIT_FAILURE);
+                                ERROR_OUT() << "Error in IGAMortarMapper::computeCouplingMatrices"
+                                        << endl;
+                                ERROR_OUT() << "Cannot find point projection on patch boundary"
+                                        << endl;
+                                ERROR_OUT()
+                                        << "Cannot find point projection on patch boundary between node ["
+                                        << nodeIndex << "]:(" << meshFE->nodes[nodeIndex * 3] << ","
+                                        << meshFE->nodes[nodeIndex * 3 + 1] << ","
+                                        << meshFE->nodes[nodeIndex * 3 + 2] << ") and node ["
+                                        << nodeIndexNext << "]:("
+                                        << meshFE->nodes[nodeIndexNext * 3] << ","
+                                        << meshFE->nodes[nodeIndexNext * 3 + 1] << ","
+                                        << meshFE->nodes[nodeIndexNext * 3 + 2] << ") on patch ["
+                                        << patchCount << "] boundary" << endl;
+                                exit (EXIT_FAILURE);
                             }
                         }
                     } else if (isNextNodeInsidePatch) {
                         // if this node is outside and the next node is inside, find the intersection with patch boundary
                         // and put it into the Clipped By Patch Projected Element
-                        double u = 0, v = 0;
+                        double u = (*projectedCoords)[nodeIndexNext][patchCount][0], v =
+                                (*projectedCoords)[nodeIndexNext][patchCount][1];
                         double div, dis;
                         double* P1 = &(meshFE->nodes[nodeIndex * 3]);
                         double* P2 = &(meshFE->nodes[nodeIndexNext * 3]);
-                        bool isProjectedOnPatchBoundary = thePatch->computePointProjectionOnPatchBoundary(u, v, div, dis, P1, P2);
+                        bool isProjectedOnPatchBoundary =
+                                thePatch->computePointProjectionOnPatchBoundary(u, v, div, dis, P1,
+                                        P2);
                         if (isProjectedOnPatchBoundary && dis <= disTol) {
-                            clippedByPatchProjElementFEUV[numNodesClippedByPatchProjElementFE * 2] = u;
-                            clippedByPatchProjElementFEUV[numNodesClippedByPatchProjElementFE * 2 + 1] = v;
+                            clippedByPatchProjElementFEUV[numNodesClippedByPatchProjElementFE * 2] =
+                                    u;
+                            clippedByPatchProjElementFEUV[numNodesClippedByPatchProjElementFE * 2
+                                    + 1] = v;
                             double P1x = projectedElementFEWZ[nodeCount * 2];
                             double P1y = projectedElementFEWZ[nodeCount * 2 + 1];
                             double P2x = projectedElementFEWZ[nodeCountNext * 2];
                             double P2y = projectedElementFEWZ[nodeCountNext * 2 + 1];
-                            clippedByPatchProjElementFEWZ[numNodesClippedByPatchProjElementFE * 2] = P1x * (1 - div) + P2x * div;
-                            clippedByPatchProjElementFEWZ[numNodesClippedByPatchProjElementFE * 2 + 1] = P1y * (1 - div) + P2y * div;
+                            clippedByPatchProjElementFEWZ[numNodesClippedByPatchProjElementFE * 2] =
+                                    P1x * (1 - div) + P2x * div;
+                            clippedByPatchProjElementFEWZ[numNodesClippedByPatchProjElementFE * 2
+                                    + 1] = P1y * (1 - div) + P2y * div;
                             isEdge[numNodesClippedByPatchProjElementFE] = true;
-                            clippedByPatchProjElementFEWZ[numNodesClippedByPatchProjElementFE * 2] = P1x * (1 - div) + P2x * div;
-                            clippedByPatchProjElementFEWZ[numNodesClippedByPatchProjElementFE * 2 + 1] = P1y * (1 - div) + P2y * div;
+                            clippedByPatchProjElementFEWZ[numNodesClippedByPatchProjElementFE * 2] =
+                                    P1x * (1 - div) + P2x * div;
+                            clippedByPatchProjElementFEWZ[numNodesClippedByPatchProjElementFE * 2
+                                    + 1] = P1y * (1 - div) + P2y * div;
                             numNodesClippedByPatchProjElementFE++;
                         } else {
-                            ERROR_OUT()<<" in IGAMortarMapper::computeCouplingMatrices";
-                            ERROR_OUT()<<"Cannot project line segment ("<< P1[0] << ", " << P1[1] << ", "<< P1[2] << ") - ("
-                                    << P2[0] << ", " << P2[1] << ", "<< P2[2] << ") to Patch " << patchCount;
-                            exit(EXIT_FAILURE);
+                            ERROR_OUT() << "Error in IGAMortarMapper::computeCouplingMatrices"
+                                    << endl;
+                            ERROR_OUT() << "Cannot find point projection on patch boundary" << endl;
+                            ERROR_OUT()
+                                    << "Cannot find point projection on patch boundary between node ["
+                                    << nodeIndex << "]:(" << meshFE->nodes[nodeIndex * 3] << ","
+                                    << meshFE->nodes[nodeIndex * 3 + 1] << ","
+                                    << meshFE->nodes[nodeIndex * 3 + 2] << ") and node ["
+                                    << nodeIndexNext << "]:(" << meshFE->nodes[nodeIndexNext * 3]
+                                    << "," << meshFE->nodes[nodeIndexNext * 3 + 1] << ","
+                                    << meshFE->nodes[nodeIndexNext * 3 + 2] << ") on patch ["
+                                    << patchCount << "] boundary" << endl;
+                            exit (EXIT_FAILURE);
                         }
                     }
                 }
+
                 // Find the corner node of the IGA patch which is inside the projected FE element
                 if (numNodesClippedByPatchProjElementFE >= 3) {
                     // Find direction of FE element(Clock or Counter-Clock)
@@ -417,40 +519,45 @@ void IGAMortarMapper::computeCouplingMatrices() {
                     double y1 = clippedByPatchProjElementFEUV[3] - clippedByPatchProjElementFEUV[1];
                     double x2 = clippedByPatchProjElementFEUV[4] - clippedByPatchProjElementFEUV[2];
                     double y2 = clippedByPatchProjElementFEUV[5] - clippedByPatchProjElementFEUV[3];
-                    bool isCounterClockWise = IGAMortarMath::computeCrossProduct2D(x1, y1, x2, y2) > 0;
+                    bool isCounterClockWise = IGAMortarMath::computeCrossProduct2D(x1, y1, x2, y2)
+                            > 0;
 
                     // IGA Patch
-                    double *knotVectorU = thePatch->getIGABasis()->getUBSplineBasis1D()->getKnotVector();
-                    double *knotVectorV = thePatch->getIGABasis()->getVBSplineBasis1D()->getKnotVector();
+                    double *knotVectorU =
+                            thePatch->getIGABasis()->getUBSplineBasis1D()->getKnotVector();
+                    double *knotVectorV =
+                            thePatch->getIGABasis()->getVBSplineBasis1D()->getKnotVector();
                     int numKnotsU = thePatch->getIGABasis()->getUBSplineBasis1D()->getNoKnots();
                     int numKnotsV = thePatch->getIGABasis()->getVBSplineBasis1D()->getNoKnots();
                     double u0 = knotVectorU[0];
                     double uEnd = knotVectorU[numKnotsU - 1];
                     double v0 = knotVectorV[0];
                     double vEnd = knotVectorV[numKnotsV - 1];
-
                     // Corner nodes of the IGA Patch
                     double patchCornerNodesUV[8] = { u0, v0, uEnd, v0, uEnd, vEnd, u0, vEnd };
-
-                    // Corner nodes of the IGA Patch which are located inside the current element
+                    // Corner nodes of the IGA Patch which inside the current element
                     int patchCornerNodesInsideElemIndex[4];
                     int numPatchCornerNodesInsideElem = 0;
 
                     // Loop over the 4 corner node of the IGA Patch to check which of them are in side the current element
                     for (int nodeCount = 0; nodeCount < 4; nodeCount++) {
                         bool isNodeInsideElem = true;
-                        for (int edgeCount = 0; edgeCount < numNodesClippedByPatchProjElementFE; edgeCount++) {
+                        for (int edgeCount = 0; edgeCount < numNodesClippedByPatchProjElementFE;
+                                edgeCount++) {
                             if (isEdge[edgeCount]) {
                                 int node1 = edgeCount;
                                 int node2 = (edgeCount + 1) % numNodesClippedByPatchProjElementFE;
 
-                                x1 = clippedByPatchProjElementFEUV[node2 * 2] - clippedByPatchProjElementFEUV[node1 * 2];
+                                x1 = clippedByPatchProjElementFEUV[node2 * 2]
+                                        - clippedByPatchProjElementFEUV[node1 * 2];
                                 y1 = clippedByPatchProjElementFEUV[node2 * 2 + 1]
                                         - clippedByPatchProjElementFEUV[node1 * 2 + 1];
-                                x2 = patchCornerNodesUV[nodeCount * 2] - clippedByPatchProjElementFEUV[node2 * 2];
+                                x2 = patchCornerNodesUV[nodeCount * 2]
+                                        - clippedByPatchProjElementFEUV[node2 * 2];
                                 y2 = patchCornerNodesUV[nodeCount * 2 + 1]
                                         - clippedByPatchProjElementFEUV[node2 * 2 + 1];
-                                bool isRightHandSide = IGAMortarMath::computeCrossProduct2D(x1, y1, x2, y2) > 0;
+                                bool isRightHandSide = IGAMortarMath::computeCrossProduct2D(x1, y1,
+                                        x2, y2) > 0;
                                 if (isRightHandSide != isCounterClockWise) {
                                     isNodeInsideElem = false;
                                     break;
@@ -458,7 +565,8 @@ void IGAMortarMapper::computeCouplingMatrices() {
                             }
                         }
                         if (isNodeInsideElem) {
-                            patchCornerNodesInsideElemIndex[numPatchCornerNodesInsideElem] = nodeCount;
+                            patchCornerNodesInsideElemIndex[numPatchCornerNodesInsideElem] =
+                                    nodeCount;
                             numPatchCornerNodesInsideElem++;
                         }
                     }
@@ -467,13 +575,16 @@ void IGAMortarMapper::computeCouplingMatrices() {
                     double centerU = 0.0;
                     double centerV = 0.0;
                     // corner nodes of IGA Patch
-                    for (int nodeCount = 0; nodeCount < numPatchCornerNodesInsideElem; nodeCount++) {
-                        centerU += patchCornerNodesUV[patchCornerNodesInsideElemIndex[nodeCount] * 2];
-                        centerV += patchCornerNodesUV[patchCornerNodesInsideElemIndex[nodeCount] * 2 + 1];
+                    for (int nodeCount = 0; nodeCount < numPatchCornerNodesInsideElem;
+                            nodeCount++) {
+                        centerU +=
+                                patchCornerNodesUV[patchCornerNodesInsideElemIndex[nodeCount] * 2];
+                        centerV += patchCornerNodesUV[patchCornerNodesInsideElemIndex[nodeCount] * 2
+                                + 1];
                     }
-
                     // nodes of FE and their intersection between the edge of FE element and IGA patch
-                    for (int nodeCount = 0; nodeCount < numNodesClippedByPatchProjElementFE; nodeCount++) {
+                    for (int nodeCount = 0; nodeCount < numNodesClippedByPatchProjElementFE;
+                            nodeCount++) {
                         centerU += clippedByPatchProjElementFEUV[nodeCount * 2];
                         centerV += clippedByPatchProjElementFEUV[nodeCount * 2 + 1];
                     }
@@ -482,7 +593,8 @@ void IGAMortarMapper::computeCouplingMatrices() {
 
                     // angle between the line of node to the center point to the Y-axis
                     double ang[numNodesClippedByPatchProjElementFE];
-                    for (int nodeCount = 0; nodeCount < numNodesClippedByPatchProjElementFE; nodeCount++) {
+                    for (int nodeCount = 0; nodeCount < numNodesClippedByPatchProjElementFE;
+                            nodeCount++) {
                         double x0 = clippedByPatchProjElementFEUV[nodeCount * 2] - centerU;
                         double y0 = clippedByPatchProjElementFEUV[nodeCount * 2 + 1] - centerV;
                         ang[nodeCount] = atan2(y0, x0);
@@ -497,16 +609,20 @@ void IGAMortarMapper::computeCouplingMatrices() {
                     }
 
                     // Loop over all corner nodes of IGA Patch inside the element and put them into the clipped by patch element in a correct order
-                    for (int nodeCount = 0; nodeCount < numPatchCornerNodesInsideElem; nodeCount++) {
-                        double x0 = patchCornerNodesUV[patchCornerNodesInsideElemIndex[nodeCount] * 2] - centerU;
-                        double y0 = patchCornerNodesUV[patchCornerNodesInsideElemIndex[nodeCount] * 2 + 1] - centerV;
+                    for (int nodeCount = 0; nodeCount < numPatchCornerNodesInsideElem;
+                            nodeCount++) {
+                        double x0 = patchCornerNodesUV[patchCornerNodesInsideElemIndex[nodeCount]
+                                * 2] - centerU;
+                        double y0 = patchCornerNodesUV[patchCornerNodesInsideElemIndex[nodeCount]
+                                * 2 + 1] - centerV;
                         double ang0 = atan2(y0, x0);
 
                         // Loop over all edges(nodes) of the clipped-by-patch-element to find the correct position for the corner nodes of the patch
-                        for (int edgeCount = numNodesClippedByPatchProjElementFE + nodeCount - 1; edgeCount >= 0;
-                                edgeCount--) {
+                        for (int edgeCount = numNodesClippedByPatchProjElementFE + nodeCount - 1;
+                                edgeCount >= 0; edgeCount--) {
                             int node1 = edgeCount;
-                            int node2 = (edgeCount + 2) % (numNodesClippedByPatchProjElementFE + nodeCount + 1);
+                            int node2 = (edgeCount + 2)
+                                    % (numNodesClippedByPatchProjElementFE + nodeCount + 1);
                             double x1 = clippedByPatchProjElementFEUV[node1 * 2] - centerU;
                             double y1 = clippedByPatchProjElementFEUV[node1 * 2 + 1] - centerV;
                             double x2 = clippedByPatchProjElementFEUV[node2 * 2] - centerU;
@@ -515,20 +631,24 @@ void IGAMortarMapper::computeCouplingMatrices() {
                             double ang2 = atan2(y2, x2);
 
                             // check if the corner nodes are between node1 and node2
-                            if (isCounterClockWise && (ang1 < ang2 && ang1 < ang0 && ang0 < ang2
+                            if (isCounterClockWise
+                                    && (ang1 < ang2 && ang1 < ang0 && ang0 < ang2
                                             || ang1 > ang2 && (ang0 > ang1 || ang0 < ang2))
-                                    || (!isCounterClockWise && (ang1 > ang2 && ang1 > ang0 && ang0 > ang2
+                                    || (!isCounterClockWise
+                                            && (ang1 > ang2 && ang1 > ang0 && ang0 > ang2
                                                     || ang1 < ang2 && (ang0 < ang1 || ang0 > ang2)))) {
 
                                 clippedByPatchProjElementFEUV[node1 * 2 + 2] =
-                                        patchCornerNodesUV[patchCornerNodesInsideElemIndex[nodeCount] * 2];
+                                        patchCornerNodesUV[patchCornerNodesInsideElemIndex[nodeCount]
+                                                * 2];
                                 clippedByPatchProjElementFEUV[node1 * 2 + 3] =
-                                        patchCornerNodesUV[patchCornerNodesInsideElemIndex[nodeCount] * 2 + 1];
+                                        patchCornerNodesUV[patchCornerNodesInsideElemIndex[nodeCount]
+                                                * 2 + 1];
                                 double nodeXYZ[3];
                                 double normalVec[3];
 
-                                thePatch->computeCartesianCoordinatesAndNormalVector(nodeXYZ, normalVec,
-                                        clippedByPatchProjElementFEUV[node1 * 2 + 2],
+                                thePatch->computeCartesianCoordinatesAndNormalVector(nodeXYZ,
+                                        normalVec, clippedByPatchProjElementFEUV[node1 * 2 + 2],
                                         clippedByPatchProjElementFEUV[node1 * 2 + 3]);
 
                                 double coordFE[2];
@@ -545,17 +665,22 @@ void IGAMortarMapper::computeCouplingMatrices() {
                                 break;
                             }
 
-                            clippedByPatchProjElementFEUV[node1 * 2 + 2] = clippedByPatchProjElementFEUV[node1 * 2];
-                            clippedByPatchProjElementFEUV[node1 * 2 + 3] = clippedByPatchProjElementFEUV[node1 * 2 + 1];
-                            clippedByPatchProjElementFEWZ[node1 * 2 + 2] = clippedByPatchProjElementFEWZ[node1 * 2];
-                            clippedByPatchProjElementFEWZ[node1 * 2 + 3] = clippedByPatchProjElementFEWZ[node1 * 2 + 1];
+                            clippedByPatchProjElementFEUV[node1 * 2 + 2] =
+                                    clippedByPatchProjElementFEUV[node1 * 2];
+                            clippedByPatchProjElementFEUV[node1 * 2 + 3] =
+                                    clippedByPatchProjElementFEUV[node1 * 2 + 1];
+                            clippedByPatchProjElementFEWZ[node1 * 2 + 2] =
+                                    clippedByPatchProjElementFEWZ[node1 * 2];
+                            clippedByPatchProjElementFEWZ[node1 * 2 + 3] =
+                                    clippedByPatchProjElementFEWZ[node1 * 2 + 1];
                         }
                     }
                     numNodesClippedByPatchProjElementFE += numPatchCornerNodesInsideElem;
 
                     // compute the coupling matrix for the sub-element
-                    computeCouplingMatrices4ClippedByPatchProjectedElement(thePatch, numNodesClippedByPatchProjElementFE,
-                            clippedByPatchProjElementFEUV, clippedByPatchProjElementFEWZ, elemCount, numNodesElementFE);
+                    computeCouplingMatrices4ClippedByPatchProjectedElement(thePatch,
+                            numNodesClippedByPatchProjElementFE, clippedByPatchProjElementFEUV,
+                            clippedByPatchProjElementFEWZ, elemCount, numNodesElementFE);
                 }
 
             } // end of loop over patches
@@ -563,17 +688,19 @@ void IGAMortarMapper::computeCouplingMatrices() {
         } // end of if in same patch
 
     } // end of loop over all the element
+
 }
 
 void IGAMortarMapper::computeCouplingMatrices4ClippedByPatchProjectedElement(
-        IGAPatchSurface* _thePatch, int _numNodesClippedByPatchProjectedElement, double* _clippedByPatchProjElementFEUV,
-        double* _clippedByPatchProjElementFEWZ, int _elemCount, int _numNodesElementFE) {
+        IGAPatchSurface* _thePatch, int _numNodesClippedByPatchProjectedElement,
+        double* _clippedByPatchProjElementFEUV, double* _clippedByPatchProjElementFEWZ,
+        int _elemCount, int _numNodesElementFE) {
 
     double *knotVectorU = _thePatch->getIGABasis()->getUBSplineBasis1D()->getKnotVector();
     double *knotVectorV = _thePatch->getIGABasis()->getVBSplineBasis1D()->getKnotVector();
 
-    /// 1.find the knot span which the current element located in.
-    //      from minSpanu to maxSpanu in U-direction, and from minSpanV to max SpanV in V-direction
+/// 1.find the knot span which the current element located in.
+//      from minSpanu to maxSpanu in U-direction, and from minSpanV to max SpanV in V-direction
     int minSpanU = _thePatch->getIGABasis()->getUBSplineBasis1D()->findKnotSpan(
             _clippedByPatchProjElementFEUV[0]);
     int minSpanV = _thePatch->getIGABasis()->getVBSplineBasis1D()->findKnotSpan(
@@ -598,57 +725,71 @@ void IGAMortarMapper::computeCouplingMatrices4ClippedByPatchProjectedElement(
     }
 
     if (minSpanU == maxSpanU & minSpanV == maxSpanV)
-
         /* 2.1 if the whole element is located in a single knot span, set the coordinates in the linear element as
          the full triangle or full quadriliteral defined at the beginning of this function. */
-        integrate(_thePatch, _numNodesClippedByPatchProjectedElement, _clippedByPatchProjElementFEUV, minSpanU, minSpanV,
-                _clippedByPatchProjElementFEWZ, _elemCount, _numNodesElementFE);
-
+        integrate(_thePatch, _numNodesClippedByPatchProjectedElement,
+                _clippedByPatchProjElementFEUV, minSpanU, minSpanV, _clippedByPatchProjElementFEWZ,
+                _elemCount, _numNodesElementFE);
     else {
-        /// 2.2  if not, cut the element by each knot span.
+/// 2.2  if not, cut the element by each knot span.
         for (int spanU = minSpanU; spanU <= maxSpanU; spanU++)
             for (int spanV = minSpanV; spanV <= maxSpanV; spanV++) {
 
-                IGAMortarMath::IGAPolygonClipper clipper(knotVectorU[spanU], knotVectorU[spanU + 1],
-                        knotVectorV[spanV], knotVectorV[spanV + 1]);
+                if (knotVectorU[spanU] != knotVectorU[spanU + 1]
+                        && knotVectorV[spanV] != knotVectorV[spanV + 1]) {
 
-                vector<double*> *polygonResult = new vector<double*>; // deleted
+                    IGAMortarMath::IGAPolygonClipper clipper(knotVectorU[spanU],
+                            knotVectorU[spanU + 1], knotVectorV[spanV], knotVectorV[spanV + 1]);
 
-                if (clipper.clip(_clippedByPatchProjElementFEUV, _numNodesClippedByPatchProjectedElement, polygonResult)) {
+                    vector<double*> *polygonResult = new vector<double*>; // deleted
 
-                    // number of nodes of the clipped polygon
-                    int numNodesClippedByKnotSpanProjElementFE = polygonResult->size();
+                    if (clipper.clip(_clippedByPatchProjElementFEUV,
+                            _numNodesClippedByPatchProjectedElement, polygonResult)) {
 
-                    // the array to store the coordinates(on IGA patch) of the clipped sub-element
-                    double ClippedByKnotSpanProjElementFEUV[numNodesClippedByKnotSpanProjElementFE * 2];
-                    for (int nodeCount = 0; nodeCount < numNodesClippedByKnotSpanProjElementFE; nodeCount++) {
-                        ClippedByKnotSpanProjElementFEUV[nodeCount * 2] = (*polygonResult)[nodeCount][0];
-                        ClippedByKnotSpanProjElementFEUV[nodeCount * 2 + 1] = (*polygonResult)[nodeCount][1];
+                        // number of nodes of the clipped polygon
+                        int numNodesClippedByKnotSpanProjElementFE = polygonResult->size();
+
+                        // the array to store the coordinates(on IGA patch) of the clipped sub-element
+                        double ClippedByKnotSpanProjElementFEUV[numNodesClippedByKnotSpanProjElementFE
+                                * 2];
+                        for (int nodeCount = 0; nodeCount < numNodesClippedByKnotSpanProjElementFE;
+                                nodeCount++) {
+                            ClippedByKnotSpanProjElementFEUV[nodeCount * 2] =
+                                    (*polygonResult)[nodeCount][0];
+                            ClippedByKnotSpanProjElementFEUV[nodeCount * 2 + 1] =
+                                    (*polygonResult)[nodeCount][1];
+                        }
+
+                        // the array to store the coordinates(Linear Element) of the clipped sub-element
+                        double ClippedByKnotSpanProjElementFEWZ[numNodesClippedByKnotSpanProjElementFE
+                                * 2];
+
+                        /// find the local coordinates in FE(triangle or quadrilateral) from parameter of IGAPatch
+                        double nodeWZ[2];
+                        for (int nodeCount = 0; nodeCount < numNodesClippedByKnotSpanProjElementFE;
+                                nodeCount++) {
+                            if (_numNodesClippedByPatchProjectedElement == 3)
+                                IGAMortarMath::computeLocalCoordsInTriangle(
+                                        _clippedByPatchProjElementFEUV, (*polygonResult)[nodeCount],
+                                        nodeWZ);
+                            else
+                                IGAMortarMath::computeLocalCoordsInQuad(
+                                        _clippedByPatchProjElementFEUV, (*polygonResult)[nodeCount],
+                                        nodeWZ);
+                            IGAMortarMath::computeLinearCombinationValueFromVerticesValues(
+                                    _numNodesClippedByPatchProjectedElement, 2,
+                                    _clippedByPatchProjElementFEWZ, nodeWZ,
+                                    &ClippedByKnotSpanProjElementFEWZ[nodeCount * 2]);
+                        }
+
+                        integrate(_thePatch, numNodesClippedByKnotSpanProjElementFE,
+                                ClippedByKnotSpanProjElementFEUV, spanU, spanV,
+                                ClippedByKnotSpanProjElementFEWZ, _elemCount, _numNodesElementFE);
+
+                        for (int nodeCount = 0; nodeCount < polygonResult->size(); nodeCount++)
+                            delete[] (*polygonResult)[nodeCount];
+                        delete polygonResult;
                     }
-
-                    // the array to store the coordinates(Linear Element) of the clipped sub-element
-                    double ClippedByKnotSpanProjElementFEWZ[numNodesClippedByKnotSpanProjElementFE * 2];
-
-                    /// find the local coordinates in FE(triangle or quadrilateral) from parameter of IGAPatch
-                    double nodeWZ[2];
-                    for (int nodeCount = 0; nodeCount < numNodesClippedByKnotSpanProjElementFE; nodeCount++) {
-                        if (_numNodesClippedByPatchProjectedElement == 3)
-                            IGAMortarMath::computeLocalCoordsInTriangle(_clippedByPatchProjElementFEUV,
-                                    (*polygonResult)[nodeCount], nodeWZ);
-                        else
-                            IGAMortarMath::computeLocalCoordsInQuad(_clippedByPatchProjElementFEUV,
-                                    (*polygonResult)[nodeCount], nodeWZ);
-                        IGAMortarMath::computeLinearCombinationValueFromVerticesValues(
-                                _numNodesClippedByPatchProjectedElement, 2, _clippedByPatchProjElementFEWZ, nodeWZ,
-                                &ClippedByKnotSpanProjElementFEWZ[nodeCount * 2]);
-                    }
-
-                    integrate(_thePatch, numNodesClippedByKnotSpanProjElementFE, ClippedByKnotSpanProjElementFEUV, spanU, spanV,
-                            ClippedByKnotSpanProjElementFEWZ, _elemCount, _numNodesElementFE);
-
-                    for (int nodeCount = 0; nodeCount < polygonResult->size(); nodeCount++)
-                        delete[] (*polygonResult)[nodeCount];
-                    delete polygonResult;
                 }
             }
     } // end of if same span
@@ -680,7 +821,7 @@ void IGAMortarMapper::integrate(IGAPatchSurface* _thePatch, int _numNodes, doubl
     vector<double*> quadratureVecWZ;
     vector<int> numNodesQuadrature;
 
-    /// 1. Divide the polygon into several quadratures(triangle or quadriliteral) for integration
+/// 1. Divide the polygon into several quadratures(triangle or quadriliteral) for integration
     if (_numNodes <= 4) {
         quadratureVecUV.push_back(_polygonUV);
         quadratureVecWZ.push_back(_polygonWZ);
@@ -729,17 +870,17 @@ void IGAMortarMapper::integrate(IGAPatchSurface* _thePatch, int _numNodes, doubl
     double elementCouplingMatrixNN[_numNodesElementFE * (_numNodesElementFE + 1) / 2];
     double elementCouplingMatrixNR[nShapeFuncsIGA * _numNodesElementFE];
 
-    for (int arrayIndex = 0; arrayIndex < _numNodesElementFE * (_numNodesElementFE + 1) / 2; arrayIndex++)
+    for (int arrayIndex = 0; arrayIndex < _numNodesElementFE * (_numNodesElementFE + 1) / 2;
+            arrayIndex++)
         elementCouplingMatrixNN[arrayIndex] = 0;
 
     for (int arrayIndex = 0; arrayIndex < nShapeFuncsIGA * _numNodesElementFE; arrayIndex++)
         elementCouplingMatrixNR[arrayIndex] = 0;
 
-/// 2. Loop through each quadrature
+    /// 2. Loop through each quadrature
     for (int quadratureCount = 0; quadratureCount < quadratureVecUV.size(); quadratureCount++) {
 
-
-        /// 2.1 Choose gauss triangle or gauss quadriliteral
+/// 2.1 Choose gauss triangle or gauss quadriliteral
 
         IGAMortarMath::GaussQuadrature *theGaussQuadrature;
 
@@ -755,7 +896,7 @@ void IGAMortarMapper::integrate(IGAPatchSurface* _thePatch, int _numNodes, doubl
         double *quadratureUV = quadratureVecUV[quadratureCount];
         double *quadratureWZ = quadratureVecWZ[quadratureCount];
 
-        /// 2.2 Loop throught each Gauss point
+/// 2.2 Loop throught each Gauss point
         for (int GPCount = 0; GPCount < theGaussQuadrature->numGaussPoints; GPCount++) {
 
             /// 2.2.1 compute shape functions from Gauss points(in the quadrature).
@@ -836,10 +977,11 @@ void IGAMortarMapper::integrate(IGAPatchSurface* _thePatch, int _numNodes, doubl
                                     * localBasisFunctionsAndDerivatives[_thePatch->getIGABasis()->indexDerivativeBasisFunction(
                                             1, 0, 0, j)] * Jacobian
                                     * theGaussQuadrature->weights[GPCount];
+
         }
     }
 
-    /// 3.Assemble the element coupling matrix to the global coupling matrix.
+/// 3.Assemble the element coupling matrix to the global coupling matrix.
     int count = 0;
     for (int i = 0; i < _numNodesElementFE; i++)
         for (int j = i; j < _numNodesElementFE; j++) {
@@ -856,7 +998,7 @@ void IGAMortarMapper::integrate(IGAPatchSurface* _thePatch, int _numNodes, doubl
     _thePatch->getIGABasis()->getBasisFunctionsIndex(_spanU, _spanV, dofIGA);
 
     for (int i = 0; i < nShapeFuncsIGA; i++)
-        dofIGA[i] = meshIGA->getMapControlPointIDToIndex()[_thePatch->getControlPointNet()[dofIGA[i]]->getId()];
+        dofIGA[i] = _thePatch->getControlPointNet()[dofIGA[i]]->getDofIndex();
 
     count = 0;
     for (int i = 0; i < _numNodesElementFE; i++)

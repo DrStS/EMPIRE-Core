@@ -45,18 +45,20 @@ char *EMPIRE_API_getUserDefinedText(char *elementName) {
     return const_cast<char*>(text.c_str());
 }
 
-void EMPIRE_API_sendMesh(char *name, int numNodes, int numElems, double *nodes, int *nodeIDs, int *numNodesPerElem,
-        int *elems) {
+void EMPIRE_API_sendMesh(char *name, int numNodes, int numElems, double *nodes, int *nodeIDs,
+        int *numNodesPerElem, int *elems) {
     empire->sendMesh(numNodes, numElems, nodes, nodeIDs, numNodesPerElem, elems);
 }
 
-void EMPIRE_API_sendIGAPatch(int _pDegree,	int _uNoKnots, double* _uKnotVector, int _qDegree, int _vNoKnots,
-		double* _vKnotVector, int _uNoControlPoints, int _vNoControlPoints, int* _controlPointNetID) {
-    empire->sendIGAPatch(_pDegree, _uNoKnots, _uKnotVector, _qDegree, _vNoKnots, _vKnotVector, _uNoControlPoints, _vNoControlPoints, _controlPointNetID);
+void EMPIRE_API_sendIGAPatch(int _pDegree, int _uNoKnots, double* _uKnotVector, int _qDegree,
+        int _vNoKnots, double* _vKnotVector, int _uNoControlPoints, int _vNoControlPoints,
+        double* _cpNet, int* _dofNet) {
+    empire->sendIGAPatch(_pDegree, _uNoKnots, _uKnotVector, _qDegree, _vNoKnots, _vKnotVector,
+            _uNoControlPoints, _vNoControlPoints, _cpNet, _dofNet);
 }
 
-void EMPIRE_API_sendIGAMesh(char *_name, int _numPatches, int _numControlPoints, double* _globalControlPoints, int* _controlPointID){
-	empire->sendIGAMesh(_numPatches, _numControlPoints, _globalControlPoints, _controlPointID);
+void EMPIRE_API_sendIGAMesh(char *_name, int _numPatches, int _numNodes) {
+    empire->sendIGAMesh(_numPatches, _numNodes);
 }
 
 void EMPIRE_API_sendDataField(char *name, int sizeOfArray, double *dataField) {
@@ -75,12 +77,12 @@ void EMPIRE_API_recvSignal_double(char *name, int sizeOfArray, double *signal) {
     empire->recvSignal_double(name, sizeOfArray, signal);
 }
 
-int EMPIRE_API_recvConvergenceSignal() {
-    return empire->recvConvergenceSignal();
-}
-
 void EMPIRE_API_sendConvergenceSignal(int signal) {
     empire->sendConvergenceSignal(signal);
+}
+
+int EMPIRE_API_recvConvergenceSignal() {
+    return empire->recvConvergenceSignal();
 }
 
 void EMPIRE_API_printDataField(char *name, int sizeOfArray, double *dataField) {
