@@ -277,5 +277,5 @@ public:
 
 } /* namespace EMPIRE */
 
-CPPUNIT_TEST_SUITE_REGISTRATION (EMPIRE::TestProjectionSemiSphereFine);
+//CPPUNIT_TEST_SUITE_REGISTRATION (EMPIRE::TestProjectionSemiSphereFine);
 

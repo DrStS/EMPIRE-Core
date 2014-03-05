@@ -72,9 +72,6 @@ IGAMortarMapper::IGAMortarMapper(std::string _name, IGAMesh *_meshIGA, FEMesh *_
 
     C_NN->factorize();
 
-//    C_NN->printCSR();
-//    C_NR->printCSR();
-
 }
 
 IGAMortarMapper::~IGAMortarMapper() {

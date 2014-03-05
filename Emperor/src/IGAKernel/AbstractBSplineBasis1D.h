@@ -77,17 +77,6 @@ public:
     virtual void computeLocalBasisFunctions(double*, double, int) = 0;
 
     /***********************************************************************************************
-     * \brief Compute the non-zero NURBS basis functions and their derivatives of the  at the given parameter (returns a 2D pointer array)
-     * \param[in/out] _basisFctsAndDerivs The non-zero basis functions at the given knot span up to their _derivDegree-th derivatives
-     * \param[in] _derivDegree For Which degree the B-Spline derivative to be computed
-     * \param[in] _uPrm The parameter where the basis functions and their derivatives are evaluated
-     * \param[in] _knotSpanIndex The index of the knot span where _uPrm lives in
-     * \author Andreas Apostolatos
-     ***********/
-    virtual void computeLocalBasisFunctionsAndDerivativesInefficient(double**, int, double,
-            int) = 0;
-
-    /***********************************************************************************************
      * \brief Compute the non-zero NURBS basis functions and their derivatives of the  at the given parameter and stores them in a vector of doubles
      * \param[in/out] _basisFctsAndDerivs The non-zero basis functions at the given knot span up to their _derivDegree-th derivatives
      * \param[in] _derivDegree For Which degree the B-Spline derivative to be computed

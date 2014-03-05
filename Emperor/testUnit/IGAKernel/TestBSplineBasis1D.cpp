@@ -184,48 +184,6 @@ public:
     }
 
     /***********************************************************************************************
-     * \brief Test case: Test the computation of the local basis functions and their derivatives
-     ***********/
-    void testBSpline1DBasisFunctionsAndDerivativesInefficient() {
-        // Compute the non-zero basis functions and their derivatives at another parametric location
-        double u = 39.0 / 5.0;
-        int knotSpan = bSplineBasis1D->findKnotSpan(u);
-        int derivDegree = 2;
-        double** localBasisFunctionsAndDerivatives = new double*[derivDegree + 1];
-        for (int i = 0; i <= derivDegree; i++)
-            localBasisFunctionsAndDerivatives[i] = new double[bSplineBasis1D->getPolynomialDegree()
-                    + 1];
-
-        bSplineBasis1D->computeLocalBasisFunctionsAndDerivativesInefficient(
-                localBasisFunctionsAndDerivatives, derivDegree, u, knotSpan);
-        /*cout << endl;
-         cout << endl;
-         cout << "The non-zero basis functions and their derivatives at u = " << u << " :";
-         cout << endl;
-         for (int i = 0; i <= derivDegree; i++) {
-         for (int j = 0; j <= bSplineBasis1D->getPolynomialDegree(); j++)
-         cout << localBasisFunctionsAndDerivatives[i][j] << " ";
-         cout << endl;
-         }*/
-
-        // Values provided by MATLAB
-        double CorrectlocalBasisFunctionsAndDerivatives[][4] = { { 0.085184000000000,
-                0.325248000000000, 0.413952000000000, 0.175616000000000 }, { -0.116160000000000,
-                -0.179520000000000, 0.107520000000000, 0.188160000000000 }, { 0.105600000000000,
-                -0.076800000000000, -0.163200000000000, 0.134400000000000 } };
-
-        for (int i = 0; i <= derivDegree; i++)
-            for (int j = 0; j <= bSplineBasis1D->getPolynomialDegree(); j++)
-                CPPUNIT_ASSERT(
-                        fabs(localBasisFunctionsAndDerivatives[i][j]-CorrectlocalBasisFunctionsAndDerivatives[i][j])<=Tol);
-
-        // Clear the heap from the pointer
-        for (int i = 0; i <= derivDegree; i++)
-            delete[] localBasisFunctionsAndDerivatives[i];
-        delete[] localBasisFunctionsAndDerivatives;
-    }
-
-    /***********************************************************************************************
      * \brief Test case: Test the computation of the local basis functions and their derivatives (Efficient algorithm)
      ***********/
     void testBSpline1DBasisFunctionsAndDerivatives() {
@@ -301,34 +259,6 @@ public:
     /***********************************************************************************************
      * \brief Test case: Test the computation of the B-Spline basis functions and their derivatives for memory leakage (Inefficient algorithm)
      ***********/
-    void testBSpline1DBasisFunctionsAndDerivativesInefficient4Leakage() {
-        // initialize variables
-        int noIterations = 1000000000;
-        int knotSpan = 0;
-        double u = 17.0 / 3.0;
-        int derivDegree = 2;
-
-        for (int i = 0; i < noIterations; i++) {
-            // Initialize the array holding the B-Spline basis functions and their derivatives
-            double** localBasisFunctionsAndDerivatives = new double*[derivDegree + 1];
-            for (int i = 0; i <= derivDegree; i++)
-                localBasisFunctionsAndDerivatives[i] =
-                        new double[bSplineBasis1D->getPolynomialDegree() + 1];
-
-            // Fill up the array with appropriate values
-            bSplineBasis1D->computeLocalBasisFunctionsAndDerivativesInefficient(
-                    localBasisFunctionsAndDerivatives, derivDegree, u, knotSpan);
-
-            // Clean up the array from the heap
-            for (int i = 0; i <= derivDegree; i++)
-                delete[] localBasisFunctionsAndDerivatives[i];
-            delete[] localBasisFunctionsAndDerivatives;
-        }
-    }
-
-    /***********************************************************************************************
-     * \brief Test case: Test the computation of the B-Spline basis functions and their derivatives for memory leakage (Inefficient algorithm)
-     ***********/
     void testBSpline1DBasisFunctionsAndDerivatives4Leakage() {
         // initialize variables
         int noIterations = 1000000000;
@@ -355,12 +285,10 @@ CPPUNIT_TEST_SUITE(TestBSplineBasis1D);
     CPPUNIT_TEST(testConstructor);
     CPPUNIT_TEST(testBSpline1DKnotSpan);
     CPPUNIT_TEST(testBSpline1DBasisFunctions);
-    CPPUNIT_TEST(testBSpline1DBasisFunctionsAndDerivativesInefficient);
     CPPUNIT_TEST(testBSpline1DBasisFunctionsAndDerivatives);
 
     // Make the tests for leakage
     // CPPUNIT_TEST(testBSpline1DBasisFunctions4Leakage);
-    // CPPUNIT_TEST(testBSpline1DBasisFunctionsAndDerivativesInefficient4Leakage);
     // CPPUNIT_TEST(testBSpline1DBasisFunctionsAndDerivatives4Leakage);
 
     CPPUNIT_TEST_SUITE_END()

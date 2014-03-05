@@ -106,16 +106,6 @@ public:
     void computeLocalBasisFunctions(double*, double, int);
 
     /***********************************************************************************************
-     * \brief Compute the non-zero basis functions and their derivatives of the  at the given parameter (Inefficient algorithm)
-     * \param[in/out] _basisFctsAndDerivs The non-zero basis functions at the given knot span up to their _derivDegree-th derivatives
-     * \param[in] _derivDegree For Which degree the B-Spline derivative to be computed
-     * \param[in] _uPrm The parameter where the basis functions and their derivatives are evaluated
-     * \param[in] _KnotSpanIndex The index of the knot span where _uPrm lives in
-     * \author Andreas Apostolatos
-     ***********/
-    void computeLocalBasisFunctionsAndDerivativesInefficient(double**, int, double, int);
-
-    /***********************************************************************************************
      * \brief Compute the non-zero basis functions and their derivatives of the  at the given parameter and stores them in a double array
      * \param[in/out] _basisFctsAndDerivs The non-zero basis functions at the given knot span up to their _derivDegree-th derivatives
      * \param[in] _derivDegree For Which degree the B-Spline derivative to be computed

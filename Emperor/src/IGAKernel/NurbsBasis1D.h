@@ -83,27 +83,6 @@ public:
     void computeLocalBasisFunctions(double*, double, int);
 
     /***********************************************************************************************
-     * \brief Compute the non-zero NURBS basis functions and their derivatives of the  at the given parameter (returns a 2D pointer array)
-     * \param[in/out] _basisFctsAndDerivs The non-zero basis functions at the given knot span up to their _derivDegree-th derivatives
-     * \param[in] _derivDegree For Which degree the B-Spline derivative to be computed
-     * \param[in] _uPrm The parameter where the basis functions and their derivatives are evaluated
-     * \param[in] _knotSpanIndex The index of the knot span where _uPrm lives in
-     * \author Andreas Apostolatos
-     ***********/
-    void computeLocalBasisFunctionsAndDerivativesInefficient(double**, int, double, int);
-
-    /***********************************************************************************************
-     * \brief Compute the non-zero NURBS basis functions and their derivatives of the  at the given parameter and stores them in a vector of doubles
-     *        however this is still not adapted by the NURBS book and handles only up to 2nd derivatives of the basis functions inefficiently
-     * \param[in/out] _basisFctsAndDerivs The non-zero basis functions at the given knot span up to their _derivDegree-th derivatives
-     * \param[in] _derivDegree For Which degree the B-Spline derivative to be computed
-     * \param[in] _uPrm The parameter where the basis functions and their derivatives are evaluated
-     * \param[in] _knotSpanIndex The index of the knot span where _uPrm lives in
-     * \author Andreas Apostolatos
-     ***********/
-    void computeLocalBasisFunctionsAndDerivativesInefficient(double*, int, double, int);
-
-    /***********************************************************************************************
      * \brief Compute the denominator function w(u) = Sum_(i=1)^n N_(i,p)*w_i and its derivatives at the given NURBS parameter u
      * \param[in/out] _denominatorFctAndDerivs The denominator function and its derivatives at u
      * \param[in] _bSplineBasisFctsAndDerivs The non zero B-Spline basis functions at the given knot span and their up to their _derivDegree-th derivatives at u

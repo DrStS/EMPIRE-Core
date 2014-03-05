@@ -417,4 +417,4 @@ public:
 
 } /* namespace EMPIRE */
 
-CPPUNIT_TEST_SUITE_REGISTRATION (EMPIRE::TestIGAMortarMapperMultiPatchPlanarSurface);
+//CPPUNIT_TEST_SUITE_REGISTRATION (EMPIRE::TestIGAMortarMapperMultiPatchPlanarSurface);

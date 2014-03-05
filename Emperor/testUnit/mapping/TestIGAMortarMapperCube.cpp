@@ -260,4 +260,4 @@ public:
 ;
 
 } /* namespace EMPIRE */
-CPPUNIT_TEST_SUITE_REGISTRATION (EMPIRE::TestIGAMortarMapperCube);
+//CPPUNIT_TEST_SUITE_REGISTRATION (EMPIRE::TestIGAMortarMapperCube);
