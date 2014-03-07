@@ -1024,8 +1024,8 @@ void IGAMortarMapper::integrate(IGAPatchSurface* _thePatch, int _numNodes, doubl
                     } else {
                         basisFctsMaster =
                                 localBasisFunctionsAndDerivatives[_thePatch->getIGABasis()->indexDerivativeBasisFunction(
-                                        1, 0, 0, j)];
-                        basisFctsSlave = shapeFuncsFE[i];
+                                        1, 0, 0, i)];
+                        basisFctsSlave = shapeFuncsFE[j];
                     }
                     elementCouplingMatrixNR[count++] += basisFctsMaster * basisFctsSlave * Jacobian
                             * theGaussQuadrature->weights[GPCount];
@@ -1052,7 +1052,6 @@ void IGAMortarMapper::integrate(IGAPatchSurface* _thePatch, int _numNodes, doubl
                 dof1 = dofIGA[i];
                 dof2 = dofIGA[j];
             }
-            cout << "CNN:    dof1 = " << dof1 << "     dof2 = " << dof2 << endl;
             if (dof1 < dof2)
                 (*C_NN)(dof1, dof2) += elementCouplingMatrixNN[count++];
             else
@@ -1069,7 +1068,6 @@ void IGAMortarMapper::integrate(IGAPatchSurface* _thePatch, int _numNodes, doubl
                 dof1 = dofIGA[i];
                 dof2 = meshFEDirectElemTable[_elementIndex][j];
             }
-            cout << "CNR:    dof1 = " << dof1 << "     dof2 = " << dof2 << endl;
             (*C_NR)(dof1, dof2) += elementCouplingMatrixNR[count++];
         }
 
