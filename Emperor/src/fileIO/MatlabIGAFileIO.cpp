@@ -74,8 +74,8 @@ void writeIGAMesh(IGAMesh* igaMesh) {
         myfile << "];" << endl;
 
         int cpCount = 0;
-        for (int uCount = 0; uCount < patch->getUNoControlPoints(); uCount++) {
-            for (int vCount = 0; vCount < patch->getVNoControlPoints(); vCount++) {
+        for (int vCount = 0; vCount < patch->getVNoControlPoints(); vCount++) {
+            for (int uCount = 0; uCount < patch->getUNoControlPoints(); uCount++) {
                 IGAControlPoint* cp = patch->getControlPointNet()[cpCount];
                 myfile << "surfacePatch(" << patchCount + 1 << ").CP(" << uCount + 1 << ", "
                         << vCount + 1 << ", 1:4) = [" << cp->getX() << ", " << cp->getY() << ", "

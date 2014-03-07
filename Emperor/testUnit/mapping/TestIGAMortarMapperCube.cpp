@@ -218,8 +218,9 @@ public:
         theFEMesh->nodes[5 * 3 + 1] = 0.95;
         theFEMesh->nodes[5 * 3 + 2] = 0.95;
 
+        bool isMappingIGA2FEM = true;
         theMapper = new IGAMortarMapper("Test IGA Mortar Mapper", theIGAMesh, theFEMesh, 0.5, 16,
-                25);
+                25, isMappingIGA2FEM);
 
     }
 

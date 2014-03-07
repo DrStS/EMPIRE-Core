@@ -83,7 +83,7 @@ private:
     std::vector<std::map<int, double*> > *projectedCoords;
 //    std::vector<std::map<int, bool> > *isProjectionOrthogonal;
 
-    /// Tolerance up to which projection is trusted
+/// Tolerance up to which projection is trusted
     double disTol;
 
     /// number of Gauss points used for computing triangle element
@@ -91,6 +91,12 @@ private:
 
     /// number of Gauss points used for computing quad element
     int numGPsQuad;
+
+    /// Flag on the mapping direction
+    bool isMappingIGA2FEM;
+
+    size_t numNodesSlave;
+    size_t numNodesMaster;
 
 public:
     /***********************************************************************************************
@@ -103,7 +109,8 @@ public:
      * \param[in] _numGPsQuad The number of Gauss points used for computing quad element
      * \author Chenshen Wu
      ***********/
-    IGAMortarMapper(std::string _name, IGAMesh *_meshIGA, FEMesh *_meshFE, double _disTol, int _numGPsTri, int _numGPsQuad);
+    IGAMortarMapper(std::string _name, IGAMesh *_meshIGA, FEMesh *_meshFE, double _disTol,
+            int _numGPsTri, int _numGPsQuad, bool _isMappingIGA2FEM);
 
     /***********************************************************************************************
      * \brief Destructor Chenshen Wu
@@ -132,8 +139,9 @@ public:
      * \brief Computes coupling matrices in the given patch for the element which is split into more than one patches
      * \author Chenshen Wu
      ***********/
-    void computeCouplingMatrices4ClippedByPatchProjectedElement(IGAPatchSurface* _thePatch, int _numNodesInPatch, double* _elementInPatchIGA,
-           double* _elementInPatchFE, int _elemCount, int _nShapeFuncsFE);
+    void computeCouplingMatrices4ClippedByPatchProjectedElement(IGAPatchSurface* _thePatch,
+            int _numNodesInPatch, double* _elementInPatchIGA, double* _elementInPatchFE,
+            int _elemCount, int _nShapeFuncsFE);
 
     /***********************************************************************************************
      * \brief Integrate the element coupling matrices and assemble them to the global one

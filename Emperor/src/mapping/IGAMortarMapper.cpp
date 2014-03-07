@@ -42,8 +42,9 @@ using namespace std;
 namespace EMPIRE {
 
 IGAMortarMapper::IGAMortarMapper(std::string _name, IGAMesh *_meshIGA, FEMesh *_meshFE,
-        double _disTol, int _numGPsTri, int _numGPsQuad) :
-        meshIGA(_meshIGA), disTol(_disTol), numGPsTri(_numGPsTri), numGPsQuad(_numGPsQuad) {
+        double _disTol, int _numGPsTri, int _numGPsQuad, bool _isMappingIGA2FEM) :
+        meshIGA(_meshIGA), disTol(_disTol), numGPsTri(_numGPsTri), numGPsQuad(_numGPsQuad), isMappingIGA2FEM(
+                _isMappingIGA2FEM) {
 
     assert(_meshIGA != NULL);
     assert(_meshFE != NULL);
@@ -57,9 +58,21 @@ IGAMortarMapper::IGAMortarMapper(std::string _name, IGAMesh *_meshIGA, FEMesh *_
 
     projectedCoords = new vector<map<int, double*> >(meshFE->numNodes);
 
-    C_NR = new MathLibrary::SparseMatrix<double>((const size_t) meshFE->numNodes,
-            (const size_t) meshIGA->getNumNodes());
-    C_NN = new MathLibrary::SparseMatrix<double>((const size_t) meshFE->numNodes, true);
+    if (isMappingIGA2FEM) {
+        numNodesSlave = (const size_t) meshIGA->getNumNodes();
+        numNodesMaster = (const size_t) meshFE->numNodes;
+        cout << "isMappingIGA2FEM" << endl;
+    } else {
+        numNodesSlave = (const size_t) meshFE->numNodes;
+        numNodesMaster = (const size_t) meshIGA->getNumNodes();
+        cout << "isMappingIGA2FEM = false" << endl;
+    }
+
+    cout << "numNodesSlave = " << numNodesSlave << endl;
+    cout << "numNodesMaster = " << numNodesMaster << endl;
+
+    C_NR = new MathLibrary::SparseMatrix<double>(numNodesMaster, numNodesSlave);
+    C_NN = new MathLibrary::SparseMatrix<double>(numNodesMaster, true);
 
     gaussTriangle = new IGAMortarMath::GaussQuadratureOnTriangle(numGPsTri);
     gaussQuad = new IGAMortarMath::GaussQuadratureOnQuad(numGPsQuad);
@@ -71,6 +84,9 @@ IGAMortarMapper::IGAMortarMapper(std::string _name, IGAMesh *_meshIGA, FEMesh *_
     computeCouplingMatrices();
 
     C_NN->factorize();
+
+    C_NN->printCSR();
+    C_NR->printCSR();
 
 }
 
@@ -104,7 +120,7 @@ void IGAMortarMapper::initTables() {
      * the map is sorted automatically, so it is efficient for searching
      */
 
-    // compute direct element table for fluid mesh
+// compute direct element table for fluid mesh
     meshFEDirectElemTable = new int*[meshFE->numElems]; // deleted
     for (int i = 0; i < meshFE->numElems; i++)
         meshFEDirectElemTable[i] = new int[meshFE->numNodesPerElem[i]];
@@ -254,7 +270,8 @@ void IGAMortarMapper::projectPointsToSurface() {
                 P[1] = meshFE->nodes[nodeIndex * 3 + 1];
                 P[2] = meshFE->nodes[nodeIndex * 3 + 2];
 
-                thePatch->findInitialGuess4PointProjection(U, V, P, REFINED_NUM_PARAMETRIC_LOCATIONS, REFINED_NUM_PARAMETRIC_LOCATIONS);
+                thePatch->findInitialGuess4PointProjection(U, V, P,
+                        REFINED_NUM_PARAMETRIC_LOCATIONS, REFINED_NUM_PARAMETRIC_LOCATIONS);
 
                 bool isConverge;
                 bool isConvergeInside = thePatch->computePointProjectionOnPatch(U, V, P,
@@ -298,11 +315,11 @@ void IGAMortarMapper::computeCouplingMatrices() {
      * 2ii. If the current element cannot be projected on one patch
      * <-
      */
-    // The vertices of the canonical polygons
+// The vertices of the canonical polygons
     double parentTriangle[6] = { 0, 0, 1, 0, 0, 1 };
     double parentQuadriliteral[8] = { -1, -1, 1, -1, 1, 1, -1, 1 };
 
-    /// Loop over all the elements in the FE side
+/// Loop over all the elements in the FE side
     for (int elemCount = 0; elemCount < meshFE->numElems; elemCount++) {
 
         // Compute the number of shape functions. Depending on number of nodes in the current element
@@ -723,7 +740,7 @@ void IGAMortarMapper::computeCouplingMatrices4ClippedByPatchProjectedElement(
 
     if (minSpanU == maxSpanU & minSpanV == maxSpanV)
         /* 2.1 if the whole element is located in a single knot span, set the coordinates in the linear element as
-         the full triangle or full quadriliteral defined at the beginning of this function. */
+         the full triangle or full quadrilateral defined at the beginning of this function. */
         integrate(_thePatch, _numNodesClippedByPatchProjectedElement,
                 _clippedByPatchProjElementFEUV, minSpanU, minSpanV, _clippedByPatchProjElementFEWZ,
                 _elemCount, _numNodesElementFE);
@@ -818,6 +835,36 @@ void IGAMortarMapper::integrate(IGAPatchSurface* _thePatch, int _numNodes, doubl
     vector<double*> quadratureVecWZ;
     vector<int> numNodesQuadrature;
 
+    // Definitions
+    double IGABasisFctsI = 0;
+    double IGABasisFctsJ = 0;
+    double basisFctsMaster = 0;
+    double basisFctsSlave = 0;
+    int numNodesElMaster = 0;
+    int numNodesElSlave = 0;
+
+    int pDegree = _thePatch->getIGABasis()->getUBSplineBasis1D()->getPolynomialDegree();
+    int qDegree = _thePatch->getIGABasis()->getVBSplineBasis1D()->getPolynomialDegree();
+    int nShapeFuncsIGA = (pDegree + 1) * (qDegree + 1);
+
+    if (isMappingIGA2FEM) {
+        numNodesElMaster = _numNodesElementFE;
+        numNodesElSlave = nShapeFuncsIGA;
+    } else {
+        numNodesElMaster = nShapeFuncsIGA;
+        numNodesElSlave = _numNodesElementFE;
+    }
+
+    double elementCouplingMatrixNN[numNodesElMaster * (numNodesElMaster + 1) / 2];
+    double elementCouplingMatrixNR[numNodesElSlave * numNodesElMaster];
+
+    for (int arrayIndex = 0; arrayIndex < numNodesElMaster * (numNodesElMaster + 1) / 2;
+            arrayIndex++)
+        elementCouplingMatrixNN[arrayIndex] = 0;
+
+    for (int arrayIndex = 0; arrayIndex < numNodesElSlave * numNodesElMaster; arrayIndex++)
+        elementCouplingMatrixNR[arrayIndex] = 0;
+
 /// 1. Divide the polygon into several quadratures(triangle or quadriliteral) for integration
     if (_numNodes <= 4) {
         quadratureVecUV.push_back(_polygonUV);
@@ -860,21 +907,7 @@ void IGAMortarMapper::integrate(IGAPatchSurface* _thePatch, int _numNodes, doubl
         }
     }
 
-    int pDegree = _thePatch->getIGABasis()->getUBSplineBasis1D()->getPolynomialDegree();
-    int qDegree = _thePatch->getIGABasis()->getVBSplineBasis1D()->getPolynomialDegree();
-    int nShapeFuncsIGA = (pDegree + 1) * (qDegree + 1);
-
-    double elementCouplingMatrixNN[_numNodesElementFE * (_numNodesElementFE + 1) / 2];
-    double elementCouplingMatrixNR[nShapeFuncsIGA * _numNodesElementFE];
-
-    for (int arrayIndex = 0; arrayIndex < _numNodesElementFE * (_numNodesElementFE + 1) / 2;
-            arrayIndex++)
-        elementCouplingMatrixNN[arrayIndex] = 0;
-
-    for (int arrayIndex = 0; arrayIndex < nShapeFuncsIGA * _numNodesElementFE; arrayIndex++)
-        elementCouplingMatrixNR[arrayIndex] = 0;
-
-    /// 2. Loop through each quadrature
+/// 2. Loop through each quadrature
     for (int quadratureCount = 0; quadratureCount < quadratureVecUV.size(); quadratureCount++) {
 
 /// 2.1 Choose gauss triangle or gauss quadriliteral
@@ -959,49 +992,86 @@ void IGAMortarMapper::integrate(IGAPatchSurface* _thePatch, int _numNodes, doubl
 
             /// 2.2.8 integrate the shape function product for C_NN(Linear shape function multiply linear shape function)
             int count = 0;
-            for (int i = 0; i < _numNodesElementFE; i++)
-                for (int j = i; j < _numNodesElementFE; j++) {
-                    elementCouplingMatrixNN[count++] += shapeFuncsFE[i] * shapeFuncsFE[j] * Jacobian
-                            * theGaussQuadrature->weights[GPCount];
+
+            for (int i = 0; i < numNodesElMaster; i++)
+                for (int j = i; j < numNodesElMaster; j++) {
+                    if (isMappingIGA2FEM)
+                        elementCouplingMatrixNN[count++] += shapeFuncsFE[i] * shapeFuncsFE[j]
+                                * Jacobian * theGaussQuadrature->weights[GPCount];
+                    else {
+                        IGABasisFctsI =
+                                localBasisFunctionsAndDerivatives[_thePatch->getIGABasis()->indexDerivativeBasisFunction(
+                                        1, 0, 0, i)];
+                        IGABasisFctsJ =
+                                localBasisFunctionsAndDerivatives[_thePatch->getIGABasis()->indexDerivativeBasisFunction(
+                                        1, 0, 0, j)];
+                        elementCouplingMatrixNN[count++] += IGABasisFctsI * IGABasisFctsJ * Jacobian
+                                * theGaussQuadrature->weights[GPCount];
+                    }
+
                 }
 
             /// 2.2.9 integrate the shape function product for C_NR(Linear shape function multiply IGA shape function)
             count = 0;
-            for (int i = 0; i < _numNodesElementFE; i++)
-                for (int j = 0; j < nShapeFuncsIGA; j++)
-                    elementCouplingMatrixNR[count++] +=
-                            shapeFuncsFE[i]
-                                    * localBasisFunctionsAndDerivatives[_thePatch->getIGABasis()->indexDerivativeBasisFunction(
-                                            1, 0, 0, j)] * Jacobian
-                                    * theGaussQuadrature->weights[GPCount];
+
+            for (int i = 0; i < numNodesElMaster; i++)
+                for (int j = 0; j < numNodesElSlave; j++) {
+                    if (isMappingIGA2FEM) {
+                        basisFctsMaster = shapeFuncsFE[i];
+                        basisFctsSlave =
+                                localBasisFunctionsAndDerivatives[_thePatch->getIGABasis()->indexDerivativeBasisFunction(
+                                        1, 0, 0, j)];
+                    } else {
+                        basisFctsMaster =
+                                localBasisFunctionsAndDerivatives[_thePatch->getIGABasis()->indexDerivativeBasisFunction(
+                                        1, 0, 0, j)];
+                        basisFctsSlave = shapeFuncsFE[i];
+                    }
+                    elementCouplingMatrixNR[count++] += basisFctsMaster * basisFctsSlave * Jacobian
+                            * theGaussQuadrature->weights[GPCount];
+                }
 
         }
     }
 
 /// 3.Assemble the element coupling matrix to the global coupling matrix.
-    int count = 0;
-    for (int i = 0; i < _numNodesElementFE; i++)
-        for (int j = i; j < _numNodesElementFE; j++) {
-            int dof1 = meshFEDirectElemTable[_elementIndex][i];
-            int dof2 = meshFEDirectElemTable[_elementIndex][j];
-
-            if (dof1 < dof2)
-                (*C_NN)(dof1, dof2) += elementCouplingMatrixNN[count++];
-            else
-                (*C_NN)(dof2, dof1) += elementCouplingMatrixNN[count++];
-        }
-
     int dofIGA[nShapeFuncsIGA];
     _thePatch->getIGABasis()->getBasisFunctionsIndex(_spanU, _spanV, dofIGA);
 
     for (int i = 0; i < nShapeFuncsIGA; i++)
         dofIGA[i] = _thePatch->getControlPointNet()[dofIGA[i]]->getDofIndex();
 
+    int count = 0;
+    int dof1, dof2;
+    for (int i = 0; i < numNodesElMaster; i++)
+        for (int j = i; j < numNodesElMaster; j++) {
+            if (isMappingIGA2FEM) {
+                dof1 = meshFEDirectElemTable[_elementIndex][i];
+                dof2 = meshFEDirectElemTable[_elementIndex][j];
+            } else {
+                dof1 = dofIGA[i];
+                dof2 = dofIGA[j];
+            }
+            cout << "CNN:    dof1 = " << dof1 << "     dof2 = " << dof2 << endl;
+            if (dof1 < dof2)
+                (*C_NN)(dof1, dof2) += elementCouplingMatrixNN[count++];
+            else
+                (*C_NN)(dof2, dof1) += elementCouplingMatrixNN[count++];
+        }
+
     count = 0;
-    for (int i = 0; i < _numNodesElementFE; i++)
-        for (int j = 0; j < nShapeFuncsIGA; j++)
-            (*C_NR)(meshFEDirectElemTable[_elementIndex][i], dofIGA[j]) +=
-                    elementCouplingMatrixNR[count++];
+    for (int i = 0; i < numNodesElMaster; i++)
+        for (int j = 0; j < numNodesElSlave; j++) {
+            if (isMappingIGA2FEM) {
+                dof1 = meshFEDirectElemTable[_elementIndex][i];
+                dof2 = dofIGA[j];
+            } else {
+                dof1 = dofIGA[i];
+                dof2 = meshFEDirectElemTable[_elementIndex][j];
+            }
+            cout << "CNR:    dof1 = " << dof1 << "     dof2 = " << dof2 << endl;
+            (*C_NR)(dof1, dof2) += elementCouplingMatrixNR[count++];
+        }
 
     if (_numNodes > 4)
         for (int i = 0; i < quadratureVecUV.size(); i++) {
@@ -1010,48 +1080,39 @@ void IGAMortarMapper::integrate(IGAPatchSurface* _thePatch, int _numNodes, doubl
         }
 }
 
-void IGAMortarMapper::consistentMapping(const double* _fieldIGA, double* _fieldFE) {
+void IGAMortarMapper::consistentMapping(const double* _slaveField, double *_masterField) {
     /*
      * Mapping of the
-     * C_NN * x_FE = C_NR * x_IGA
+     * C_NN * x_master = C_NR * x_slave
      */
-    double tmpVec[meshFE->numNodes];
+    double* tmpVec = new double[numNodesMaster];
 
-// 1. matrix vector product (x_tmp = C_NR * x_IGA)
-    C_NR->mulitplyVec(_fieldIGA, tmpVec, meshFE->numNodes);
+// 1. matrix vector product (x_tmp = C_NR * x_slave)
+    C_NR->mulitplyVec(_slaveField, tmpVec, numNodesMaster);
 
-// 2. solve C_NN * x_FE = x_tmp
-    C_NN->solve(_fieldFE, tmpVec);
+// 2. solve C_NN * x_master = x_tmp
+    C_NN->solve(_masterField, tmpVec);
 
-//    ofstream myfile;
-//    myfile.open("D_tmp", ios::app);
-//    myfile.precision(14);
-//    myfile << std::dec;
-//    myfile << _fieldIGA[33] << "\n";
-//    myfile.close();
+    delete[] tmpVec;
 
 }
 
-void IGAMortarMapper::conservativeMapping(const double* _fieldFE, double* _fieldIGA) {
+void IGAMortarMapper::conservativeMapping(const double* _masterField, double *_slaveField) {
     /*
      * Mapping of the
-     * f_IGA = (C_NN^(-1) * C_NR)^T * f_FE
+     * f_slave = (C_NN^(-1) * C_NR)^T * f_master
      */
 
-    double tmpVec[meshFE->numNodes];
+    double* tmpVec = new double[numNodesMaster];
 
-// 1. solve C_NN * f_tmp = f_FE;
-    C_NN->solve(tmpVec, const_cast<double *>(_fieldFE));
+// 1. solve C_NN * f_tmp = f_master;
+    C_NN->solve(tmpVec, const_cast<double *>(_masterField));
 
-// 2. matrix vector product (f_IGA = C_NR^T * f_tmp)
-    C_NR->transposeMulitplyVec(tmpVec, _fieldIGA, meshFE->numNodes);
+// 2. matrix vector product (f_slave = C_NR^T * f_tmp)
+    C_NR->transposeMulitplyVec(tmpVec, _slaveField, numNodesMaster);
 
-//    ofstream myfile;
-//    myfile.open("F_tmp", ios::app);
-//    myfile.precision(14);
-//    myfile << std::dec;
-//    myfile << _fieldIGA[36] << "\n";
-//    myfile.close();
+    delete[] tmpVec;
+
 }
 
 void IGAMortarMapper::printCouplingMatrices() {

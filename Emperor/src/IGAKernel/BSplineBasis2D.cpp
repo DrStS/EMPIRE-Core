@@ -168,13 +168,13 @@ void BSplineBasis2D::getBasisFunctionsIndex(int _KnotSpanIndexU, int _KnotSpanIn
     assert(_funcsIndex!=NULL);
 
     int counter = 0;
-    int numBasisFuncsV = vBSplineBasis1D->computeNoBasisFunctions();
+    int numBasisFuncsU = uBSplineBasis1D->computeNoBasisFunctions();
 
-    for (int i = _KnotSpanIndexV - vBSplineBasis1D->getPolynomialDegree(); i <= _KnotSpanIndexV;
-            i++)
-        for (int j = _KnotSpanIndexU - uBSplineBasis1D->getPolynomialDegree(); j <= _KnotSpanIndexU;
-                j++)
-            _funcsIndex[counter++] = j * numBasisFuncsV + i;
+    for (int j = _KnotSpanIndexV - vBSplineBasis1D->getPolynomialDegree(); j <= _KnotSpanIndexV;
+            j++)
+        for (int i = _KnotSpanIndexU - uBSplineBasis1D->getPolynomialDegree(); i <= _KnotSpanIndexU;
+                i++)
+            _funcsIndex[counter++] = j * numBasisFuncsU + i;
 
 }
 

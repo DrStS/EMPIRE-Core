@@ -286,8 +286,9 @@ public:
             theFEMesh->elems[i] = elems[i];
 
 
+        bool isMappingIGA2FEM = true;
         theMapper = new IGAMortarMapper("Test IGA Mortar Mapper Cylinder", theIGAMesh, theFEMesh,
-                 1e-1, 16, 25);
+                 1e-1, 16, 25, isMappingIGA2FEM);
 
         // The comparison must be extended for all the entries
         CPPUNIT_ASSERT(fabs((*theMapper->C_NN)(2, 21) - 4.853032548893787e-03) < Tol);
