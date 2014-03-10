@@ -61,15 +61,16 @@ IGAMortarMapper::IGAMortarMapper(std::string _name, IGAMesh *_meshIGA, FEMesh *_
     if (isMappingIGA2FEM) {
         numNodesSlave = (const size_t) meshIGA->getNumNodes();
         numNodesMaster = (const size_t) meshFE->numNodes;
-        cout << "isMappingIGA2FEM" << endl;
+        // cout << "isMappingIGA2FEM" << endl;
     } else {
         numNodesSlave = (const size_t) meshFE->numNodes;
         numNodesMaster = (const size_t) meshIGA->getNumNodes();
-        cout << "isMappingIGA2FEM = false" << endl;
+        // cout << "isMappingIGA2FEM = false" << endl;
     }
 
-    cout << "numNodesSlave = " << numNodesSlave << endl;
-    cout << "numNodesMaster = " << numNodesMaster << endl;
+    // Debugging stuff
+    // cout << "numNodesSlave = " << numNodesSlave << endl;
+    // cout << "numNodesMaster = " << numNodesMaster << endl;
 
     C_NR = new MathLibrary::SparseMatrix<double>(numNodesMaster, numNodesSlave);
     C_NN = new MathLibrary::SparseMatrix<double>(numNodesMaster, true);
@@ -85,8 +86,9 @@ IGAMortarMapper::IGAMortarMapper(std::string _name, IGAMesh *_meshIGA, FEMesh *_
 
     C_NN->factorize();
 
-    C_NN->printCSR();
-    C_NR->printCSR();
+    // Debugging stuff
+    // C_NN->printCSR();
+    // C_NR->printCSR();
 
 }
 
