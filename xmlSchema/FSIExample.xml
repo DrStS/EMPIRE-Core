@@ -1,0 +1,255 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- EMPIRE input file -->
+<EMPEROR xmlns="EmperorInput" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="EmperorInput http://empire.st.bv.tum.de/projects/empire/repository/revisions/master/raw/xmlSchema/emperorInput.xsd">
+	<!-- ================ define clientCodes ======================================== -->
+	<clientCode name="carat">
+		<mesh name="myMesh1">
+			<dataField name="displacements" location="atNode"
+				dimension="vector" typeOfQuantity="field" />
+			<dataField name="forces" location="atNode" dimension="vector"
+				typeOfQuantity="fieldIntegral" />
+		</mesh>
+	</clientCode>
+	<clientCode name="OpenFOAM">
+		<mesh name="myMesh1">
+			<dataField name="displacements" location="atNode"
+				dimension="vector" typeOfQuantity="field" />
+			<dataField name="forces" location="atNode" dimension="vector"
+				typeOfQuantity="fieldIntegral" />
+			<dataField name="tractionsAtNode" location="atNode" dimension="vector"
+				typeOfQuantity="field" />
+		</mesh>
+	</clientCode>
+
+	<!-- ================ define dataOutputs ======================================== -->
+	<dataOutput name="timeStep" interval="1">
+		<dataFieldRef clientCodeName="carat" meshName="myMesh1"
+			dataFieldName="displacements" />
+		<dataFieldRef clientCodeName="carat" meshName="myMesh1"
+			dataFieldName="forces" />
+		<dataFieldRef clientCodeName="OpenFOAM" meshName="myMesh1"
+			dataFieldName="displacements" />
+		<dataFieldRef clientCodeName="OpenFOAM" meshName="myMesh1"
+			dataFieldName="forces" />
+		<dataFieldRef clientCodeName="OpenFOAM" meshName="myMesh1"
+			dataFieldName="tractionsAtNode" />
+	</dataOutput>
+	<dataOutput name="iterativeCoupling" interval="1">
+		<dataFieldRef clientCodeName="carat" meshName="myMesh1"
+			dataFieldName="displacements" />
+		<dataFieldRef clientCodeName="carat" meshName="myMesh1"
+			dataFieldName="forces" />
+		<dataFieldRef clientCodeName="OpenFOAM" meshName="myMesh1"
+			dataFieldName="displacements" />
+		<dataFieldRef clientCodeName="OpenFOAM" meshName="myMesh1"
+			dataFieldName="forces" />
+	</dataOutput>
+
+	<!-- ================ define mappers ============================================ -->
+	<mapper name="myMortar" type="mortarMapper">
+		<!-- mapping displacements from meshA to meshB, mapping forces from meshB 
+			to meshA. -->
+		<meshA>
+			<meshRef clientCodeName="carat" meshName="myMesh1" />
+		</meshA>
+		<meshB>
+			<meshRef clientCodeName="OpenFOAM" meshName="myMesh1" />
+		</meshB>
+		<mortarMapper oppositeSurfaceNormal="true" dual="false"
+			enforceConsistency="false" />
+	</mapper>
+	
+	<!-- ================ define couplingAlgorithms ================================== -->
+	<couplingAlgorithm type="aitken" name="myAitken">
+		<residual index="1">
+			<component coefficient="-1" timeToUpdate="iterationBeginning">
+				<dataFieldRef clientCodeName="carat" meshName="myMesh1"
+					dataFieldName="displacements" />
+			</component>
+			<component coefficient="1" timeToUpdate="iterationEnd">
+				<dataFieldRef clientCodeName="carat" meshName="myMesh1"
+					dataFieldName="displacements" />
+			</component>
+		</residual>
+		<output index="1">
+			<dataFieldRef clientCodeName="carat" meshName="myMesh1"
+				dataFieldName="displacements" />
+		</output>
+		<aitken initialRelaxationFactor="0.01" />
+	</couplingAlgorithm>
+	
+	<couplingAlgorithm type="constantRelaxation" name="myConstantRelaxation">
+		<residual index="1">
+			<component coefficient="-1" timeToUpdate="iterationBeginning">
+				<dataFieldRef clientCodeName="carat" meshName="myMesh1"
+					dataFieldName="displacements" />
+			</component>
+			<component coefficient="1" timeToUpdate="iterationEnd">
+				<dataFieldRef clientCodeName="carat" meshName="myMesh1"
+					dataFieldName="displacements" />
+			</component>
+		</residual>
+		<output index="1">
+			<dataFieldRef clientCodeName="carat" meshName="myMesh1"
+				dataFieldName="displacements" />
+		</output>
+		<constantRelaxation relaxationFactor="0.1" />
+	</couplingAlgorithm>
+
+	<couplingAlgorithm type="constantRelaxation" name="">
+		<residual index="1">
+			<component coefficient="-1" timeToUpdate="iterationBeginning">
+				<dataFieldRef clientCodeName="carat" meshName="myMesh1"
+					dataFieldName="displacements" />
+			</component>
+			<component coefficient="1" timeToUpdate="iterationEnd">
+				<dataFieldRef clientCodeName="carat" meshName="myMesh1"
+					dataFieldName="displacements" />
+			</component>
+		</residual>
+		<output index="1">
+			<dataFieldRef clientCodeName="carat" meshName="myMesh1"
+				dataFieldName="displacements" />
+		</output>
+		<constantRelaxation relaxationFactor="1.0" />
+	</couplingAlgorithm>
+	
+	<!-- ================ define extrapolators ================================= -->
+	<extrapolator name="myExtrapolator" type="linearExtrapolator">
+		<dataFieldRef clientCodeName="carat" meshName="myMesh1"
+			dataFieldName="displacements" />
+	</extrapolator>
+
+	<!-- ================ define connections ========================================= -->
+	<connection name="set initial value">
+		<sequence>
+			<filter type="scalingFilter">
+				<inputAndOutput>
+					<dataFieldRef clientCodeName="carat" meshName="myMesh1"
+						dataFieldName="displacements" />
+				</inputAndOutput>
+				<scalingFilter factor="0.0" />
+			</filter>
+		</sequence>
+	</connection>
+
+	<connection name="GS step 1: send displacements">
+		<output>
+			<dataFieldRef clientCodeName="OpenFOAM" meshName="myMesh1"
+				dataFieldName="displacements" />
+		</output>
+		<sequence>
+			<filter type="mappingFilter">
+				<input>
+					<dataFieldRef clientCodeName="carat" meshName="myMesh1"
+						dataFieldName="displacements" />
+				</input>
+				<output>
+					<dataFieldRef clientCodeName="OpenFOAM" meshName="myMesh1"
+						dataFieldName="displacements" />
+				</output>
+				<mappingFilter>
+					<mapperRef mapperName="myMortar" />
+				</mappingFilter>
+			</filter>
+		</sequence>
+	</connection>
+
+	<connection name="GS step 2: transfer forces">
+		<input>
+			<dataFieldRef clientCodeName="OpenFOAM" meshName="myMesh1"
+				dataFieldName="forces" />
+		</input>
+		<output>
+			<dataFieldRef clientCodeName="carat" meshName="myMesh1"
+				dataFieldName="forces" />
+		</output>
+		<sequence>
+			<filter type="mappingFilter">
+				<input>
+					<dataFieldRef clientCodeName="OpenFOAM" meshName="myMesh1"
+						dataFieldName="forces" />
+				</input>
+				<output>
+					<dataFieldRef clientCodeName="carat" meshName="myMesh1"
+						dataFieldName="forces" />
+				</output>
+				<mappingFilter>
+					<mapperRef mapperName="myMortar" />
+				</mappingFilter>
+			</filter>
+			<filter type="dataFieldIntegrationFilter">
+				<input>
+					<dataFieldRef clientCodeName="OpenFOAM" meshName="myMesh1"
+						dataFieldName="forces" />
+				</input>
+				<output>
+					<dataFieldRef clientCodeName="OpenFOAM" meshName="myMesh1"
+						dataFieldName="tractionsAtNode" />
+				</output>
+				<dataFieldIntegrationFilter>
+					<meshRef clientCodeName="OpenFOAM" meshName="myMesh1" />
+				</dataFieldIntegrationFilter>
+			</filter>
+		</sequence>
+	</connection>
+
+	<connection name="GS step 3: receive displacements">
+		<input>
+			<dataFieldRef clientCodeName="carat" meshName="myMesh1"
+				dataFieldName="displacements" />
+		</input>
+	</connection>
+
+	<!-- ================ define coSimulation process ================================ -->
+	<coSimulation>
+		<sequence>
+			<couplingLogic type="connection">
+				<connectionRef connectionName="set initial value" />
+			</couplingLogic>
+			<couplingLogic type="timeStepLoop">
+				<timeStepLoop numTimeSteps="10000">
+					<extrapolatorRef extrapolatorName="myExtrapolator" />
+					<dataOutputRef dataOutputName="timeStep" />
+				</timeStepLoop>
+				<sequence>
+					<couplingLogic type="iterativeCouplingLoop">
+						<iterativeCouplingLoop>
+							<convergenceChecker maxNumOfIterations="40">
+								<checkResidual relativeTolerance="0"
+									absoluteTolerance="2E-8">
+									<residualRef couplingAlgorithmName="myAitken" index="1" />
+								</checkResidual>
+							</convergenceChecker>
+							<convergenceObserver>
+								<clientCodeRef clientCodeName="carat" />
+							</convergenceObserver>
+							<convergenceObserver>
+								<clientCodeRef clientCodeName="OpenFOAM" />
+							</convergenceObserver>
+							<couplingAlgorithmRef couplingAlgorithmName="myAitken" />
+							<dataOutputRef dataOutputName="iterativeCoupling" />
+						</iterativeCouplingLoop>
+						<sequence>
+							<couplingLogic type="connection">
+								<connectionRef connectionName="GS step 1: send displacements" />
+							</couplingLogic>
+							<couplingLogic type="connection">
+								<connectionRef connectionName="GS step 2: transfer forces" />
+							</couplingLogic>
+							<couplingLogic type="connection">
+								<connectionRef connectionName="GS step 3: receive displacements" />
+							</couplingLogic>
+						</sequence>
+					</couplingLogic>
+				</sequence>
+			</couplingLogic>
+		</sequence>
+	</coSimulation>
+
+	<general>
+		<portFile>server.port</portFile>
+		<verbosity>INFO</verbosity>
+	</general>
+</EMPEROR>
