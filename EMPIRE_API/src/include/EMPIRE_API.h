@@ -90,18 +90,18 @@ void EMPIRE_API_sendMesh(char *name, int numNodes, int numElems, double *nodes, 
  * \brief Send the IGA patch to the server
  * \param[in] _name name of the field
  * \param[in] _pDegree The polynomial degree of the IGA 2D patch in the u-direction
- * \param[in] _uNoKnots The number of knots for the knot vector in the u-direction
+ * \param[in] _uNumKnots The number of knots for the knot vector in the u-direction
  * \param[in] _uKnotVector The underlying knot vector of the IGA 2D patch in the u-direction
  * \param[in] _qDegree The polynomial degree of the IGA 2D patch in the v-direction
- * \param[in] _vNoKnots The number of knots for the knot vector in the v-direction
+ * \param[in] _vNumKnots The number of knots for the knot vector in the v-direction
  * \param[in] _vKnotVector The underlying knot vector of the IGA 2D patch in the v-direction
- * \param[in] _uNoControlPoints The number of the Control Points for the 2D NURBS patch in the u-direction
- * \param[in] _vNoControlPoints The number of the Control Points for the 2D NURBS patch in the v-direction
+ * \param[in] _uNumControlPoints The number of the Control Points for the 2D NURBS patch in the u-direction
+ * \param[in] _vNumControlPoints The number of the Control Points for the 2D NURBS patch in the v-direction
  * \param[in] _cpNet The set of the Control Points related to the 2D NURBS patch
- * \param[in] _dofNet The set of the dof index Control Points related to the 2D NURBS patch
+ * \param[in] _nodeNet The set of the dof index Control Points related to the 2D NURBS patch
  ***********/
-void EMPIRE_API_sendIGAPatch(int _pDegree,  int _uNoKnots, double* _uKnotVector, int _qDegree, int _vNoKnots,
-        double* _vKnotVector, int _uNoControlPoints, int _vNoControlPoints, double* _cpNet, int* _dofNet);
+void EMPIRE_API_sendIGAPatch(int _pDegree,  int _uNumKnots, double* _uKnotVector, int _qDegree, int _vNumKnots,
+        double* _vKnotVector, int _uNumControlPoints, int _vNumControlPoints, double* _cpNet, int* _nodeNet);
 void EMPIRE_API_sendIGAMesh(char *_name, int _numPatches, int _numNodes);
 
 /***********************************************************************************************

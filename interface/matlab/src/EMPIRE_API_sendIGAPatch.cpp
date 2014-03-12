@@ -11,15 +11,16 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     assert(nrhs==9);
     assert(nlhs==0);
 
-#define P_DEGREE_IN                  prhs[0]
-#define U_NUM_KNOTS_IN             prhs[1]
-#define U_KNOT_VECTOR_IN          prhs[2]
+#define P_DEGREE_IN                 prhs[0]
+#define U_NUM_KNOTS_IN              prhs[1]
+#define U_KNOT_VECTOR_IN            prhs[2]
 #define Q_DEGREE_IN                 prhs[3]
 #define V_NUM_KNOTS_IN              prhs[4]
 #define V_KNOT_VECTOR_IN            prhs[5]
-#define U_NUM_CONTROL_PTS_IN         prhs[6]
-#define V_NUM_CONTROL_PTS_IN         prhs[7]
-#define CONTROL_PTS_IDS_IN         prhs[8]
+#define U_NUM_CONTROL_PTS_IN        prhs[6]
+#define V_NUM_CONTROL_PTS_IN        prhs[7]
+#define CP_NET_IN                   prhs[8]
+#define NODE_NET_IN                  prhs[9]
 
 
     // p degree
@@ -30,11 +31,11 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     // u number of knots
     assert(mxIsDouble(U_NUM_KNOTS_IN));
     assert(mxGetNumberOfElements(U_NUM_KNOTS_IN) == 1);
-    int uNoKnots = (int) mxGetPr(U_NUM_KNOTS_IN)[0]; // cast from double to int
+    int uNumKnots = (int) mxGetPr(U_NUM_KNOTS_IN)[0]; // cast from double to int
 
     // u knot vector
     assert(mxIsDouble(U_KNOT_VECTOR_IN));
-    assert(mxGetNumberOfElements(U_KNOT_VECTOR_IN) == uNoKnots);
+    assert(mxGetNumberOfElements(U_KNOT_VECTOR_IN) == uNumKnots);
     double *uKnotVector = mxGetPr(U_KNOT_VECTOR_IN);
 
     // q degree
@@ -45,32 +46,37 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     // v number of knots
     assert(mxIsDouble(V_NUM_KNOTS_IN));
     assert(mxGetNumberOfElements(V_NUM_KNOTS_IN) == 1);
-    int vNoKnots = (int) mxGetPr(V_NUM_KNOTS_IN)[0]; // cast from double to int
+    int vNumKnots = (int) mxGetPr(V_NUM_KNOTS_IN)[0]; // cast from double to int
 
     // v knot vector
     assert(mxIsDouble(V_KNOT_VECTOR_IN));
-    assert(mxGetNumberOfElements(V_KNOT_VECTOR_IN) == vNoKnots);
+    assert(mxGetNumberOfElements(V_KNOT_VECTOR_IN) == vNumKnots);
     double *vKnotVector = mxGetPr(V_KNOT_VECTOR_IN);
 
     // u number of control points
     assert(mxIsDouble(U_NUM_CONTROL_PTS_IN));
     assert(mxGetNumberOfElements(U_NUM_CONTROL_PTS_IN) == 1);
-    int uNoControlPoints = (int) mxGetPr(U_NUM_CONTROL_PTS_IN)[0]; // cast from double to int
+    int uNumControlPoints = (int) mxGetPr(U_NUM_CONTROL_PTS_IN)[0]; // cast from double to int
 
     // v number of control points
     assert(mxIsDouble(V_NUM_CONTROL_PTS_IN));
     assert(mxGetNumberOfElements(V_NUM_CONTROL_PTS_IN) == 1);
-    int vNoControlPoints = (int) mxGetPr(V_NUM_CONTROL_PTS_IN)[0]; // cast from double to int
+    int vNumControlPoints = (int) mxGetPr(V_NUM_CONTROL_PTS_IN)[0]; // cast from double to int
 
-    // IDs of control points
-    assert(mxIsDouble(CONTROL_PTS_IDS_IN));
-    assert(mxGetNumberOfElements(CONTROL_PTS_IDS_IN) == uNoControlPoints * vNoControlPoints);
-    int *controlPointNetIDs = doubleArrayToIntArray(mxGetPr(CONTROL_PTS_IDS_IN), uNoControlPoints * vNoControlPoints);
+    // coordinates of control points
+    assert(mxIsDouble(CP_NET_IN));
+    assert(mxGetNumberOfElements(CP_NET_IN) == uNumControlPoints * vNumControlPoints * 4);
+    double *cpNet = mxGetPr(CP_NET_IN);
 
-    EMPIRE_API_sendIGAPatch(pDegree,  uNoKnots, uKnotVector, qDegree, vNoKnots,
-            vKnotVector, uNoControlPoints, vNoControlPoints, controlPointNetIDs);
+    // DOF ids
+    assert(mxIsDouble(NODE_NET_IN));
+    assert(mxGetNumberOfElements(NODE_NET_IN) == uNumControlPoints * vNumControlPoints);
+    int *nodeNet = doubleArrayToIntArray(mxGetPr(NODE_NET_IN), uNumControlPoints * vNumControlPoints);
 
-    delete[] controlPointNetIDs;
+    EMPIRE_API_sendIGAPatch(pDegree,  uNumKnots, uKnotVector, qDegree, vNumKnots,
+            vKnotVector, uNumControlPoints, vNumControlPoints, cpNet, nodeNet);
+
+    delete[] nodeNet;
 
 #undef P_DEGREE_IN
 #undef U_NUM_KNOTS_IN
@@ -80,5 +86,6 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 #undef V_KNOT_VECTOR_IN
 #undef U_NUM_CONTROL_PTS_IN
 #undef V_NUM_CONTROL_PTS_IN
-#undef CONTROL_PTS_IDS_IN
+#undef CP_NET_IN
+#undef NODE_NET_IN
 }
