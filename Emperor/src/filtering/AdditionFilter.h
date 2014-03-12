@@ -19,69 +19,49 @@
  *  along with EMPIRE.  If not, see http://www.gnu.org/licenses/.
  */
 /***********************************************************************************************//**
- * \file AbstractFilter.h
- * This file holds the class AbstractFilter
- * \date 3/5/2012
+ * \file AdditionFilter.h
+ * This file holds the class AdditionFilter
+ * \date 3/11/2014
  **************************************************************************************************/
+#ifndef ADDITIONFILTER_H_
+#define ADDITIONFILTER_H_
 
-#ifndef ABSTRACTFILTER_H_
-#define ABSTRACTFILTER_H_
-
-#include <assert.h>
-#include <stdlib.h>
-#include <vector>
-#include "EMPEROR_Enum.h"
+#include "AbstractFilter.h"
 
 namespace EMPIRE {
-class ConnectionIO;
 /********//**
- * \brief Class AbstractFilter is the superclass of all data field filters
+ * \brief Class AdditionFilter z = a*x + b*y
  ***********/
-class AbstractFilter {
+class AdditionFilter : public AbstractFilter {
 public:
     /***********************************************************************************************
      * \brief Constructor
+     * \param[in] _a a
+     * \param[in] _b b
      * \author Tianyang Wang
      ***********/
-    AbstractFilter();
+    AdditionFilter(double _a, double _b);
     /***********************************************************************************************
      * \brief Destructor
      * \author Tianyang Wang
      ***********/
-    virtual ~AbstractFilter();
+    virtual ~AdditionFilter();
     /***********************************************************************************************
      * \brief Filtering
      * \author Tianyang Wang
      ***********/
-    virtual void filtering() = 0;
+    void filtering();
     /***********************************************************************************************
      * \brief Initialize data according to the inputs and outputs
      * \author Tianyang Wang
      ***********/
-    virtual void init() = 0;
-    /***********************************************************************************************
-     * \brief Add an input to the filter
-     * \param[in] input one input
-     * \author Tianyang Wang
-     ***********/
-    void addInput(ConnectionIO *input);
-    /***********************************************************************************************
-     * \brief Add an output to the filter
-     * \param[in] output one output
-     * \author Tianyang Wang
-     ***********/
-    void addOutput(ConnectionIO *output);
-
-protected:
-    /// inputs
-    std::vector<ConnectionIO*> inputVec;
-    /// outputs
-    std::vector<ConnectionIO*> outputVec;
-
+    void init();
 private:
-    /// do not allow copy constructor
-    AbstractFilter(const AbstractFilter&);
+    /// a
+    const double a;
+    /// b
+    const double b;
 };
 
 } /* namespace EMPIRE */
-#endif /* ABSTRACTFILTER_H_ */
+#endif /* ADDITIONFILTER_H_ */

@@ -1,25 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- 
-/*  Copyright &copy; 2013, TU Muenchen, Chair of Structural Analysis,
- *  Stefan Sicklinger, Tianyang Wang, Munich
- *
- *  All rights reserved.
- *
- *  This file is part of EMPIRE.
- *
- *  EMPIRE is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
- *
- *  EMPIRE is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with EMPIRE.  If not, see http://www.gnu.org/licenses/.
- */ -->
+<!-- /* Copyright &copy; 2013, TU Muenchen, Chair of Structural Analysis, 
+	* Stefan Sicklinger, Tianyang Wang, Munich * * All rights reserved. * * This 
+	file is part of EMPIRE. * * EMPIRE is free software: you can redistribute 
+	it and/or modify * it under the terms of the GNU General Public License as 
+	published by * the Free Software Foundation, either version 3 of the License, 
+	or * (at your option) any later version. * * EMPIRE is distributed in the 
+	hope that it will be useful, * but WITHOUT ANY WARRANTY; without even the 
+	implied warranty of * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+	See the * GNU General Public License for more details. * * You should have 
+	received a copy of the GNU General Public License * along with EMPIRE. If 
+	not, see http://www.gnu.org/licenses/. */ -->
 <schema xmlns="http://www.w3.org/2001/XMLSchema" targetNamespace="EmperorInput"
 	elementFormDefault="qualified" xmlns:tns="EmperorInput">
 	<!-- REMARK: * The schema is a kind of language. A tutorial can be found 
@@ -73,6 +63,7 @@
 			<enumeration value="scalingFilter"></enumeration>
 			<enumeration value="setFilter"></enumeration>
 			<enumeration value="dataFieldIntegrationFilter"></enumeration>
+			<enumeration value="additionFilter"></enumeration>
 		</restriction>
 	</simpleType>
 
@@ -111,19 +102,17 @@
 	<complexType name="couplingLogicType">
 		<sequence>
 			<choice>
-				<element name="timeStepLoop" maxOccurs="1"
-					minOccurs="0">
+				<element name="timeStepLoop" maxOccurs="1" minOccurs="0">
 					<complexType>
 						<sequence>
-							<element ref="tns:extrapolatorRef"
-								maxOccurs="1" minOccurs="0">
+							<element ref="tns:extrapolatorRef" maxOccurs="1"
+								minOccurs="0">
 							</element>
-							<element ref="tns:dataOutputRef"
-								maxOccurs="unbounded" minOccurs="0">
+							<element ref="tns:dataOutputRef" maxOccurs="unbounded"
+								minOccurs="0">
 							</element>
 						</sequence>
-						<attribute name="numTimeSteps" type="int"
-							use="required">
+						<attribute name="numTimeSteps" type="int" use="required">
 						</attribute>
 					</complexType>
 				</element>
@@ -131,54 +120,52 @@
 					minOccurs="0">
 					<complexType>
 						<sequence>
-							<element name="convergenceChecker"
-								maxOccurs="1" minOccurs="1">
+							<element name="convergenceChecker" maxOccurs="1"
+								minOccurs="1">
 								<complexType>
 									<sequence>
-										<element name="checkResidual"
-											maxOccurs="unbounded" minOccurs="0">
+										<element name="checkResidual" maxOccurs="unbounded"
+											minOccurs="0">
 											<complexType>
 												<sequence>
-													<element
-														ref="tns:residualRef">
+													<element ref="tns:residualRef">
 													</element>
 												</sequence>
-												<attribute
-													name="relativeTolerance" type="double" use="required">
+												<attribute name="relativeTolerance" type="double"
+													use="required">
 												</attribute>
-												<attribute
-													name="absoluteTolerance" type="double" use="required">
+												<attribute name="absoluteTolerance" type="double"
+													use="required">
 												</attribute>
 											</complexType>
 										</element>
 									</sequence>
 
-									<attribute name="maxNumOfIterations"
-										type="double" use="optional">
+									<attribute name="maxNumOfIterations" type="double"
+										use="optional">
 									</attribute>
 								</complexType>
 							</element>
-							<element name="convergenceObserver"
-								maxOccurs="unbounded" minOccurs="1">
+							<element name="convergenceObserver" maxOccurs="unbounded"
+								minOccurs="1">
 								<complexType>
 									<sequence>
-										<element ref="tns:clientCodeRef"
-											maxOccurs="unbounded" minOccurs="1">
+										<element ref="tns:clientCodeRef" maxOccurs="unbounded"
+											minOccurs="1">
 										</element>
 									</sequence>
 								</complexType>
 							</element>
-							<element ref="tns:couplingAlgorithmRef"
-								maxOccurs="unbounded" minOccurs="0">
+							<element ref="tns:couplingAlgorithmRef" maxOccurs="unbounded"
+								minOccurs="0">
 							</element>
-							<element ref="tns:dataOutputRef"
-								maxOccurs="unbounded" minOccurs="0">
+							<element ref="tns:dataOutputRef" maxOccurs="unbounded"
+								minOccurs="0">
 							</element>
 						</sequence>
 					</complexType>
 				</element>
-				<element ref="tns:connectionRef" maxOccurs="1"
-					minOccurs="0">
+				<element ref="tns:connectionRef" maxOccurs="1" minOccurs="0">
 				</element>
 				<element name="optimizationLoop" maxOccurs="1" minOccurs="0">
 					<complexType>
@@ -186,28 +173,26 @@
 							<element name="convergenceSignalSender">
 								<complexType>
 									<sequence>
-										<element
-											ref="tns:clientCodeRef">
+										<element ref="tns:clientCodeRef">
 										</element>
 									</sequence>
 								</complexType>
 							</element>
-							<element name="convergenceSignalReceiver"
-								minOccurs="0" maxOccurs="unbounded">
+							<element name="convergenceSignalReceiver" minOccurs="0"
+								maxOccurs="unbounded">
 								<complexType>
 									<sequence>
-										<element
-											ref="tns:clientCodeRef">
+										<element ref="tns:clientCodeRef">
 										</element>
 									</sequence>
 								</complexType>
 							</element>
 							<element ref="tns:dataOutputRef" minOccurs="0" maxOccurs="unbounded"></element>
 						</sequence>
-						<attribute name="maxNumOfIterations"
-							type="string" use="required">
+						<attribute name="maxNumOfIterations" type="string" use="required">
 						</attribute>
-					</complexType></element>
+					</complexType>
+				</element>
 			</choice>
 			<element name="sequence" maxOccurs="1" minOccurs="0">
 				<complexType>
@@ -417,43 +402,47 @@
 				</element>
 			</choice>
 			<choice>
-				<element name="mappingFilter" maxOccurs="1"
-					minOccurs="0">
+				<element name="mappingFilter" maxOccurs="1" minOccurs="0">
 					<complexType>
 						<sequence>
-							<element ref="tns:mapperRef" maxOccurs="1" minOccurs="1"></element>
+							<element ref="tns:mapperRef" maxOccurs="1" minOccurs="1">
+							</element>
 						</sequence>
 					</complexType>
 				</element>
-				<element name="scalingFilter" maxOccurs="1"
-					minOccurs="0">
+				<element name="scalingFilter" maxOccurs="1" minOccurs="0">
 					<complexType>
-						<attribute name="factor" type="double"
-							use="required">
+						<attribute name="factor" type="double" use="required">
 						</attribute>
 					</complexType>
 				</element>
-				<element name="copyFilter" maxOccurs="1"
-					minOccurs="0">
+				<element name="copyFilter" maxOccurs="1" minOccurs="0">
 					<complexType>
-						<attribute name="signalOffset" type="integer"
-							use="optional">
+						<attribute name="signalOffset" type="integer" use="optional">
 						</attribute>
 					</complexType>
 				</element>
 				<element name="setFilter" maxOccurs="1" minOccurs="0">
 					<complexType>
-						<attribute name="value" type="string"
-							use="required">
+						<attribute name="value" type="string" use="required">
 						</attribute>
 					</complexType>
 				</element>
-				<element name="dataFieldIntegrationFilter" maxOccurs="1" minOccurs="0">
+				<element name="dataFieldIntegrationFilter" maxOccurs="1"
+					minOccurs="0">
 					<complexType>
 						<sequence>
-							<element ref="tns:meshRef" maxOccurs="1" minOccurs="1"></element>
+							<element ref="tns:meshRef" maxOccurs="1" minOccurs="1">
+							</element>
 						</sequence>
-					</complexType></element>
+					</complexType>
+				</element>
+				<element name="additionFilter" maxOccurs="1" minOccurs="0">
+					<complexType>
+						<attribute name="a" type="double" use="required"></attribute>
+						<attribute name="b" type="double" use="required"></attribute>
+					</complexType>
+				</element>
 			</choice>
 		</sequence>
 		<attribute name="type" type="tns:stringFilterType"></attribute>
@@ -613,5 +602,5 @@
 
 
 
-    <element name="connectionIO" type="string"></element>
+	<element name="connectionIO" type="string"></element>
 </schema>

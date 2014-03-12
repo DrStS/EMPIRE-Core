@@ -59,12 +59,12 @@ IGAMortarMapper::IGAMortarMapper(std::string _name, IGAMesh *_meshIGA, FEMesh *_
     projectedCoords = new vector<map<int, double*> >(meshFE->numNodes);
 
     if (isMappingIGA2FEM) {
-        numNodesSlave = (const size_t) meshIGA->getNumNodes();
-        numNodesMaster = (const size_t) meshFE->numNodes;
+        numNodesSlave = meshIGA->getNumNodes();
+        numNodesMaster = meshFE->numNodes;
         // cout << "isMappingIGA2FEM" << endl;
     } else {
-        numNodesSlave = (const size_t) meshFE->numNodes;
-        numNodesMaster = (const size_t) meshIGA->getNumNodes();
+        numNodesSlave = meshFE->numNodes;
+        numNodesMaster = meshIGA->getNumNodes();
         // cout << "isMappingIGA2FEM = false" << endl;
     }
 

@@ -75,15 +75,15 @@ void Empire::sendIGAMesh(int _numPatches, int _numNodes){
     ClientCommunication::getSingleton()->sendToServerBlocking<int>(BUFFER_SIZE,meshInfo);
 }
 
-void Empire::sendIGAPatch(int _pDegree, int _uNoKnots, double* _uKnotVector, int _qDegree, int _vNoKnots,
-        double* _vKnotVector, int _uNoControlPoints, int _vNoControlPoints, double* _cpNet, int* _dofNet) {
+void Empire::sendIGAPatch(int _pDegree, int _uNumKnots, double* _uKnotVector, int _qDegree, int _vNumKnots,
+        double* _vKnotVector, int _uNumControlPoints, int _vNumControlPoints, double* _cpNet, int* _nodeNet) {
     const int BUFFER_SIZE = 6;
-    int meshInfo[BUFFER_SIZE] = { _pDegree, _uNoKnots, _qDegree, _vNoKnots,_uNoControlPoints, _vNoControlPoints };
+    int meshInfo[BUFFER_SIZE] = { _pDegree, _uNumKnots, _qDegree, _vNumKnots,_uNumControlPoints, _vNumControlPoints };
     ClientCommunication::getSingleton()->sendToServerBlocking<int>(BUFFER_SIZE,meshInfo);
-    ClientCommunication::getSingleton()->sendToServerBlocking<double>(_uNoKnots,_uKnotVector);
-    ClientCommunication::getSingleton()->sendToServerBlocking<double>(_vNoKnots,_vKnotVector);
-    ClientCommunication::getSingleton()->sendToServerBlocking<double>(_uNoControlPoints * _vNoControlPoints * 4, _cpNet);
-    ClientCommunication::getSingleton()->sendToServerBlocking<int>(_uNoControlPoints * _vNoControlPoints, _dofNet);
+    ClientCommunication::getSingleton()->sendToServerBlocking<double>(_uNumKnots,_uKnotVector);
+    ClientCommunication::getSingleton()->sendToServerBlocking<double>(_vNumKnots,_vKnotVector);
+    ClientCommunication::getSingleton()->sendToServerBlocking<double>(_uNumControlPoints * _vNumControlPoints * 4, _cpNet);
+    ClientCommunication::getSingleton()->sendToServerBlocking<int>(_uNumControlPoints * _vNumControlPoints, _nodeNet);
 }
 
 void Empire::sendDataField(int sizeOfArray, double *dataField) {
