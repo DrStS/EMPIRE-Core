@@ -99,9 +99,15 @@ public:
      * \param[in] _controlPointNet The set of the Control Points related to the 2D NURBS patch
      * \author Chenshen Wu 
      ***********/
-    void sendIGAPatch(int _pDegree,	int _uNoKnots, double* _uKnotVector, int _qDegree, int _vNoKnots,
-    		double* _vKnotVector, int _uNoControlPoints, int _vNoControlPoints, int* _controlPointNetID);
-    void sendIGAMesh(int _numPatches, int _numControlPoints, double* _globalControlPoints, int* _controlPointID);
+    void sendIGAPatch(int _pDegree, int _uNoKnots, double* _uKnotVector, int _qDegree, int _vNoKnots,
+            double* _vKnotVector, int _uNoControlPoints, int _vNoControlPoints, double* _cpNet, int* _dofNet);
+    /***********************************************************************************************
+     * \brief Send the IGA mesh to the server
+     * \param[in] _numPatches The number of the patches out of which the IGA mesh consists
+     * \param[in] _numNodes The number of the Control Points which are needed for the computation of the coupling matrices
+     * \author Chenshen Wu
+     ***********/
+    void sendIGAMesh(int _numPatches, int _numNodes);
     /***********************************************************************************************
      * \brief Send data field to the server
      * \param[in] sizeOfArray size of the array (data field)

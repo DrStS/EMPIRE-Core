@@ -334,14 +334,31 @@ void MetaDatabase::fillSettingCouplingAlgorithmVec() {
                 ticpp::Iterator<Element> xmlOutput("interfaceJacobian");
                 for (xmlOutput = xmlOutput.begin(xmlCoupAlg.Get()); xmlOutput != xmlOutput.end();
                         xmlOutput++) {
-                    structCouplingAlgorithm::structInterfaceJacobianConst interfaceJacobianConst;
-                    interfaceJacobianConst.indexRow = xmlOutput->GetAttribute<unsigned int>(
-                            "indexRow");
-                    interfaceJacobianConst.indexColumn = xmlOutput->GetAttribute<unsigned int>(
-                            "indexColumn");
-                    ticpp::Element *constantValue = xmlOutput->FirstChildElement("constantValue");
-                    interfaceJacobianConst.value = constantValue->GetAttribute<double>("value");
-                    coupAlg.interfaceJacobianConsts.push_back(interfaceJacobianConst);
+
+                    structCouplingAlgorithm::structInterfaceJacobian interfaceJacobian;
+                    interfaceJacobian.indexRow    = xmlOutput->GetAttribute<unsigned int>("indexRow");
+                    interfaceJacobian.indexColumn = xmlOutput->GetAttribute<unsigned int>("indexColumn");
+
+                    if(xmlOutput->FirstChildElement("constantValue", false) != NULL){
+                        ticpp::Element *constantValue = xmlOutput->FirstChildElement("constantValue");
+                        interfaceJacobian.value       = constantValue->GetAttribute<double>("value");
+                        interfaceJacobian.isAutoDiff  = false;
+                        interfaceJacobian.isSignal    = false;
+                        interfaceJacobian.isConstant  = true;
+                    }
+
+                    if(xmlOutput->FirstChildElement("automaticDetermination", false) != NULL){
+
+                    	interfaceJacobian.coefficient   =xmlOutput->FirstChildElement("automaticDetermination")->GetAttribute<double>("coefficient");
+                        ticpp::Element *functionInput   =xmlOutput->FirstChildElement("automaticDetermination")->FirstChildElement("functionInput");
+                        ticpp::Element *functionOutput  =xmlOutput->FirstChildElement("automaticDetermination")->FirstChildElement("functionOutput");
+                        interfaceJacobian.functionInput =parseConnectionIORef(functionInput);
+                        interfaceJacobian.functionOutput=parseConnectionIORef(functionOutput);
+                        interfaceJacobian.isConstant  = false;
+                        interfaceJacobian.isSignal    = false;
+                        interfaceJacobian.isAutoDiff  = true;
+                    }
+                    coupAlg.interfaceJacobians.push_back(interfaceJacobian);
                 }
             }
             coupAlg.type = EMPIRE_IJCSA;

@@ -323,6 +323,25 @@ public:
      * \brief This function clean Pardiso
      * \author Stefan Sicklinger
      ***********/
+    void resetPardiso(){
+#ifdef USE_INTEL_MKL
+        // clean pardiso
+        pardiso_phase = 0; //Release internal memory for L and U matrix number mnum
+        pardiso(pardiso_pt, &pardiso_maxfct, &pardiso_mnum, &pardiso_mtype, &pardiso_phase,
+                &pardiso_neq, &values[0], &((*rowIndex)[0]), &columns[0], &pardiso_idum,
+                &pardiso_nrhs, pardiso_iparm, &pardiso_msglvl, &pardiso_ddum, &pardiso_ddum,
+                &pardiso_error);
+        pardiso_phase = -1; //Release all internal memory for all matrices
+        values.clear();
+        columns.clear();
+        (*rowIndex).clear();
+#endif
+    }
+
+    /***********************************************************************************************
+     * \brief This function clean Pardiso
+     * \author Stefan Sicklinger
+     ***********/
     void cleanPardiso(){
 #ifdef USE_INTEL_MKL
         // clean pardiso

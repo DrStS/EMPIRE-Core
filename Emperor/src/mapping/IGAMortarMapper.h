@@ -81,8 +81,9 @@ private:
 
     /// The parametric coordinates of the projected nodes on the surface
     std::vector<std::map<int, double*> > *projectedCoords;
+//    std::vector<std::map<int, bool> > *isProjectionOrthogonal;
 
-    /// Tolerance up to which projection is trusted
+/// Tolerance up to which projection is trusted
     double disTol;
 
     /// number of Gauss points used for computing triangle element
@@ -90,6 +91,12 @@ private:
 
     /// number of Gauss points used for computing quad element
     int numGPsQuad;
+
+    /// Flag on the mapping direction
+    bool isMappingIGA2FEM;
+
+    size_t numNodesSlave;
+    size_t numNodesMaster;
 
 public:
     /***********************************************************************************************
@@ -103,16 +110,15 @@ public:
      * \author Chenshen Wu
      ***********/
     IGAMortarMapper(std::string _name, IGAMesh *_meshIGA, FEMesh *_meshFE, double _disTol,
-            int _numGPsTri, int _numGPsQuad);
+            int _numGPsTri, int _numGPsQuad, bool _isMappingIGA2FEM);
 
     /***********************************************************************************************
-     * \brief Destructor
-     * \author Chenshen Wu
+     * \brief Destructor Chenshen Wu
      ***********/
     virtual ~IGAMortarMapper();
 
     /***********************************************************************************************
-     * \brief Initializes of the element freedom tables
+     * \brief Initialization of the element freedom tables
      * \author Chenshen Wu
      ***********/
     void initTables();
@@ -124,19 +130,13 @@ public:
     void projectPointsToSurface();
 
     /***********************************************************************************************
-     * \brief Computes matrices C_NN and C_NR
+     * \brief Compute matrices C_NN and C_NR
      * \author Chenshen Wu
      ***********/
     void computeCouplingMatrices();
 
     /***********************************************************************************************
-     * \brief Computes the coupling matrices in the given patch for the element
-     * \param[in] _thePatch The NURBS patch
-     * \param[in] _numNodesInPatch No. of nodes of the clipped by patch projected element
-     * \param[in] _elementInPatchIGA The projected surface parameters on the NURBS patch of the clipped by patch projected element
-     * \param[in] _elementInPatchFE The vertices of the clipped by patch projected element
-     * \param[in] _elemCount The id of the unclipped element
-     * \param[in] _nShapeFuncsFE The number of shape functions for the unclipped element
+     * \brief Computes coupling matrices in the given patch for the element which is split into more than one patches
      * \author Chenshen Wu
      ***********/
     void computeCouplingMatrices4ClippedByPatchProjectedElement(IGAPatchSurface* _thePatch,
@@ -144,7 +144,7 @@ public:
             int _elemCount, int _nShapeFuncsFE);
 
     /***********************************************************************************************
-     * \brief Integrates the element coupling matrices and assemble them to the global one
+     * \brief Integrate the element coupling matrices and assemble them to the global one
      * \param[in] _igaPatchSurface The patch to compute the coupling matrices for
      * \param[in] _numNodes The number of nodes of the clipped polygon
      * \param[in] _polygonIGA The resulting from the clipping polygon at each knot span in the NURBS space
@@ -159,30 +159,34 @@ public:
             int _spanU, int _spanV, double* _polygonFE, int _elementIndex, int _nShapeFuncsFE);
 
     /***********************************************************************************************
-     * \brief Performs consistent mapping from IGA to FE (map displacements)
-     * \param[in] _fieldIGA is the input data
-     * \param[in/out] _fieldFE is the output data
+     * \brief Perform consistent mapping from IGA to FE (map displacements)
+     * \param[in] fieldIGA is the input data
+     * \param[out] fieldFE is the output data
      * \author Chenshen Wu
      ***********/
-    void consistentMapping(const double* _fieldIGA, double* _fieldFE);
+    void consistentMapping(const double *fieldIGA, double *fieldFE);
 
     /***********************************************************************************************
-     * \brief Performs conservative mapping from FE to IGA (map forces)
-     * \param[in] _fieldFE is the input data
-     * \param[out] _fieldIGA is the output data
+     * \brief Perform conservative mapping from FE to IGA (map forces)
+     * \param[in] fieldFE is the input data
+     * \param[out] fieldIGA is the output data
      * \author Chenshen Wu
      ***********/
-    void conservativeMapping(const double* _fieldFE, double* _fieldIGA);
+    void conservativeMapping(const double *fieldFE, double *fieldIGA);
 
     /***********************************************************************************************
-     * \brief Prints both coupling matrices C_NN and C_NR
+     * \brief Print both coupling matrices C_NN and C_NR
      * \author Chenshen Wu
      ***********/
     void printCouplingMatrices();
 
-    /// Unit test class
+    /// unit test class
     friend class TestIGAMortarMapperTube;
-    friend class TestIGAMortarMapperMultiPatch;
+    friend class TestIGAMortarMapperMultiPatchPlanarSurface;
+    friend class TestIGAMortarMapperCylinder;
+
+    /// Number of refined parametric locations where to find the candidate closest points for the projection
+    static const int REFINED_NUM_PARAMETRIC_LOCATIONS = 10;
 };
 }
 

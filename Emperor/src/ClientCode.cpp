@@ -51,12 +51,12 @@ ClientCode::~ClientCode() {
 }
 
 void ClientCode::setServerCommunication(ServerCommunication *_serverComm) {
-    assert(_serverComm!=NULL);
+    assert(_serverComm != NULL);
     serverComm = _serverComm;
 }
 
 void ClientCode::recvMesh(std::string meshName, EMPIRE_Mesh_type meshType) {
-    assert(serverComm!=NULL);
+    assert(serverComm != NULL);
     assert(nameToMeshMap.find(meshName) == nameToMeshMap.end());
 
     if (meshType == EMPIRE_Mesh_FEMesh) {
@@ -93,17 +93,9 @@ void ClientCode::recvMesh(std::string meshName, EMPIRE_Mesh_type meshType) {
         serverComm->receiveFromClientBlocking<int>(name, BUFFER_SIZE_MESH, meshInfo);
 
         int numPatches = meshInfo[0];
-        int numControlPoints = meshInfo[1];
+        int numNodes = meshInfo[1];
 
-        double* globalControlPoints = new double[numControlPoints * 4];
-        int* controlPointID = new int[numControlPoints];
-
-        serverComm->receiveFromClientBlocking<double>(name, numControlPoints * 4,
-                globalControlPoints);
-        serverComm->receiveFromClientBlocking<int>(name, numControlPoints, controlPointID);
-
-        IGAMesh* theIGAMesh = new IGAMesh(meshName, numControlPoints, globalControlPoints,
-                controlPointID);
+        IGAMesh* theIGAMesh = new IGAMesh(meshName, numNodes);
 
         const int BUFFER_SIZE_PATCH = 6;
         int patchInfo[BUFFER_SIZE_PATCH];
@@ -120,20 +112,28 @@ void ClientCode::recvMesh(std::string meshName, EMPIRE_Mesh_type meshType) {
 
             double* uKnotVector = new double[uNoKnots];
             double* vKnotVector = new double[vNoKnots];
-            int* controlPointNetID = new int[uNoControlPoints * vNoControlPoints];
+            double* controlPointNet = new double[uNoControlPoints * vNoControlPoints * 4];
+            int* dofIndexNet = new int[uNoControlPoints * vNoControlPoints];
+
 
             serverComm->receiveFromClientBlocking<double>(name, uNoKnots, uKnotVector);
             serverComm->receiveFromClientBlocking<double>(name, vNoKnots, vKnotVector);
+            serverComm->receiveFromClientBlocking<double>(name,
+                    uNoControlPoints * vNoControlPoints * 4, controlPointNet);
             serverComm->receiveFromClientBlocking<int>(name, uNoControlPoints * vNoControlPoints,
-                    controlPointNetID);
+                    dofIndexNet);
 
             theIGAMesh->addPatch(pDegree, uNoKnots, uKnotVector, qDegree, vNoKnots, vKnotVector,
-                    uNoControlPoints, vNoControlPoints, controlPointNetID);
+                    uNoControlPoints, vNoControlPoints, controlPointNet, dofIndexNet);
 
         }
 
         { // output to shell
-            INFO_OUT() << (*theIGAMesh) << endl;
+            DEBUG_OUT() << (*theIGAMesh) << endl;
+            theIGAMesh->computeBoundingBox();
+            INFO_OUT() << "\t+Number of Patches: " << theIGAMesh->getSurfacePatches().size() << endl;
+            INFO_OUT() << "\t+---------------------------------" << endl << endl;
+            INFO_OUT() << theIGAMesh->boundingBox << endl;
         }
 
         nameToMeshMap.insert(pair<string, AbstractMesh*>(meshName, theIGAMesh));
@@ -144,7 +144,7 @@ void ClientCode::recvMesh(std::string meshName, EMPIRE_Mesh_type meshType) {
 }
 
 void ClientCode::recvDataField(std::string meshName, std::string dataFieldName) {
-    assert(serverComm!=NULL);
+    assert(serverComm != NULL);
     assert(nameToMeshMap.find(meshName) != nameToMeshMap.end());
     AbstractMesh *mesh = nameToMeshMap[meshName];
     DataField *df = mesh->getDataFieldByName(dataFieldName);
@@ -158,14 +158,14 @@ void ClientCode::recvDataField(std::string meshName, std::string dataFieldName) 
     int sizeClientSay = -1;
     serverComm->receiveFromClientBlocking<int>(name, 1, &sizeClientSay);
     int bufferSize = df->numLocations * df->dimension;
-    assert(bufferSize==sizeClientSay);
+    assert(bufferSize == sizeClientSay);
 
     serverComm->receiveFromClientBlocking<double>(name, bufferSize, df->data);
     DEBUG_OUT() << (*df) << endl;
 }
 
 void ClientCode::sendDataField(std::string meshName, std::string dataFieldName) {
-    assert(serverComm!=NULL);
+    assert(serverComm != NULL);
     assert(nameToMeshMap.find(meshName) != nameToMeshMap.end());
     AbstractMesh *mesh = nameToMeshMap[meshName];
     DataField *df = mesh->getDataFieldByName(dataFieldName);
@@ -183,7 +183,7 @@ void ClientCode::sendDataField(std::string meshName, std::string dataFieldName) 
 }
 
 void ClientCode::sendConvergenceSignal(bool convergent) {
-    assert(serverComm!=NULL);
+    assert(serverComm != NULL);
     int tmpInt = (int) convergent;
 
     { // output to shell
@@ -201,7 +201,7 @@ void ClientCode::sendConvergenceSignal(bool convergent) {
 }
 
 bool ClientCode::recvConvergenceSignal() {
-    assert(serverComm!=NULL);
+    assert(serverComm != NULL);
     int tmpInt;
     serverComm->receiveFromClientBlocking<int>(name, 1, &tmpInt);
     bool convergent = (bool) tmpInt;

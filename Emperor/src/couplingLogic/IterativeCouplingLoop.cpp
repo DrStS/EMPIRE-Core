@@ -70,8 +70,11 @@ void IterativeCouplingLoop::doCoupling() {
         ss << "iteration step: " << count;
         HEADING_OUT(4, "IterativeCouplingLoop", ss.str(), infoOut);
         // update data in coupling algorithm
-        if (couplingAlgorithm != NULL)
+        if (couplingAlgorithm != NULL){
             couplingAlgorithm->updateAtIterationBeginning();
+            couplingAlgorithm->setCurrentIteration(count);
+            couplingAlgorithm->setCurrentTimeStep(outputCounter);
+        }
 
         // do coupling
         for (int i = 0; i < couplingLogicSequence.size(); i++)

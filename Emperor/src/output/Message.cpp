@@ -46,6 +46,10 @@ Message::Message(OutputLevel _outputLevel, std::ostream &_outputStream) :
         outputLevelString = "DEBUG";
     else
         assert(false);
+
+    outputStream << std::scientific;
+    outputStream.precision(10);
+
 }
 
 Message::~Message() {

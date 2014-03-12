@@ -47,17 +47,8 @@ protected:
     /// Array of IGA Surface Patches
     std::vector<IGAPatchSurface*> surfacePatches;
 
-    /// Array of IGA Control Points
-    std::vector<IGAControlPoint*> globalControlPoints;
-
-    /// The global IDs of the Control Points in the IGAMesh
-    int* controlPointID;
-
-    /// The map from the the global IDs of the Control Points to the elements in the array controlPointID
-    std::map<int, int> mapControlPointIDToIndex;
-
     /// The number of the Control Points in the IGAMesh
-    int numControlPoints;
+    int numNodes;
 
     /// The constructor, the destructor and the copy constructor
 public:
@@ -69,8 +60,7 @@ public:
      * \param[in] _controlPointID The Control Point IDs sorted in an array
      * \author Chenshen Wu
      ***********/
-    IGAMesh(std::string _name, int _numControlPoints, double* _globalControlPoints,
-            int* _controlPointID);
+    IGAMesh(std::string _name, int _numNodes);
 
     /***********************************************************************************************
      * \brief Destructor
@@ -89,11 +79,12 @@ public:
      * \param[in] _uNoControlPoints The number of the Control Points for the 2D NURBS patch in the u-direction
      * \param[in] _vNoControlPoints The number of the Control Points for the 2D NURBS patch in the v-direction
      * \param[in] _controlPointNet The set of the Control Points related to the 2D NURBS patch
+     * \param[in] _dofIndexNet The index of the dof of the each Control Points related to
      * \author Chenshen Wu
      ***********/
     void addPatch(int _pDegree, int _uNoKnots, double* _uKnotVector, int _qDegree, int _vNoKnots,
             double* _vKnotVector, int _uNoControlPoints, int _vNoControlPoints,
-            int* _controlPointNetID);
+            double* controlPointNet, int* _dofIndexNet);
 
     /// Specializing abstract functions from AbstractMesh class
 public:
@@ -114,20 +105,6 @@ public:
      ***********/
     void computeBoundingBox();
 
-    /// Postprocessing
-public:
-    /***********************************************************************************************
-     * \brief Returns the displacement component at the specified parametric location
-     * \param[in] _dataFieldName name of the data field
-     * \param[in] _patchid The ID of the patch
-     * \param[in] _u The parametric coordinate u
-     * \param[in] _v The parametric coordinate v
-     * \param[in] _component The component of the displacement field (0,1,2)=(x,y,z)
-     * \author Chenshen Wu
-     ***********/
-    double computeDisplacementComponent(std::string _dataFieldName, int _patchid, double _u,
-            double _v, int _component);
-
     /// Get and set functions
 public:
     /***********************************************************************************************
@@ -140,39 +117,12 @@ public:
     }
 
     /***********************************************************************************************
-     * \brief Get the control points
-     * \param[out] A container vector of type std::vector<IGAPatchSurface*>
+     * \brief Get the number of the Nodes
+     * \param[out] The number of the Nodes
      * \author Chenshen Wu
      ***********/
-    inline std::vector<IGAControlPoint*> getGlobalControlPoints() {
-        return globalControlPoints;
-    }
-
-    /***********************************************************************************************
-     * \brief Get the map of the global ID of the Control Points to the Index of its array controlPointID
-     * \param[out] The map of the global ID of the Control Points to the Index of its array
-     * \author Chenshen Wu
-     ***********/
-    inline std::map<int, int> getMapControlPointIDToIndex() {
-        return mapControlPointIDToIndex;
-    }
-
-    /***********************************************************************************************
-     * \brief Get the control points id
-     * \param[out] A container vector of type std::vector<IGAPatchSurface*>
-     * \author Chenshen Wu
-     ***********/
-    inline int* getControlPointsID() {
-        return controlPointID;
-    }
-
-    /***********************************************************************************************
-     * \brief Get the number of the Control Points
-     * \param[out] The number of the Control Points
-     * \author Chenshen Wu
-     ***********/
-    inline int getNumControlPoints() {
-        return numControlPoints;
+    inline int getNumNodes() {
+        return numNodes;
     }
 
 };

@@ -37,9 +37,9 @@ namespace EMPIRE {
 
 const int IGAPatchSurface::MAX_NUM_ITERATIONS = 20;
 
-const int IGAPatchSurface::REGULAR_NUM_ITERATIONS = 6;
-
 const double IGAPatchSurface::EPS_ORTHOGONALITY_CONDITION = 1e-9;
+
+const double IGAPatchSurface::EPS_ORTHOGONALITY_CONDITION_RELAXED = 1e-7;
 
 const double IGAPatchSurface::EPS_DISTANCE = 1e-9;
 
@@ -63,8 +63,8 @@ IGAPatchSurface::IGAPatchSurface(int _IDBasis, int _pDegree, int _uNoKnots, doub
     // Figure out whether the patch has a B-Spline or a NURBS underlying basis
     int isNurbs = 0;
     int counter = 0;
-    for (int i = 0; i < uNoControlPoints; i++) {
-        for (int j = 0; j < vNoControlPoints; j++) {
+    for (int j = 0; j < vNoControlPoints; j++) {
+        for (int i = 0; i < uNoControlPoints; i++) {
             if (_controlPointNet[counter]->getW() != 1.0) {
                 isNurbs = 1;
                 break;
@@ -91,54 +91,6 @@ IGAPatchSurface::IGAPatchSurface(int _IDBasis, int _pDegree, int _uNoKnots, doub
     ControlPointNet = _controlPointNet;
 }
 
-IGAPatchSurface::IGAPatchSurface(int _IDBasis, int _pDegree, int _uNoKnots, double* _uKnotVector,
-        int _qDegree, int _vNoKnots, double* _vKnotVector, int _uNoControlPoints,
-        int _vNoControlPoints, double* _controlPointNet) :
-        uNoControlPoints(_uNoControlPoints), vNoControlPoints(_vNoControlPoints) {
-
-    assert(_uKnotVector != NULL);
-    assert(_vKnotVector != NULL);
-    assert(_controlPointNet != NULL);
-
-    // Read input
-    bool ucondition = _uNoControlPoints != _uNoKnots - _pDegree - 1;
-    bool vcondition = _vNoControlPoints != _vNoKnots - _qDegree - 1;
-
-    if (ucondition || vcondition) {
-        ERROR_OUT() << " in IGAPatchSurface::IGAPatchSurface" << endl;
-        ERROR_OUT()
-                << "Number of Control Points, number of knots and polynomial degree do not match!"
-                << endl;
-        exit(-1);
-    }
-
-    ControlPointNet = new IGAControlPoint*[uNoControlPoints * vNoControlPoints];
-
-    // Figure out whether the patch has a B-Spline or a NURBS underlying basis
-    int isNurbs = 0;
-    int counter = 0;
-    for (int counter = 0; counter < uNoControlPoints * vNoControlPoints; counter++) {
-        ControlPointNet[counter] = new IGAControlPoint(counter, _controlPointNet[counter * 4],
-                _controlPointNet[counter * 4 + 1], _controlPointNet[counter * 4 + 2],
-                _controlPointNet[counter * 4 + 3]);
-        if (_controlPointNet[counter * 4 + 3] != 1.0)
-            isNurbs = 1;
-    }
-
-    // Create the NURBS or the B-Spline underlying basis
-    if (!isNurbs) {
-        IGABasis = new BSplineBasis2D(_IDBasis, _pDegree, _uNoKnots, _uKnotVector, _qDegree,
-                _vNoKnots, _vKnotVector);
-    } else {
-        double* controlPointWeights = new double[uNoControlPoints * vNoControlPoints];
-        for (int i = 0; i < uNoControlPoints * vNoControlPoints; i++)
-            controlPointWeights[i] = ControlPointNet[i]->getW();
-        IGABasis = new NurbsBasis2D(_IDBasis, _pDegree, _uNoKnots, _uKnotVector, _qDegree,
-                _vNoKnots, _vKnotVector, _uNoControlPoints, _vNoControlPoints, controlPointWeights);
-    }
-
-}
-
 IGAPatchSurface::~IGAPatchSurface() {
 
     delete IGABasis;
@@ -152,7 +104,6 @@ double IGAPatchSurface::computePostprocessingScalarValue(double _u, double _v,
      *  Returns the Cartesian coordinates of a point on the 2D IGA patch whose surface parameters are _uPrm and _vPrm.
      *  The coordinates of the point are assumed on the 3D space that is _cartesianCoordinates = [X Y Z]
      */
-
     // Read input
     assert(_valuesOnCP != NULL);
 
@@ -179,8 +130,8 @@ double IGAPatchSurface::computePostprocessingScalarValue(double _u, double _v,
     for (int j = 0; j <= qDegree; j++) {
         for (int i = 0; i <= pDegree; i++) {
 
-            // Update the correct index for the Control Points in 2D. Pattern A[i][j] = V[i*m+j]
-            CPindex = (spanU - pDegree + i) * vNoControlPoints + (spanV - qDegree + j);
+            // Update the correct index for the Control Points in 2D. Pattern A[i][j] = V[j*n+i]
+            CPindex = (spanV - qDegree + j) * uNoControlPoints + (spanU - pDegree + i);
 
             //
             result += localBasisFunctions[counter_basis] * _valuesOnCP[CPindex];
@@ -229,9 +180,9 @@ void IGAPatchSurface::computeCartesianCoordinates(double* _cartesianCoordinates,
     for (int j = 0; j <= qDegree; j++) {
         for (int i = 0; i <= pDegree; i++) {
 
-            // Update the correct index for the Control Points in 2D. Pattern A[i][j] = V[i*m+j]
-            CPindex = (_uKnotSpanIndex - pDegree + i) * vNoControlPoints
-                    + (_vKnotSpanIndex - qDegree + j);
+            // Update the correct index for the Control Points in 2D. Pattern A[i][j] = V[j*n+i]
+            CPindex = (_vKnotSpanIndex - qDegree + j) * uNoControlPoints
+                    + (_uKnotSpanIndex - pDegree + i);
 
             // Compute iteratively the x-coordinate of the point
             _cartesianCoordinates[0] += localBasisFunctions[counter_basis]
@@ -283,9 +234,9 @@ void IGAPatchSurface::computeCartesianCoordinates(double* _cartesianCoordinates,
     for (int j = 0; j <= qDegree; j++) {
         for (int i = 0; i <= pDegree; i++) {
 
-            // Update the correct index for the Control Points in 2D. Pattern A[i][j] = V[i*m+j]
-            CPindex = (_uKnotSpanIndex - pDegree + i) * vNoControlPoints
-                    + (_vKnotSpanIndex - qDegree + j);
+            // Update the correct index for the Control Points in 2D. Pattern A[i][j] = V[j*n+i]
+            CPindex = (_vKnotSpanIndex - qDegree + j) * uNoControlPoints
+                    + (_uKnotSpanIndex - pDegree + i);
 
             // Compute iteratively the x-coordinate of the point
             _cartesianCoordinates[0] += _localBasisFunctions[counter_basis]
@@ -349,9 +300,9 @@ void IGAPatchSurface::computeCartesianCoordinates(double* _cartesianCoordinates,
     for (int j = 0; j <= qDegree; j++) {
         for (int i = 0; i <= pDegree; i++) {
 
-            // Update the correct index for the Control Points in 2D. Pattern A[i][j] = V[i * m + j]
-            CPindex = (_uKnotSpanIndex - pDegree + i) * vNoControlPoints
-                    + (_vKnotSpanIndex - qDegree + j);
+            // Update the correct index for the Control Points in 2D. Pattern A[i][j] = V[j*n+i]
+            CPindex = (_vKnotSpanIndex - qDegree + j) * uNoControlPoints
+                    + (_uKnotSpanIndex - pDegree + i);
 
             // Update the basis function index
             indexBasis = IGABasis->indexDerivativeBasisFunction(_derivDegree, derivIndex,
@@ -430,9 +381,9 @@ void IGAPatchSurface::computeBaseVectors(double* _baseVectors,
     for (int j = 0; j <= qDegree; j++) {
         for (int i = 0; i <= pDegree; i++) {
 
-            // Update the correct index for the Control Points in 2D. Pattern A[i][j] = V[i*m+j]
-            CPindex = (_uKnotSpanIndex - pDegree + i) * vNoControlPoints
-                    + (_vKnotSpanIndex - qDegree + j);
+            // Update the correct index for the Control Points in 2D. Pattern A[i][j] = V[j*n+i]
+            CPindex = (_vKnotSpanIndex - qDegree + j) * uNoControlPoints
+                    + (_uKnotSpanIndex - pDegree + i);
 
             // Reset the base vector's counter
             counterBaseVector = 0;
@@ -591,9 +542,9 @@ void IGAPatchSurface::computeBaseVectorsAndDerivatives(double* _baseVectorsAndDe
         // Loop over all the non-zero contributions in u-direction
         for (int uBasis = 0; uBasis <= pDegree; uBasis++) {
 
-            // Update the correct index for the Control Points in 2D. Pattern A[i][j] = V[i*m+j]
-            indexCP = (_uKnotSpanIndex - pDegree + uBasis) * vNoControlPoints
-                    + (_vKnotSpanIndex - qDegree + vBasis);
+            // Update the correct index for the Control Points in 2D. Pattern A[i][j] = V[j*n+i]
+            indexCP = (_vKnotSpanIndex - qDegree + vBasis) * uNoControlPoints
+                    + (_uKnotSpanIndex - pDegree + uBasis);
 
             // Loop over all the derivatives in u-direction
             for (int i = 0; i <= _derivDegree; i++) {
@@ -636,6 +587,7 @@ void IGAPatchSurface::computeBaseVectorsAndDerivatives(double* _baseVectorsAndDe
 
 bool IGAPatchSurface::computePointProjectionOnPatch(double& _u, double& _v, double* _P,
         bool& _flagConverge) {
+
     /*
      * Returns the projection of a point _P on the NURBS patch given an initial guess for the surface parameters _u, _v via references:
      * _P = double[3]
@@ -674,7 +626,12 @@ bool IGAPatchSurface::computePointProjectionOnPatch(double& _u, double& _v, doub
 
     // Initialize the flag to true
     bool flagNewtonRaphson = true;
-    double du, dv;
+    _flagConverge = true;
+
+    const double epsJ = 1e-6;
+    const double epsDuv = 1e-10;
+    bool fixU = false;
+    bool fixV = false;
 
     // Initialize number of spatial dimensions
     int noSpatialDimensions = 3;
@@ -760,7 +717,6 @@ bool IGAPatchSurface::computePointProjectionOnPatch(double& _u, double& _v, doub
 
     // 2. Loop over all the Newton-Raphson iterations
     while (counter <= MAX_NUM_ITERATIONS) {
-
         // 2i. Update the iteration counter
         counter++;
 
@@ -843,25 +799,36 @@ bool IGAPatchSurface::computePointProjectionOnPatch(double& _u, double& _v, doub
         rightSideVct[0] = -dotProduct(noSpatialDimensions, uBaseVec, distanceVector);
         rightSideVct[1] = -dotProduct(noSpatialDimensions, vBaseVec, distanceVector);
 
-        // 2xiv. Solve the linear 2x2 equation system to get the increment of the surface parameters and check if the equation system has been successfully solved
+        if (fabs(jacobianMatrix[0]) < epsJ || fixU) {
+            rightSideVct[0] = 0.0;
+            rightSideVct[1] = rightSideVct[1] / jacobianMatrix[3];
+            fixU = false;
+            fixV = true;
+        } else if (fabs(jacobianMatrix[3]) < epsJ || fixV) {
+            rightSideVct[0] = rightSideVct[0] / jacobianMatrix[1];
+            rightSideVct[1] = 0.0;
+            fixU = true;
+            fixV = false;
+        } else {
 
-        // Solve the equation system
-        flagLinearSystem = solve2x2linearSystem(rightSideVct, jacobianMatrix);
+            // 2xiv. Solve the linear 2x2 equation system to get the increment of the surface parameters and check if the equation system has been successfully solved
 
-        // Check if the equation system has been successfully solved
-        if (!flagLinearSystem) {
-            ERROR_OUT() << "Error in IGAPatchSurface::computePointProjectionOnPatch" << endl;
-            ERROR_OUT() << "The 2x2 equation system to find the updates of the surface parameters"
-                    << endl;
-            ERROR_OUT() << "for the orthogonal projection of a point on the NURBS patch has been"
-                    << endl;
-            ERROR_OUT() << "detected not solvable up to tolerance" << EPS << endl;
-            exit(-1);
+            // Solve the equation system
+            flagLinearSystem = solve2x2linearSystem(rightSideVct, jacobianMatrix);
+
+            // Check if the equation system has been successfully solved
+            if (!flagLinearSystem) {
+                ERROR_OUT() << "Error in IGAPatchSurface::computePointProjectionOnPatch" << endl;
+                ERROR_OUT()
+                        << "The 2x2 equation system to find the updates of the surface parameters"
+                        << endl;
+                ERROR_OUT()
+                        << "for the orthogonal projection of a point on the NURBS patch has been"
+                        << endl;
+                ERROR_OUT() << "detected not solvable up to tolerance" << EPS << endl;
+                exit(-1);
+            }
         }
-
-        du = _u;
-        dv = _v;
-
         // 2xv. Update the surface parameters u += du and v += dv
         _u += rightSideVct[0];
         _v += rightSideVct[1];
@@ -876,26 +843,21 @@ bool IGAPatchSurface::computePointProjectionOnPatch(double& _u, double& _v, doub
         if (_v < IGABasis->getVBSplineBasis1D()->getKnotVector()[0])
             _v = IGABasis->getVBSplineBasis1D()->getKnotVector()[0];
 
-        du -= _u;
-        dv -= _v;
     }
 
 ////     3. Check whether maximum number of iterations has been reached and if yes return 0 to the flag (non-converged iterations)
-//    if (counter > MAX_NUM_ITERATIONS) {
-//        flagNewtonRaphson = 0;
-//        if (du * du + dv * dv < 1e-10) {
-//            WARNING_BLOCK_OUT("IGAPatchSurface", "computePointProjectionOnPatch", "Newton-Raphson iterations converged to a non-projection point!");
-//            WARNING_OUT() << "(U, V) : (" << _u << " , " << _v << ")" << endl;
-//
-//        } else {
-//            ERROR_OUT() << " in function IGAPatchSurface::computePointProjectionOnPatch" << endl;
-//            ERROR_OUT() << "Newton-Raphson iterations did not converge up to iteration number:  " << MAX_NUM_ITERATIONS << endl;
-//            ERROR_OUT() << "Point: (" << _P[0] << "," << _P[1] << "," << _P[2] << ")" << endl;
-//        }
-//    } else if (counter > REGULAR_NUM_ITERATIONS) {
-//        WARNING_OUT() << " in IGAPatchSurface::computePointProjectionOnPatch" << endl;
-//        WARNING_OUT() << "Number of iterations for the Newton-Raphson algorithm to converge:  " << counter - 1 << endl;
-//    }
+    if (counter > MAX_NUM_ITERATIONS) {
+        if (cosu <= EPS_ORTHOGONALITY_CONDITION_RELAXED
+                && cosv <= EPS_ORTHOGONALITY_CONDITION_RELAXED)
+            flagNewtonRaphson = true;
+        else
+            flagNewtonRaphson = false;
+        if (rightSideVct[0] * rightSideVct[0] + rightSideVct[1] * rightSideVct[1] < epsDuv)
+            _flagConverge = true;
+        else
+            _flagConverge = false;
+    } else {
+    }
 
     // 4. Function appendix (Clear the memory from the dynamically allocated variables and return the flag on convergence)
     // Clear the memory on the heap
@@ -1426,12 +1388,10 @@ void IGAPatchSurface::computeLineMinimumDistanceToPatchBoundary(double& _u, doub
     }
 }
 
-void IGAPatchSurface::findNearestKnotIntersection(double& _u, double& _v, double* _P) {
+void IGAPatchSurface::findInitialGuess4PointProjection(double& _u, double& _v, double* _P,
+        int _uDiv, int _vDiv) {
 
     assert(_P != NULL);
-
-//	IGABasis->getUBSplineBasis1D()->printKnotVector();
-//	IGABasis->getVBSplineBasis1D()->printKnotVector();
 
     const int noSpatialDimensions = 3;
 
@@ -1451,9 +1411,19 @@ void IGAPatchSurface::findNearestKnotIntersection(double& _u, double& _v, double
     double minDis = numeric_limits<double>::max();
     double Dis;
 
-    for (int i = pU; i < nU; i++)
-        for (int j = pV; j < nV; j++) {
-            computeCartesianCoordinates(coords, knotU[i], i, knotV[j], j);
+    double u0 = knotU[pU];
+    double v0 = knotV[pV];
+    double uEnd = knotU[nU];
+    double vEnd = knotV[nV];
+    double du = (uEnd - u0) / _uDiv;
+    double dv = (vEnd - v0) / _vDiv;
+    double uv[2];
+
+    for (int i = 1; i < _uDiv - 1; i++)
+        for (int j = 1; j < _vDiv - 1; j++) {
+            uv[0] = u0 + du * i;
+            uv[1] = v0 + dv * j;
+            computeCartesianCoordinates(coords, uv);
 
             for (int k = 0; k < noSpatialDimensions; k++)
                 coords[k] -= _P[k];
@@ -1462,10 +1432,9 @@ void IGAPatchSurface::findNearestKnotIntersection(double& _u, double& _v, double
             Dis = sqrt(Dis);
 
             if (Dis < minDis) {
-
                 minDis = Dis;
-                _u = knotU[i];
-                _v = knotV[j];
+                _u = uv[0];
+                _v = uv[1];
             }
 
         }
@@ -1492,7 +1461,7 @@ void IGAPatchSurface::computeCartesianCoordinatesAndNormalVector(double* _coords
 }
 
 Message &operator<<(Message &message, IGAPatchSurface &mesh) {
-//	message << "\t" << "IGA Patch name: " << mesh.name << endl;
+//  message << "\t" << "IGA Patch name: " << mesh.name << endl;
 
     message << "\t\tpDegree:  " << mesh.getIGABasis()->getUBSplineBasis1D()->getPolynomialDegree()
             << endl;

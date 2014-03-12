@@ -31,6 +31,7 @@
 #include "DataField.h"
 #include <iostream>
 #include <assert.h>
+#include <stdlib.h>
 #include "AuxiliaryParameters.h"
 #include "AbstractMapper.h"
 
@@ -81,11 +82,25 @@ void MapperAdapter::initMortarMapper(bool oppositeSurfaceNormal, bool dual,
             b->nodeIDs, b->elems, oppositeSurfaceNormal, dual, enforceConsistency);
 }
 
-void MapperAdapter::initIGAMortarMapper(double _tolProjectionDistance, int _numGPsTriangle, int _numGPsQuad) {
-    assert(meshA->type == EMPIRE_Mesh_IGAMesh);
-    assert(meshB->type == EMPIRE_Mesh_FEMesh);
-    mapperImpl = new IGAMortarMapper(name,dynamic_cast<IGAMesh *>(meshA),
-                     dynamic_cast<FEMesh *>(meshB),_tolProjectionDistance,_numGPsTriangle,_numGPsQuad);
+void MapperAdapter::initIGAMortarMapper(double _tolProjectionDistance, int _numGPsTriangle,
+        int _numGPsQuad) {
+    bool meshAIGA = (meshA->type == EMPIRE_Mesh_IGAMesh);
+    bool meshBIGA = (meshB->type == EMPIRE_Mesh_IGAMesh);
+    if (meshAIGA && !meshBIGA) {
+        assert(meshB->type == EMPIRE_Mesh_FEMesh);
+        mapperImpl = new IGAMortarMapper(name, dynamic_cast<IGAMesh *>(meshA),
+                dynamic_cast<FEMesh *>(meshB), _tolProjectionDistance, _numGPsTriangle, _numGPsQuad,
+                true);
+    } else if (!meshAIGA && meshBIGA) {
+        assert(meshA->type == EMPIRE_Mesh_FEMesh);
+        mapperImpl = new IGAMortarMapper(name, dynamic_cast<IGAMesh *>(meshB),
+                dynamic_cast<FEMesh *>(meshA), _tolProjectionDistance, _numGPsTriangle, _numGPsQuad,
+                false);
+    } else{
+        ERROR_OUT()<<"Error in MapperAdapter::initIGAMortarMapper" << endl;
+        ERROR_OUT()<<"Wrong type of mesh!" << endl;
+        exit(-1);
+    }
 }
 
 void MapperAdapter::initNearestNeighborMapper() {
@@ -128,71 +143,84 @@ void MapperAdapter::consistentMapping(const DataField *fieldA, DataField *fieldB
 
     assert(mapperImpl != NULL);
 
-	assert(meshB->type == EMPIRE_Mesh_FEMesh);
-	FEMesh *feMeshB = dynamic_cast<FEMesh *>(meshB);
+    int numNodesA, numNodesB;
+    if (meshA->type == EMPIRE_Mesh_FEMesh)
+        numNodesA = dynamic_cast<FEMesh *>(meshA) -> numNodes;
+    else if (meshA->type == EMPIRE_Mesh_IGAMesh)
+        numNodesA = dynamic_cast<IGAMesh *>(meshA) ->getNumNodes();
+    else{
+        ERROR_OUT()<<"Error in MapperAdapter::consistentMapping" << endl;
+        ERROR_OUT()<<"Wrong type of meshA!" << endl;
+        exit(-1);
+    }
+    if (meshB->type == EMPIRE_Mesh_FEMesh)
+        numNodesB = dynamic_cast<FEMesh *>(meshB) -> numNodes;
+    else if (meshB->type == EMPIRE_Mesh_IGAMesh)
+        numNodesB = dynamic_cast<IGAMesh *>(meshB) ->getNumNodes();
+    else{
+        ERROR_OUT()<<"Error in MapperAdapter::consistentMapping" << endl;
+        ERROR_OUT()<<"Wrong type of meshB!" << endl;
+        exit(-1);
+    }
 
-	assert(fieldA->dimension == fieldB->dimension);
-	assert(fieldB->numLocations == feMeshB->numNodes);
-	assert(fieldA->typeOfQuantity == EMPIRE_DataField_field);
-	assert(fieldB->typeOfQuantity == EMPIRE_DataField_field);
+    assert(fieldA->dimension == fieldB->dimension);
+    assert(fieldA->numLocations == numNodesA);
+    assert(fieldB->numLocations == numNodesB);
 
-	if (meshA->type == EMPIRE_Mesh_FEMesh) {
-		FEMesh *feMeshA = dynamic_cast<FEMesh *>(meshA);
-		assert(fieldA->numLocations == feMeshA->numNodes);
-	} else if (meshA->type == EMPIRE_Mesh_IGAMesh) {
-		IGAMesh *IGAMehsA = dynamic_cast<IGAMesh *>(meshA);
-		assert(fieldA->numLocations == IGAMehsA->getNumControlPoints());
-	} else {
-		assert(0);
-	}
-
-	double *fieldADOFi = new double[fieldA->numLocations];
-	double *fieldBDOFi = new double[fieldB->numLocations];
-	int numDOFs = fieldA->dimension;
-	for (int i = 0; i < numDOFs; i++) {
-		for (int j = 0; j < fieldA->numLocations; j++)
-			fieldADOFi[j] = fieldA->data[j * numDOFs + i];
-		mapperImpl->consistentMapping(fieldADOFi, fieldBDOFi);
-		for (int j = 0; j < fieldB->numLocations; j++)
-			fieldB->data[j * numDOFs + i] = fieldBDOFi[j];
-	}
-	delete[] fieldADOFi;
-	delete[] fieldBDOFi;
+    double *fieldADOFi = new double[fieldA->numLocations];
+    double *fieldBDOFi = new double[fieldB->numLocations];
+    int numDOFs = fieldA->dimension;
+    for (int i = 0; i < numDOFs; i++) {
+        for (int j = 0; j < fieldA->numLocations; j++)
+            fieldADOFi[j] = fieldA->data[j * numDOFs + i];
+        mapperImpl->consistentMapping(fieldADOFi, fieldBDOFi);
+        for (int j = 0; j < fieldB->numLocations; j++)
+            fieldB->data[j * numDOFs + i] = fieldBDOFi[j];
+    }
+    delete[] fieldADOFi;
+    delete[] fieldBDOFi;
 
 }
 
-void MapperAdapter::conservativeMapping(const DataField *fieldB,DataField *fieldA) {
-	assert(mapperImpl != NULL);
+void MapperAdapter::conservativeMapping(const DataField *fieldB, DataField *fieldA) {
+    assert(mapperImpl != NULL);
 
-	assert(meshB->type == EMPIRE_Mesh_FEMesh);
-	FEMesh *feMeshB = dynamic_cast<FEMesh *>(meshB);
-	assert(fieldA->dimension == fieldB->dimension);
-	assert(fieldB->numLocations == feMeshB->numNodes);
-	assert(fieldA->typeOfQuantity == EMPIRE_DataField_fieldIntegral);
-	assert(fieldB->typeOfQuantity == EMPIRE_DataField_fieldIntegral);
+    int numNodesA, numNodesB;
+    if (meshA->type == EMPIRE_Mesh_FEMesh)
+        numNodesA = dynamic_cast<FEMesh *>(meshA) -> numNodes;
+    else if (meshA->type == EMPIRE_Mesh_IGAMesh)
+        numNodesA = dynamic_cast<IGAMesh *>(meshA) ->getNumNodes();
+    else{
+        ERROR_OUT()<<"Error in MapperAdapter::conservativeMapping" << endl;
+        ERROR_OUT()<<"Wrong type of meshA!" << endl;
+        exit(-1);
+    }
+    if (meshB->type == EMPIRE_Mesh_FEMesh)
+        numNodesB = dynamic_cast<FEMesh *>(meshB) -> numNodes;
+    else if (meshB->type == EMPIRE_Mesh_IGAMesh)
+        numNodesB = dynamic_cast<IGAMesh *>(meshB) ->getNumNodes();
+    else{
+        ERROR_OUT()<<"Error in MapperAdapter::conservativeMapping" << endl;
+        ERROR_OUT()<<"Wrong type of meshB!" << endl;
+        exit(-1);
+    }
 
-	if (meshA->type == EMPIRE_Mesh_FEMesh) {
-		FEMesh *feMeshA = dynamic_cast<FEMesh *>(meshA);
-		assert(fieldA->numLocations == feMeshA->numNodes);
-	} else if (meshA->type == EMPIRE_Mesh_IGAMesh) {
-		IGAMesh *IGAMeshA = dynamic_cast<IGAMesh *>(meshA);
-		assert(fieldA->numLocations == IGAMeshA->getNumControlPoints());
-	} else {
-		assert(0);
-	}
+    assert(fieldA->dimension == fieldB->dimension);
+    assert(fieldA->numLocations == numNodesA);
+    assert(fieldB->numLocations == numNodesB);
 
-	double *fieldADOFi = new double[fieldA->numLocations];
-	double *fieldBDOFi = new double[fieldB->numLocations];
-	int numDOFs = fieldA->dimension;
-	for (int i = 0; i < numDOFs; i++) {
-		for (int j = 0; j < fieldB->numLocations; j++)
-			fieldBDOFi[j] = fieldB->data[j * numDOFs + i];
-		mapperImpl->conservativeMapping(fieldBDOFi, fieldADOFi);
-		for (int j = 0; j < fieldA->numLocations; j++)
-			fieldA->data[j * numDOFs + i] = fieldADOFi[j];
-	}
-	delete[] fieldADOFi;
-	delete[] fieldBDOFi;
+    double *fieldADOFi = new double[fieldA->numLocations];
+    double *fieldBDOFi = new double[fieldB->numLocations];
+    int numDOFs = fieldA->dimension;
+    for (int i = 0; i < numDOFs; i++) {
+        for (int j = 0; j < fieldB->numLocations; j++)
+            fieldBDOFi[j] = fieldB->data[j * numDOFs + i];
+        mapperImpl->conservativeMapping(fieldBDOFi, fieldADOFi);
+        for (int j = 0; j < fieldA->numLocations; j++)
+            fieldA->data[j * numDOFs + i] = fieldADOFi[j];
+    }
+    delete[] fieldADOFi;
+    delete[] fieldBDOFi;
 
 }
 

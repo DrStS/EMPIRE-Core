@@ -130,15 +130,22 @@ struct structCouplingAlgorithm {
         int index;
         structConnectionIO connectionIO;
     };
-    struct structInterfaceJacobianConst {
+    struct structInterfaceJacobian {
         unsigned int indexRow;
         unsigned int indexColumn;
+        bool isConstant;
         double value;
+        bool isAutoDiff;
+        structConnectionIO functionInput;
+        structConnectionIO functionOutput;
+        bool isSignal;
+        structConnectionIO interfaceJacobianSignal;
+        double coefficient;
     };
     std::string name;
     EMPIRE_CouplingAlgorithm_type type;
     std::vector<structOutput> outputs;
-    std::vector<structInterfaceJacobianConst> interfaceJacobianConsts;
+    std::vector<structInterfaceJacobian> interfaceJacobians;
     std::vector<structResidual> residuals;
     structAitken aitken;
     structConstantRelaxation constantRelaxation;

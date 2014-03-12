@@ -15,6 +15,14 @@
 		</mesh>
 		<signal name="signal1" size="5" />
 	</clientCode>
+	<clientCode name="caratIGA">
+		<mesh name="myMesh1" type = "IGAMesh">
+			<dataField name="displacements" location="atNode"
+				dimension="vector" typeOfQuantity="field" />
+			<dataField name="forces" location="atNode" dimension="vector"
+				typeOfQuantity="fieldIntegral" />
+		</mesh>
+	</clientCode>
 	<clientCode name="OpenFOAM">
 		<mesh name="myMesh1">
 			<dataField name="displacements" location="atNode"

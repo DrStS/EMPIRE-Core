@@ -79,21 +79,6 @@ public:
     virtual void computeLocalBasisFunctions(double*, double, int, double, int) = 0;
 
     /***********************************************************************************************
-     * \brief Compute the non-zero basis functions and their derivatives of the  at the given parameter (Inefficient algorithm)
-     * \param[in/out] _basisFctsAndDerivs The non-zero basis functions at the given knot span and their _derivDegree-th derivatives
-     * \param[in] _maxMixDerivOrd The maximum degree of the mixed derivative
-     * \param[in] _derivDegreeU Up to Which degree the B-Spline derivative to be computed in u-direction
-     * \param[in] _uPrm The parameter where the basis functions and their derivatives are evaluated in u-direction
-     * \param[in] _KnotSpanIndexU The index of the knot span where _uPrm lives
-     * \param[in] _derivDegreeV Up to Which degree the B-Spline derivative to be computed in v-direction
-     * \param[in] _vPrm The parameter where the basis functions are evaluated
-     * \param[in] _KnotSpanIndexV The index of the knot span where _vPrm lives
-     * \author Andreas Apostolatos
-     ***********/
-    virtual void computeLocalBasisFunctionsAndDerivativesInefficient(double**, int, int, double,
-            int, int, double, int) = 0;
-
-    /***********************************************************************************************
      * \brief Compute the non-zero basis functions and their derivatives of the  at the given parameter and stores them in a double array
      * \param[in/out] _basisFctsAndDerivs The non-zero basis functions at the given knot span and their _derivDegree-th derivatives
      * \param[in] _derivDegree The maximum partial derivative degree with 0 <= _uDerivDegree + _vDerivDegree <= _derivDegree

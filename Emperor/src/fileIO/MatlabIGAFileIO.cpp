@@ -45,32 +45,24 @@ namespace MatlabIGAFileIO {
 
 void writeIGAMesh(IGAMesh* igaMesh) {
     // Matlab visualization
+
     ofstream myfile;
-    myfile.open("ControlPoints");
-    myfile.precision(14);
-    myfile << std::dec;
-    int* CPsID = igaMesh->getControlPointsID();
-    vector<IGAControlPoint*> CPs = igaMesh->getGlobalControlPoints();
 
-    for (int i = 0; i < igaMesh->getNumControlPoints(); i++) {
-        myfile << i + 1 << " " << CPsID[i] << " ";
-        myfile << CPs[i]->getX() << " " << CPs[i]->getY() << "  " << CPs[i]->getY() << " "
-                << CPs[i]->getW() << "\n";
-    }
-    myfile.close();
-
-    myfile.open("SurfacePatches");
+    myfile.open("SurfacePatches.m");
     myfile.precision(14);
     myfile << std::dec;
 
     std::vector<IGAPatchSurface*> surfacePatches = igaMesh->getSurfacePatches();
+    myfile << "numNodesIGA =  " << igaMesh->getNumNodes() << ";" << endl;
     int numPatches = surfacePatches.size();
     IGAPatchSurface* patch;
     for (int patchCount = 0; patchCount < numPatches; patchCount++) {
         patch = surfacePatches[patchCount];
         myfile << "%% Patch: " << patchCount + 1 << endl;
-        myfile << "surfacePatch(" << patchCount + 1 << ").p = " << patch->getIGABasis()->getUBSplineBasis1D()->getPolynomialDegree() << ";" << endl;
-        myfile << "surfacePatch(" << patchCount + 1 << ").q = " << patch->getIGABasis()->getVBSplineBasis1D()->getPolynomialDegree() << ";" << endl;
+        myfile << "surfacePatch(" << patchCount + 1 << ").p = "
+                << patch->getIGABasis()->getUBSplineBasis1D()->getPolynomialDegree() << ";" << endl;
+        myfile << "surfacePatch(" << patchCount + 1 << ").q = "
+                << patch->getIGABasis()->getVBSplineBasis1D()->getPolynomialDegree() << ";" << endl;
         myfile << "surfacePatch(" << patchCount + 1 << ").knotU = [";
 
         for (int i = 0; i < patch->getIGABasis()->getUBSplineBasis1D()->getNoKnots(); i++)
@@ -81,9 +73,20 @@ void writeIGAMesh(IGAMesh* igaMesh) {
             myfile << patch->getIGABasis()->getVBSplineBasis1D()->getKnotVector()[i] << "  ";
         myfile << "];" << endl;
 
-        myfile << "surfacePatch(" << patchCount + 1 << ").CPID = [";
+        int cpCount = 0;
+        for (int vCount = 0; vCount < patch->getVNoControlPoints(); vCount++) {
+            for (int uCount = 0; uCount < patch->getUNoControlPoints(); uCount++) {
+                IGAControlPoint* cp = patch->getControlPointNet()[cpCount];
+                myfile << "surfacePatch(" << patchCount + 1 << ").CP(" << uCount + 1 << ", "
+                        << vCount + 1 << ", 1:4) = [" << cp->getX() << ", " << cp->getY() << ", "
+                        << cp->getZ() << ", " << cp->getW() << "]; " << endl;
+                cpCount++;
+            }
+        }
+
+        myfile << "surfacePatch(" << patchCount + 1 << ").dof = [";
         for (int i = 0; i < patch->getNoControlPoints(); i++)
-            myfile << patch->getControlPointNet()[i]->getId() << " ";
+            myfile << patch->getControlPointNet()[i]->getDofIndex() + 1 << " ";
         myfile << "];" << endl;
     }
 

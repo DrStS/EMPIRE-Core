@@ -232,51 +232,6 @@ public:
     }
 
     /***********************************************************************************************
-     * \brief Test case: Test the computation of the local basis functions and their derivatives
-     ***********/
-    void testNurbs1DBasisFunctionsAndDerivativesInefficient() {
-        // Compute the non-zero basis functions and their derivatives at another parametric location
-        double u = 51.0 / 4.5;
-        int knotSpan = nurbsBasis1D->findKnotSpan(u);
-        int derivDegree = 2;
-        double** localBasisFunctionsAndDerivatives = new double*[derivDegree + 1];
-        for (int i = 0; i <= derivDegree; i++)
-            localBasisFunctionsAndDerivatives[i] = new double[nurbsBasis1D->getPolynomialDegree()
-                    + 1];
-
-        nurbsBasis1D->computeLocalBasisFunctionsAndDerivativesInefficient(
-                localBasisFunctionsAndDerivatives, derivDegree, u, knotSpan);
-
-        /* cout << endl;
-         cout << endl;
-         cout << "The non-zero NURBS basis functions and their derivatives at u = " << u << " :";
-         cout << endl;
-         for (int i=0; i<=derivDegree; i++) {
-         for (int j=0; j<=nurbsBasis1D->getPolynomialDegree(); j++)
-         cout << localBasisFunctionsAndDerivatives[i][j] << " " ;
-         cout << endl;
-         }*/
-
-        // Values provided by MATLAB
-        double CorrectlocalBasisFunctionsAndDerivatives[][6] = { { 0.013228096315987,
-                0.110966134071401, 0.283990266789861, 0.339318650389149, 0.204029964350372,
-                0.048466888083230 }, { -0.007268043699170, -0.039735058036026, -0.043573844884038,
-                0.017382454544698, 0.051303333334689, 0.021891158739847 }, { 0.003296333811469,
-                0.008711340524660, -0.007276560245087, -0.015628735809817, 0.003239989772855,
-                0.007657631945920 } };
-
-        for (int i = 0; i <= derivDegree; i++)
-            for (int j = 0; j <= nurbsBasis1D->getPolynomialDegree(); j++)
-                CPPUNIT_ASSERT(
-                        fabs(localBasisFunctionsAndDerivatives[i][j]-CorrectlocalBasisFunctionsAndDerivatives[i][j])<=Tol);
-
-        // Clear the heap from the pointer
-        for (int i = 0; i <= derivDegree; i++)
-            delete[] localBasisFunctionsAndDerivatives[i];
-        delete[] localBasisFunctionsAndDerivatives;
-    }
-
-    /***********************************************************************************************
      * \brief Test case: Test the computation of the local basis functions and their derivatives (Efficient algorithm)
      ***********/
     void testNurbs1DBasisFunctionsAndDerivatives() {
@@ -420,33 +375,6 @@ public:
     }
 
     /***********************************************************************************************
-     * \brief Test case: Test the computation of the NURBS basis functions and their derivatives for memory leakage (inefficient algorithm)
-     ***********/
-    void testNurbs1DBasisFunctionsAndDerivativesInefficient4Leakage() {
-        // initialize variables
-        int noIterations = 1000000000;
-        int knotSpan = 0;
-        int derivDegree = 2;
-        double u = 17.0 / 3.0;
-
-        for (int i = 0; i < noIterations; i++) {
-            // Compute the non-zero basis functions at another parametric location
-            knotSpan = nurbsBasis1D->findKnotSpan(u);
-            double** localBasisFunctions = new double*[derivDegree + 1];
-            for (int i = 0; i <= derivDegree; i++)
-                localBasisFunctions[i] = new double[nurbsBasis1D->getPolynomialDegree() + 1];
-
-            nurbsBasis1D->computeLocalBasisFunctionsAndDerivativesInefficient(localBasisFunctions,
-                    derivDegree, u, knotSpan);
-
-            // Clear the heap from the pointer
-            for (int i = 0; i <= derivDegree; i++)
-                delete[] localBasisFunctions[i];
-            delete[] localBasisFunctions;
-        }
-    }
-
-    /***********************************************************************************************
      * \brief Test case: Test the computation of the NURBS basis functions and their derivatives for memory leakage (efficient algorithm)
      ***********/
     void testNurbs1DBasisFunctionsAndDerivatives4Leakage() {
@@ -476,14 +404,12 @@ CPPUNIT_TEST_SUITE(TestNurbsBasis1D);
     CPPUNIT_TEST(testNurbs1DKnotSpan);
     CPPUNIT_TEST(testNurbs1DCopyConstructor);
     CPPUNIT_TEST(testNurbs1DBasisFunctions);
-    CPPUNIT_TEST(testNurbs1DBasisFunctionsAndDerivativesInefficient);
     CPPUNIT_TEST(testNurbs1DBasisFunctionsAndDerivatives);
     CPPUNIT_TEST(testNurbs1DBasisFunctionsAndDerivativesMethod2);
 
     // Make the tests for leakage
     // CPPUNIT_TEST(testNurbs1DCopyConstructor4Leakage);
     // CPPUNIT_TEST(testNurbs1DBasisFunctions4Leakage);
-    // CPPUNIT_TEST(testNurbs1DBasisFunctionsAndDerivativesInefficient4Leakage);
     // CPPUNIT_TEST(testNurbs1DBasisFunctionsAndDerivatives4Leakage);
 
     CPPUNIT_TEST_SUITE_END()

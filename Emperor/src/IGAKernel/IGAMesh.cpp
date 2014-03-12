@@ -35,29 +35,18 @@ using namespace std;
 
 namespace EMPIRE {
 
-IGAMesh::IGAMesh(std::string _name, int _numControlPoints, double* _globalControlPoints,
-        int* _controlPointID) :
-        AbstractMesh(_name, EMPIRE_Mesh_IGAMesh), controlPointID(_controlPointID), numControlPoints(
-                _numControlPoints) {
-
-    for (int i = 0; i < numControlPoints; i++) {
-        globalControlPoints.push_back(new IGAControlPoint(controlPointID[i], &_globalControlPoints[i * 4]));
-        mapControlPointIDToIndex.insert(pair<int, int>(controlPointID[i], i));
-    }
-
+IGAMesh::IGAMesh(std::string _name, int _numNodes) :
+        AbstractMesh(_name, EMPIRE_Mesh_IGAMesh), numNodes(_numNodes) {
 }
 
 IGAMesh::~IGAMesh() {
-    for (int i = 0; i < globalControlPoints.size(); i++)
-        delete globalControlPoints[i];
     for (int i = 0; i < surfacePatches.size(); i++)
         delete surfacePatches[i];
-    delete[] controlPointID;
 }
 
 void IGAMesh::addPatch(int _pDegree, int _uNoKnots, double* _uKnotVector, int _qDegree,
         int _vNoKnots, double* _vKnotVector, int _uNoControlPoints, int _vNoControlPoints,
-        int* _controlPointNetID) {
+        double* _controlPointNet, int* _dofIndexNet) {
 
     std::string patchName = name + " Patch";
     int IDBasis = 0;
@@ -67,76 +56,64 @@ void IGAMesh::addPatch(int _pDegree, int _uNoKnots, double* _uKnotVector, int _q
     cpNet = new IGAControlPoint*[numCPs];
 
     for (int i = 0; i < numCPs; i++) {
-
-        assert(mapControlPointIDToIndex.find(_controlPointNetID[i]) != mapControlPointIDToIndex.end());
-        cpNet[i] = globalControlPoints[mapControlPointIDToIndex[_controlPointNetID[i]]];
+        if (_dofIndexNet[i] < numNodes && _dofIndexNet[i] >= 0)
+            cpNet[i] = new IGAControlPoint(_dofIndexNet[i], &_controlPointNet[i * 4]);
+        else {
+            ERROR_OUT() << "DOF " << _dofIndexNet[i] << " has not been defined" << endl;
+            exit(-1);
+        }
     }
 
     surfacePatches.push_back(
             new IGAPatchSurface(IDBasis, _pDegree, _uNoKnots, _uKnotVector, _qDegree, _vNoKnots,
                     _vKnotVector, _uNoControlPoints, _vNoControlPoints, cpNet));
-
-    delete[] _controlPointNetID;
-}
-
-double IGAMesh::computeDisplacementComponent(std::string _dataFieldName, int _patchid, double _u, double _v,
-        int _component) {
-
-    DataField *dataField = getDataFieldByName(_dataFieldName);
-    IGAPatchSurface* igaPatch = surfacePatches[_patchid];
-    int numCP = igaPatch->getNoControlPoints();
-    double* valuesOnCP = new double[numCP];
-    for (int i = 0; i < numCP; i++)
-        valuesOnCP[i] =
-                dataField->data[mapControlPointIDToIndex[igaPatch->getControlPointNet()[i]->getId()]
-                        * 3 + _component];
-    double result = igaPatch->computePostprocessingScalarValue(_u, _v, valuesOnCP);
-
-    delete[] valuesOnCP;
-
-    return result;
 }
 
 void IGAMesh::computeBoundingBox() {
     if (boundingBox.isComputed)
         return;
-    boundingBox.xmin = globalControlPoints[0]->getX();
-    boundingBox.xmax = globalControlPoints[0]->getX();
-    boundingBox.ymin = globalControlPoints[0]->getY();
-    boundingBox.ymax = globalControlPoints[0]->getY();
-    boundingBox.zmin = globalControlPoints[0]->getZ();
-    boundingBox.zmax = globalControlPoints[0]->getZ();
-    for (int i = 1; i < globalControlPoints.size(); i++) {
-        double x = globalControlPoints[i]->getX();
-        double y = globalControlPoints[i]->getY();
-        double z = globalControlPoints[i]->getZ();
-        if (x < boundingBox.xmin)
-            boundingBox.xmin = x;
-        else if (x > boundingBox.xmax)
-            boundingBox.xmax = x;
-        if (y < boundingBox.ymin)
-            boundingBox.ymin = y;
-        else if (y > boundingBox.ymax)
-            boundingBox.ymax = y;
-        if (z < boundingBox.zmin)
-            boundingBox.zmin = z;
-        else if (z > boundingBox.zmax)
-            boundingBox.zmax = z;
+    boundingBox.xmin = surfacePatches[0]->getControlPointNet()[0]->getX();
+    boundingBox.xmax = surfacePatches[0]->getControlPointNet()[0]->getX();
+    boundingBox.ymin = surfacePatches[0]->getControlPointNet()[0]->getY();
+    boundingBox.ymax = surfacePatches[0]->getControlPointNet()[0]->getY();
+    boundingBox.zmin = surfacePatches[0]->getControlPointNet()[0]->getZ();
+    boundingBox.zmax = surfacePatches[0]->getControlPointNet()[0]->getZ();
+
+    for (int patchCount = 0; patchCount < surfacePatches.size(); patchCount++) {
+        IGAPatchSurface* patch = surfacePatches[patchCount];
+        for (int cpCount = 0; cpCount < patch->getNoControlPoints(); cpCount++) {
+            double x = patch->getControlPointNet()[cpCount]->getX();
+            double y = patch->getControlPointNet()[cpCount]->getY();
+            double z = patch->getControlPointNet()[cpCount]->getZ();
+            if (x < boundingBox.xmin)
+                boundingBox.xmin = x;
+            else if (x > boundingBox.xmax)
+                boundingBox.xmax = x;
+            if (y < boundingBox.ymin)
+                boundingBox.ymin = y;
+            else if (y > boundingBox.ymax)
+                boundingBox.ymax = y;
+            if (z < boundingBox.zmin)
+                boundingBox.zmin = z;
+            else if (z > boundingBox.zmax)
+                boundingBox.zmax = z;
+        }
     }
+
     boundingBox.isComputed = true;
 }
 
 void IGAMesh::addDataField(string _dataFieldName, EMPIRE_DataField_location _location,
         EMPIRE_DataField_dimension _dimension, EMPIRE_DataField_typeOfQuantity _typeOfQuantity) {
 
-    int numLocatiions = -1;
+    int numLocations = -1;
     if (_location == EMPIRE_DataField_atNode)
-        numLocatiions = globalControlPoints.size();
+        numLocations = numNodes;
     else
         assert(false);
 
     assert(nameToDataFieldMap.find(_dataFieldName) == nameToDataFieldMap.end());
-    DataField *dataField = new DataField(_dataFieldName, _location, numLocatiions, _dimension,
+    DataField *dataField = new DataField(_dataFieldName, _location, numLocations, _dimension,
             _typeOfQuantity);
     nameToDataFieldMap.insert(pair<string, DataField*>(_dataFieldName, dataField));
 

@@ -65,12 +65,14 @@ extern "C" { ///Define extern C if C++ compiler is used
  * \brief Establishes the necessary connection with the Emperor
  ***********/
 void EMPIRE_API_Connect(char* inputFileName);
+
 /***********************************************************************************************
  * \brief Get user defined text by the element name in the XML input file
  * \param[in] elementName name of the XML element
  * \return user defined text
  ***********/
 char *EMPIRE_API_getUserDefinedText(char *elementName);
+
 /***********************************************************************************************
  * \brief Send the mesh to the server
  * \param[in] name name of the mesh
@@ -83,6 +85,7 @@ char *EMPIRE_API_getUserDefinedText(char *elementName);
  ***********/
 void EMPIRE_API_sendMesh(char *name, int numNodes, int numElems, double *nodes, int *nodeIDs,
         int *numNodesPerElem, int *elems);
+
 /***********************************************************************************************
  * \brief Send the IGA patch to the server
  * \param[in] _name name of the field
@@ -94,17 +97,20 @@ void EMPIRE_API_sendMesh(char *name, int numNodes, int numElems, double *nodes, 
  * \param[in] _vKnotVector The underlying knot vector of the IGA 2D patch in the v-direction
  * \param[in] _uNoControlPoints The number of the Control Points for the 2D NURBS patch in the u-direction
  * \param[in] _vNoControlPoints The number of the Control Points for the 2D NURBS patch in the v-direction
- * \param[in] _controlPointNet The set of the Control Points related to the 2D NURBS patch
+ * \param[in] _cpNet The set of the Control Points related to the 2D NURBS patch
+ * \param[in] _dofNet The set of the dof index Control Points related to the 2D NURBS patch
  ***********/
-void EMPIRE_API_sendIGAPatch(int _pDegree,	int _uNoKnots, double* _uKnotVector, int _qDegree, int _vNoKnots,
-		double* _vKnotVector, int _uNoControlPoints, int _vNoControlPoints, int* _controlPointNetID);
-void EMPIRE_API_sendIGAMesh(char *_name, int _numPatches, int _numControlPoints, double* _globalControlPoints, int* _controlPointID);
+void EMPIRE_API_sendIGAPatch(int _pDegree,  int _uNoKnots, double* _uKnotVector, int _qDegree, int _vNoKnots,
+        double* _vKnotVector, int _uNoControlPoints, int _vNoControlPoints, double* _cpNet, int* _dofNet);
+void EMPIRE_API_sendIGAMesh(char *_name, int _numPatches, int _numNodes);
+
 /***********************************************************************************************
  * \brief Send data field to the server
  * \param[in] name name of the field
  * \param[in] sizeOfArray size of the array (data field)
  * \param[in] dataField the data field to be sent
  ***********/
+
 void EMPIRE_API_sendDataField(char *name, int sizeOfArray, double *dataField);
 /***********************************************************************************************
  * \brief Receive data field from the server

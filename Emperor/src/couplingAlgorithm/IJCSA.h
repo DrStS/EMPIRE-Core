@@ -28,6 +28,7 @@
 #define IJCSA_H_
 
 #include <vector>
+#include <fstream>
 #include "AbstractCouplingAlgorithm.h"
 
 namespace EMPIRE {
@@ -37,7 +38,7 @@ template<typename T>
 class SparseMatrix;
 }
 
-class Signal;
+class ConnectionIO;
 /********//**
  * \brief Class IJCSA does Interface-Jacobian based Co-Simulation
  ***********/
@@ -76,23 +77,45 @@ public:
      * \brief add value to interface Jacobian matrix
      * \param[in] _indexRow    row index of value
      * \param[in] _indexColumn column index of value
-     * \param[in] _jacobianSignal pointer to Singal
+     * \param[in] _functionInput pointer to ConnectionIO  (only signal)
+     * \param[in] _functionOutput pointer to ConnectionIO (only signal)
+     * \param[in] _coefficient prefactor of FD computed interface jacobian
      * \author Stefan Sicklinger
      ***********/
-    void addInterfaceJacobianEntry(unsigned int _indexRow, unsigned int _indexColumn, Signal* _jacobianSignal);
+    void addInterfaceJacobianEntry(unsigned int _indexRow, unsigned int _indexColumn, ConnectionIO* _functionInput, ConnectionIO* _functionOutput, double _coefficient);
+    /***********************************************************************************************
+     * \brief add value to interface Jacobian matrix
+     * \param[in] _indexRow    row index of value
+     * \param[in] _indexColumn column index of value
+     * \param[in] _jacobianSignal pointer to ConnectionIO  (only signal)
+     * \author Stefan Sicklinger
+     ***********/
+    void addInterfaceJacobianEntry(unsigned int _indexRow, unsigned int _indexColumn, ConnectionIO* _jacobianSignal);
 private:
     /***********************************************************************************************
-     * \brief Assemble interface system
+     * \brief Calculates interface Jacobian using FD
      * \author Stefan Sicklinger
      ***********/
-    void assembleInterfaceJSystem();
+    void calcInterfaceJacobian();
+    /***********************************************************************************************
+     * \brief Recomputes interface Jacobian
+     * \author Stefan Sicklinger
+     ***********/
+    void assembleInterfaceJacobian();
 
     struct interfaceJacobianEntry{
     	unsigned int indexRow;
     	unsigned int indexColumn;
-    	Signal * jacobianSignal;
+        bool isConstant;
     	double value;
+        bool isAutoDiff;
+        ConnectionIO * functionInput;
+        ConnectionIO * functionOutput;
     	bool isSignal;
+    	ConnectionIO * jacobianSignal;
+    	double coefficient;
+    	double oldInput;
+    	double oldOutput;
     };
     /// vector of all entries of the global interface jacobian matrix
     std::vector<interfaceJacobianEntry> interfaceJacobianEntrys;
@@ -108,6 +131,16 @@ private:
     MathLibrary::SparseMatrix<double> *interfaceJacGlobal;
     /// friend class in unit test
     friend class TestIJCSA;
+    /// old function input
+    double functionInputold;
+    /// new function input
+    double functionInput;
+    /// old function output
+    double functionOutputold;
+    /// new function output
+    double functionOutput;
+    // ouput file
+	std::fstream autoDiffFile;
 };
 }/* namespace EMPIRE */
 #endif /* IJCSA_H_ */

@@ -100,6 +100,18 @@ public:
      * \author Tianyang Wang
      ***********/
     std::string getName();
+    /***********************************************************************************************
+     * \brief Set current time step
+     * \param[in] _currentTimeStep
+     * \author Tianyang Wang
+     ***********/
+    void setCurrentTimeStep(int _currentTimeStep){currentTimeStep=_currentTimeStep;}
+    /***********************************************************************************************
+     * \brief Set current iteration
+     * \param[in] _currentIteration
+     * \author Tianyang Wang
+     ***********/
+    void setCurrentIteration(int _currentIteration){currentIteration=_currentIteration;}
 
 protected:
     /********//**
@@ -146,6 +158,10 @@ protected:
     std::map<int, Residual*> residuals;
     /// whether it is the new loop
     bool newTimeStep;
+    /// time step number
+    int currentTimeStep;
+    /// interation counter
+    int currentIteration;
 
     /***********************************************************************************************
      * \brief compute L2 norm of the vector
