@@ -58,6 +58,9 @@ class GaussQuadratureOnQuad;
 class IGAMortarMapper: public AbstractMapper {
 
 private:
+    /// Name of the mapper
+    std::string name;
+
     /// IGA Mesh
     IGAMesh *meshIGA;
 
