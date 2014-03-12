@@ -49,6 +49,9 @@ enum EMPIRE_Signal_dimension {
     EMPIRE_Signal_0D, EMPIRE_Signal_1D, EMPIRE_Signal_2D, EMPIRE_Signal_3D
 };
 
+enum EMPIRE_BlasLevel1Filter_RoutineName {
+    EMPIRE_BlasLevel1Filter_daxpy
+};
 /********//**
  * The rule of naming 2:
  * EMPIRE_[motherClassName]_type and
@@ -70,7 +73,8 @@ enum EMPIRE_DataFieldFilter_type {
     EMPIRE_LocationFilter,
     EMPIRE_ScalingFilter,
     EMPIRE_SetFilter,
-    EMPIRE_DataFieldIntegrationFilter
+    EMPIRE_DataFieldIntegrationFilter,
+    EMPIRE_AdditionFilter,
 };
 
 enum EMPIRE_CouplingLogic_type {

@@ -160,12 +160,16 @@ struct structFilter {
     struct structDataFieldIntegrationFilter {
         structMeshRef meshRef;
     };
+    struct structAdditionFilter {
+        double a, b;
+    };
     EMPIRE_DataFieldFilter_type type;
     structMappingFilter mappingFilter;
     structScalingFilter scalingFilter;
     structSetFilter setFilter;
     structCopyFilter copyFilter;
     structDataFieldIntegrationFilter dataFieldIntegrationFilter;
+    structAdditionFilter additionFilter;
 
     std::vector<structConnectionIO> inputs;
     std::vector<structConnectionIO> outputs;
