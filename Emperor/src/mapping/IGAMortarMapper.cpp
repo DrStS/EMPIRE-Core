@@ -43,8 +43,8 @@ namespace EMPIRE {
 
 IGAMortarMapper::IGAMortarMapper(std::string _name, IGAMesh *_meshIGA, FEMesh *_meshFE,
         double _disTol, int _numGPsTri, int _numGPsQuad, bool _isMappingIGA2FEM) :
-        meshIGA(_meshIGA), disTol(_disTol), numGPsTri(_numGPsTri), numGPsQuad(_numGPsQuad), isMappingIGA2FEM(
-                _isMappingIGA2FEM) {
+        name(_name), meshIGA(_meshIGA), disTol(_disTol), numGPsTri(_numGPsTri), numGPsQuad(
+                _numGPsQuad), isMappingIGA2FEM(_isMappingIGA2FEM) {
 
     assert(_meshIGA != NULL);
     assert(_meshFE != NULL);
@@ -150,94 +150,169 @@ void IGAMortarMapper::initTables() {
 }
 
 void IGAMortarMapper::projectPointsToSurface() {
-    /* Loop over all patches
-     *      Loop over all the elements on the fluid side
-     *          1. Loop over all nodes of the current element to check if there exist one node has been projected already
-     *          2. Check if there exist one node in the current element has been successfully projected. If not,
-     *              2.1 if so, use result of the projected node as the initial guess
-     *              2.2 otherwise,  find the nearest knot intersection as initial guess
-     *          3. Loop over each node at the current element
-     *              3.1 Check if the node has been already projected
-     *              3.2 if not, compute the point projection on the IGA patch using the initial guess get from the last step
-     * The result of the projected coordinates are stored in the class member: projectedCoords
+    /*  Projects all nodes of the FE side onto the IGA mesh.
+     *
+     *  0. Read input
+     *
+     *  1. Loop over all the patches in the IGA mesh
+     *     1i. Get the IGA patch
+     *    1ii. Initialize all projection flags to false
+     *   1iii. Loop over all the elements on the fluid side
+     *         1iii.1. Initialize the flag to false and the node id to zero
+     *         1iii.2. Loop over all nodes of the current element to check if there exist one node has been projected already
+     *                 1iii.2i. If the node has already been projected set projection flag to true
+     *                1iii.2ii. Get the global ID of the projected node
+     *               1iii.2iii. Break the loop
+     *         1iii.3. Check if there exist one node in the current element has been successfully projected
+     *                 1iii.3i. If so, use result of the projected node as the initial guess for the projection step
+     *                1iii.3ii. Otherwise, find the nearest knot intersection as initial guess for the projection step
+     *         1iii.4. Loop over each node at the current element in the FE side
+     *                 1iii.4i. Get the node ID from the EFT
+     *                1iii.4ii. Check if the node has been already projected. If not, compute the point projection on the IGA patch using the initial guess get from the last step the results are stored in the class member "projectedCoords"
+     *                          1iii.4ii.1. get the Cartesian coordinates of the node in the FE side
+     *                          1iii.4ii.2. Get an initial guess for the parametric location of the projected node of the FE side on the NURBS patch
+     *                          1iii.4ii.3. Compute point projection on the NURBS patch using the Newton-Rapshon iteration method
+     *                          1iii.4ii.4. Check if the Newton-Rapshon iterations have converged and if the points are coinciding
+     *                                      1iii.4ii.4i. Set projection flag to true
+     *                                     1iii.4ii.4ii. Insert the parametric locations of the projected FE nodes into the map projectedCoords
+     *
+     *   2. Loop over all the nodes in the FE side
+     *      2i. Initialize projection flag to false
+     *     2ii. Loop over all the patches in the IGA mesh and check if the node is has been projected to any patch
+     *    2iii. If the node has not been projected to any patch of the IGA mesh, loop over all the patches in the mesh again and try to project it with better initial guess
+     *          2iii.1. Get the NURBS patch
+     *          2iii.2. Get the Cartesian coordinates of the node in the FE side
+     *          2iii.3. Get a better initial guess for the Newton-Rapshon iterations using the variable REFINED_NUM_PARAMETRIC_LOCATIONS
+     *          2iii.4. Compute point projection on the NURBS patch using the Newton-Rapshon iteration method
+     *          2iii.5. Check if the Newton-Rapshon iterations have converged and if the points are coinciding
+     *                  2iii.5i. Set projection flag to true
+     *                 2iii.5ii. Insert the parametric locations of the projected FE nodes into the map projectedCoords
+     *           2iv. If the node can still not be projected assert an error in the projection phase
+     *
+     *  3. Deallocate dynamically allocated memory
      */
 
-    int numPatches = meshIGA->getSurfacePatches().size();
-    for (int patchCount = 0; patchCount < numPatches; patchCount++) {
+    /// 0. Read input
+    // Initialization of variables
+    // Array of booleans containing flags on the projection of the FE nodes onto the NURBS patch
+    bool *isProjected = new bool[meshFE->numNodes]; // deleted
 
+    // Flag on whether a node is projected on the IGA mesh
+    bool isNodeProjected = false;
+
+    // Flag (??)
+    bool isNodeInsideElementProjecteded;
+
+    // id of the projected node
+    int projectedNode;
+
+    // Coordinates of the projected nodes on the NURBS patch
+    double initialU, initialV;
+
+    // Initialize the parametric coordinates of the FE node on the NURBS patch
+    double projectedU;
+    double projectedV;
+
+    // Initialize flag on the convergence of the Newton-Rapshon iterations for the projection of a node on the NURBS patch
+    bool isConverged, isConvergedInside;
+
+    // Initialize the array of the Cartesian coordinates of a node in the FE side
+    double cartesianCoords[3];
+
+    // Initialize the node ID
+    int nodeIndex;
+
+    /// Initialize (???)
+    double U, V;
+    double P[3];
+
+    // Get the number of patches in the IGA mesh
+    int numPatches = meshIGA->getSurfacePatches().size();
+
+    /// 1. Loop over all the patches in the IGA mesh
+    for (int patchCount = 0; patchCount < numPatches; patchCount++) {
+        /// 1i. Get the IGA patch
         IGAPatchSurface* thePatch = meshIGA->getSurfacePatches()[patchCount];
 
-        bool *isProjected = new bool[meshFE->numNodes]; // deleted
+        /// 1ii. Initialize all projection flags to false
         for (int i = 0; i < meshFE->numNodes; i++)
             isProjected[i] = false;
 
-        /// Loop over all the elements on the fluid side
+        /// 1iii. Loop over all the elements on the fluid side
         for (int i = 0; i < meshFE->numElems; i++) {
 
-            bool isNodeInsideElementProjecteded = false;
-            int projectedNode = 0;
+            /// 1iii.1. Initialize the flag to false and the node id to zero
+            isNodeInsideElementProjecteded = false;
+            projectedNode = 0;
 
-            /// 1. Loop over all nodes of the current element to check if there exist one node has been projected already
+            /// 1iii.2. Loop over all nodes of the current element to check if there exist one node has been projected already
             for (int j = 0; j < meshFE->numNodesPerElem[i]; j++)
                 if (isProjected[meshFEDirectElemTable[i][j]]) {
+                    /// 1iii.2i. If the node has already been projected set projection flag to true
                     isNodeInsideElementProjecteded = true;
+
+                    /// 1iii.2ii. Get the global ID of the projected node
                     projectedNode = meshFEDirectElemTable[i][j];
+
+                    /// 1iii.2iii. Break the loop
                     break;
                 }
 
-            // Coordinates of the projected nodes on the IGA surface
-            double initialU, initialV;
-
-            /// 2. Check if there exist one node in the current element has been successfully projected. If not,
+            /// 1iii.3. Check if there exist one node in the current element has been successfully projected
             if (isNodeInsideElementProjecteded) {
-
-                /// 2.1 if so, use result of the projected node as the initial guess
+                /// 1iii.3i. If so, use result of the projected node as the initial guess for the projection step
                 initialU = (*projectedCoords)[projectedNode][patchCount][0];
                 initialV = (*projectedCoords)[projectedNode][patchCount][1];
 
             } else {
+                /// 1iii.3ii. Otherwise, find the nearest knot intersection as initial guess for the projection step
 
-                /// 2.2 otherwise,  find the nearest knot intersection as initial guess
-                int nodeIndex = meshFEDirectElemTable[i][0];
-                double cartesianCoords[3];
+                // Get the node ID from the EFT
+                nodeIndex = meshFEDirectElemTable[i][0];
+
+                // Get the Cartesian coordinates of that node
                 cartesianCoords[0] = meshFE->nodes[nodeIndex * 3];
                 cartesianCoords[1] = meshFE->nodes[nodeIndex * 3 + 1];
                 cartesianCoords[2] = meshFE->nodes[nodeIndex * 3 + 2];
 
+                // Get accordingly an initial guess for the projection onto the NURBS patch
                 thePatch->findInitialGuess4PointProjection(initialU, initialV, cartesianCoords);
             }
 
-            /// 3. Loop over each node at the current element
+            /// 1iii.4. Loop over each node at the current element in the FE side
             for (int j = 0; j < meshFE->numNodesPerElem[i]; j++) {
 
-                int nodeIndex = meshFEDirectElemTable[i][j];
+                // 1iii.4i. Get the node ID from the EFT
+                nodeIndex = meshFEDirectElemTable[i][j];
 
-                /// Check if the node has been already projected
+                /// 1iii.4ii. Check if the node has been already projected. If not, compute the point projection on the IGA patch using the initial guess get from the last step the results are stored in the class member "projectedCoords"
                 if (!isProjected[nodeIndex]) {
 
-                    /// if not, compute the point projection on the IGA patch using the initial guess get from the last step
-                    /// the result are stored in the class member "projectedCoords"
-                    double cartesianCoords[3];
+                    /// 1iii.4ii.1. get the Cartesian coordinates of the node in the FE side
                     cartesianCoords[0] = meshFE->nodes[nodeIndex * 3];
                     cartesianCoords[1] = meshFE->nodes[nodeIndex * 3 + 1];
                     cartesianCoords[2] = meshFE->nodes[nodeIndex * 3 + 2];
 
-                    double projectedU = initialU;
-                    double projectedV = initialV;
+                    /// 1iii.4ii.2. Get an initial guess for the parametric location of the projected node of the FE side on the NURBS patch
+                    projectedU = initialU;
+                    projectedV = initialV;
 
-                    bool converge;
-                    bool convergeInside = thePatch->computePointProjectionOnPatch(projectedU,
-                            projectedV, cartesianCoords, converge);
+                    /// 1iii.4ii.3. Compute point projection on the NURBS patch using the Newton-Rapshon iteration method
+                    isConvergedInside = thePatch->computePointProjectionOnPatch(projectedU,
+                            projectedV, cartesianCoords, isConverged);
 
-                    if (convergeInside
+                    /// 1iii.4ii.4. Check if the Newton-Rapshon iterations have converged and if the points are coinciding
+                    if (isConvergedInside
                             && IGAMortarMath::computePointDistance(&meshFE->nodes[nodeIndex * 3],
                                     cartesianCoords) < disTol) {
 
+                        /// 1iii.4ii.4i. Set projection flag to true
                         isProjected[nodeIndex] = true;
+
+                        /// 1iii.4ii.4ii. Insert the parametric locations of the projected FE nodes into the map projectedCoords
                         double* coordTmp = new double(2);
                         coordTmp[0] = projectedU;
                         coordTmp[1] = projectedV;
-
                         (*projectedCoords)[nodeIndex].insert(
                                 std::pair<int, double*>(patchCount, coordTmp));
 
@@ -245,63 +320,74 @@ void IGAMortarMapper::projectPointsToSurface() {
                 }
             }
         }
-
-        delete[] isProjected;
     }
 
-    double U, V;
-    double P[3];
+    /// 2. Loop over all the nodes in the FE side
     for (int nodeIndex = 0; nodeIndex < meshFE->numNodes; nodeIndex++) {
+        /// 2i. Initialize projection flag to false
+        isNodeProjected = false;
 
-        bool isProjected = false;
+        /// 2ii. Loop over all the patches in the IGA mesh and check if the node is has been projected to any patch
         for (int patchCount = 0; patchCount < numPatches; patchCount++) {
-
             if ((*projectedCoords)[nodeIndex].find(patchCount)
                     != (*projectedCoords)[nodeIndex].end()) {
-                isProjected = true;
+                /// 2ii.1. If the node has been projected to a patch in the IGA mesh, set the flag to true
+                isNodeProjected = true;
+
+                /// 2ii.2. Break the loop
                 break;
             }
         }
 
-        if (!isProjected) {
-
+        /// 2iii. If the node has not been projected to any patch of the IGA mesh, loop over all the patches in the mesh again and try to project it with better initial guess
+        if (!isNodeProjected) {
             for (int patchCount = 0; patchCount < numPatches; patchCount++) {
+                /// 2iii.1. Get the NURBS patch
                 IGAPatchSurface* thePatch = meshIGA->getSurfacePatches()[patchCount];
 
+                /// 2iii.2. Get the Cartesian coordinates of the node in the FE side
                 P[0] = meshFE->nodes[nodeIndex * 3];
                 P[1] = meshFE->nodes[nodeIndex * 3 + 1];
                 P[2] = meshFE->nodes[nodeIndex * 3 + 2];
 
+                /// 2iii.3. Get a better initial guess for the Newton-Rapshon iterations using the variable REFINED_NUM_PARAMETRIC_LOCATIONS
                 thePatch->findInitialGuess4PointProjection(U, V, P,
                         REFINED_NUM_PARAMETRIC_LOCATIONS, REFINED_NUM_PARAMETRIC_LOCATIONS);
 
-                bool isConverge;
-                bool isConvergeInside = thePatch->computePointProjectionOnPatch(U, V, P,
-                        isConverge);
+                /// 2iii.4. Compute point projection on the NURBS patch using the Newton-Rapshon iteration method
+                isConvergedInside = thePatch->computePointProjectionOnPatch(U, V, P, isConverged);
 
-                if (isConvergeInside
+                /// 2iii.5. Check if the Newton-Rapshon iterations have converged and if the points are coinciding
+                if (isConvergedInside
                         && IGAMortarMath::computePointDistance(&meshFE->nodes[nodeIndex * 3], P)
                                 < disTol) {
-                    isProjected = true;
+                    /// 2iii.5i. Set projection flag to true
+                    isNodeProjected = true;
+
+                    /// 2iii.5ii. Insert the parametric locations of the projected FE nodes into the map projectedCoords
                     double* coordTmp = new double(2);
                     coordTmp[0] = U;
                     coordTmp[1] = V;
-
                     (*projectedCoords)[nodeIndex].insert(
                             std::pair<int, double*>(patchCount, coordTmp));
                 }
             }
-            if (!isProjected) {
+
+            /// 2iv. If the node can still not be projected assert an error in the projection phase
+            if (!isNodeProjected) {
                 ERROR_OUT() << " in IGAMortarMapper::projectPointsToSurface" << endl;
                 ERROR_OUT() << "Cannot project node: " << nodeIndex << "  ("
                         << meshFE->nodes[nodeIndex * 3] << ", " << meshFE->nodes[nodeIndex * 3 + 1]
                         << ", " << meshFE->nodes[nodeIndex * 3 + 2] << ")" << endl;
+                ERROR_OUT() << "Projection failed in IGA mapper " << name << endl;
                 exit (EXIT_FAILURE);
-            } else {
             }
-
         }
     }
+
+    /// 3. Deallocate dynamically allocated memory
+    delete[] isProjected;
+
 }
 
 void IGAMortarMapper::computeCouplingMatrices() {

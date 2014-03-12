@@ -102,6 +102,13 @@ void EMPIRE_API_sendMesh(char *name, int numNodes, int numElems, double *nodes, 
  ***********/
 void EMPIRE_API_sendIGAPatch(int _pDegree,  int _uNoKnots, double* _uKnotVector, int _qDegree, int _vNoKnots,
         double* _vKnotVector, int _uNoControlPoints, int _vNoControlPoints, double* _cpNet, int* _dofNet);
+
+/***********************************************************************************************
+ * \brief Send the IGA patch to the server
+ * \param[in] _name name of the field
+ * \param[in] _numPatches The number of the patches contained in the IGA mesh
+ * \param[in] _numNodes The number of nodes of the analysis model, i.e. merged Control Points are seen as one node
+ ***********/
 void EMPIRE_API_sendIGAMesh(char *_name, int _numPatches, int _numNodes);
 
 /***********************************************************************************************
