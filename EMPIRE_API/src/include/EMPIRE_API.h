@@ -100,7 +100,7 @@ void EMPIRE_API_sendMesh(char *name, int numNodes, int numElems, double *nodes, 
  * \param[in] _cpNet The set of the Control Points related to the 2D NURBS patch
  * \param[in] _nodeNet The set of the dof index Control Points related to the 2D NURBS patch
  ***********/
-void EMPIRE_API_sendIGAPatch(int _pDegree,  int _uNoKnots, double* _uKnoNumector, int _qDegree, int _vNumKnots,
+void EMPIRE_API_sendIGAPatch(int _pDegree,  int _uNumKnots, double* _uKnotVector, int _qDegree, int _vNumKnots,
         double* _vKnotVector, int _uNumControlPoints, int _vNumControlPoints, double* _cpNet, int* _nodeNet);
 
 /***********************************************************************************************
