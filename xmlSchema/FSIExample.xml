@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- EMPIRE input file -->
 <EMPEROR xmlns="EmperorInput" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="EmperorInput http://empire.st.bv.tum.de/projects/empire/repository/revisions/master/raw/xmlSchema/emperorInput.xsd">
+	xsi:schemaLocation="EmperorInput emperorInput.xsd">
 	<!-- ================ define clientCodes ======================================== -->
 	<clientCode name="carat">
 		<mesh name="myMesh1">
@@ -58,6 +58,36 @@
 		</meshB>
 		<mortarMapper oppositeSurfaceNormal="true" dual="false"
 			enforceConsistency="false" />
+	</mapper>
+	<mapper name="nn" type="nearestNeighborMapper">
+		<!-- mapping displacements from meshA to meshB, mapping forces from meshB 
+			to meshA. -->
+		<meshA>
+			<meshRef clientCodeName="carat" meshName="myMesh1" />
+		</meshA>
+		<meshB>
+			<meshRef clientCodeName="OpenFOAM" meshName="myMesh1" />
+		</meshB>
+	</mapper>
+	<mapper name="bi" type="barycentricInterpolationMapper">
+		<!-- mapping displacements from meshA to meshB, mapping forces from meshB 
+			to meshA. -->
+		<meshA>
+			<meshRef clientCodeName="carat" meshName="myMesh1" />
+		</meshA>
+		<meshB>
+			<meshRef clientCodeName="OpenFOAM" meshName="myMesh1" />
+		</meshB>
+	</mapper>
+	<mapper name="ne" type="nearestElementMapper">
+		<!-- mapping displacements from meshA to meshB, mapping forces from meshB 
+			to meshA. -->
+		<meshA>
+			<meshRef clientCodeName="carat" meshName="myMesh1" />
+		</meshA>
+		<meshB>
+			<meshRef clientCodeName="OpenFOAM" meshName="myMesh1" />
+		</meshB>
 	</mapper>
 	
 	<!-- ================ define couplingAlgorithms ================================== -->

@@ -39,6 +39,7 @@
 			<enumeration value="mortarMapper"></enumeration>
 			<enumeration value="nearestNeighborMapper"></enumeration>
 			<enumeration value="barycentricInterpolationMapper"></enumeration>
+			<enumeration value="nearestElementMapper"></enumeration>
 		</restriction>
 	</simpleType>
 
