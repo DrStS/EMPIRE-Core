@@ -303,7 +303,7 @@ void IGAMortarMapper::projectPointsToSurface() {
 
                     /// 1iii.4ii.4. Check if the Newton-Rapshon iterations have converged and if the points are coinciding
                     if (isConvergedInside
-                            && IGAMortarMath::computePointDistance(&meshFE->nodes[nodeIndex * 3],
+                            || IGAMortarMath::computePointDistance(&meshFE->nodes[nodeIndex * 3],
                                     cartesianCoords) < disTol) {
 
                         /// 1iii.4ii.4i. Set projection flag to true
