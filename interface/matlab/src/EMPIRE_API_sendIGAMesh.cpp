@@ -8,7 +8,7 @@
 using namespace std;
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
-    assert(nrhs==5);
+    assert(nrhs==3);
     assert(nlhs==0);
 
 #define NAME_IN                  prhs[0]

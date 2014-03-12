@@ -8,7 +8,7 @@
 using namespace std;
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
-    assert(nrhs==9);
+    assert(nrhs==10);
     assert(nlhs==0);
 
 #define P_DEGREE_IN                 prhs[0]
