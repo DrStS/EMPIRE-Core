@@ -35,6 +35,7 @@ using namespace std;
 TimeStepLoop::TimeStepLoop(int _numTimeSteps) :
         AbstractCouplingLogic(), numTimeSteps(_numTimeSteps), extrapolator(NULL) {
     assert(numTimeSteps > 0);
+    outputCounter = 0;
 }
 
 TimeStepLoop::~TimeStepLoop() {
