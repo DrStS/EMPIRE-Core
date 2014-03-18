@@ -1,24 +1,33 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- /* Copyright &copy; 2013, TU Muenchen, Chair of Structural Analysis, 
-	* Stefan Sicklinger, Tianyang Wang, Munich * * All rights reserved. * * This 
-	file is part of EMPIRE. * * EMPIRE is free software: you can redistribute 
-	it and/or modify * it under the terms of the GNU General Public License as 
-	published by * the Free Software Foundation, either version 3 of the License, 
-	or * (at your option) any later version. * * EMPIRE is distributed in the 
-	hope that it will be useful, * but WITHOUT ANY WARRANTY; without even the 
-	implied warranty of * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
-	See the * GNU General Public License for more details. * * You should have 
-	received a copy of the GNU General Public License * along with EMPIRE. If 
-	not, see http://www.gnu.org/licenses/. */ -->
+<!-- 
+/*  Copyright &copy; 2013, TU Muenchen, Chair of Structural Analysis,
+ *  Stefan Sicklinger, Tianyang Wang, Munich
+ *
+ *  All rights reserved.
+ *
+ *  This file is part of EMPIRE.
+ *
+ *  EMPIRE is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  EMPIRE is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with EMPIRE.  If not, see http://www.gnu.org/licenses/.
+ */ -->
 <schema xmlns="http://www.w3.org/2001/XMLSchema" targetNamespace="EmperorInput"
 	elementFormDefault="qualified" xmlns:tns="EmperorInput">
-	<!-- REMARK: * The schema is a kind of language. A tutorial can be found 
-		at http://www.w3.org/TR/xmlschema-0/. * There are different ways to define 
-		a schema file which specifies the xml input file, but it is recommanded to 
-		follow the style defined here. * Please understand this file before editing 
-		it. * The xml input file can be valiated by eclipse xml editor, or online 
-		at e.g. http://www.freeformatter.com/xml-validator-xsd.html. * Author: Tianyang 
-		Wang, tianyang.wang@tum.de -->
+	<!-- REMARK: 
+		* The schema is a kind of language. A tutorial can be found at http://www.w3.org/TR/xmlschema-0/.
+		* There are different ways to define a schema file which specifies the xml input file, but it is recommanded to follow the style defined here. 
+		* Please understand this file before editing it. 
+		* The xml input file can be valiated by eclipse xml editor, or online at e.g. http://www.freeformatter.com/xml-validator-xsd.html. 
+		* Author: Tianyang Wang, tianyang.wang@tum.de -->
 
 	<!-- ========================== Element Types ================================================ 
 		The simpleTypes are strings that restricted by a group of values, which should 
