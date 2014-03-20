@@ -975,16 +975,30 @@ double longestEdgeLengthSquare(const double *elem, int size) {
 }
 
 bool solve2x2LinearSystem(const double *A, double *b, double EPS) {
+    /*
+     * The function is called by PolygonClipper::intersect() and computeLocalCoorInQuad()
+     * understand the system in this way:
+     * A = [v1, v2], Ax = b means solving alpha and beta in:
+     * alpha * v1 + beta * v2 = b
+     * detA is the area of the quad formed by v1 and v2
+     */
     // A is column major
     double detA = A[0] * A[3] - A[2] * A[1];
     double det0 = A[3] * b[0] - A[2] * b[1];
     double det1 = A[0] * b[1] - A[1] * b[0];
+
+    double v1LengthSquare = A[0] * A[0] + A[1] * A[1];
+    double v2LengthSquare = A[2] * A[2] + A[3] * A[3];
+    double max = (v1LengthSquare > v2LengthSquare) ? v1LengthSquare : v2LengthSquare;
+    assert(max > 1E-20); // assume the length of the vector cannot be too small
+
     if (fabs(detA) < EPS * fabs(det0))
         return false;
     if (fabs(detA) < EPS * fabs(det1))
         return false;
-    if (detA == 0) // det0 and det1 could be 0!!!
-        return false; // without this, it could fail!!!!!
+    if (fabs(detA) < 1E-15 * max) // Check detA relative to max. 1E-15 is chosen to pass TestMortarMath::testClipping()
+        return false; // det0 and det1 could be 0!!! Without this, it could fail!!!!!
+
     b[0] = det0 / detA;
     b[1] = det1 / detA;
     return true;
