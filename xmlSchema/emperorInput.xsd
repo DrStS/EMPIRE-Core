@@ -166,8 +166,8 @@
 									</sequence>
 								</complexType>
 							</element>
-							<element ref="tns:couplingAlgorithmRef" maxOccurs="unbounded"
-								minOccurs="0">
+							<element ref="tns:couplingAlgorithmRef" maxOccurs="1"
+								minOccurs="1">
 							</element>
 							<element ref="tns:dataOutputRef" maxOccurs="unbounded"
 								minOccurs="0">
