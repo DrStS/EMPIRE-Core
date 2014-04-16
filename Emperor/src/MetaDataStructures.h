@@ -216,7 +216,7 @@ struct structCouplingLogic {
         };
         structConvergenceChecker convergenceChecker;
         std::vector<std::string> convergenceObservers;
-        std::pair<bool, std::string> couplingAlgorithmRef; // bool: has the ref or not
+        std::vector<std::string> couplingAlgorithmRefs;
         std::vector<std::string> dataOutputRefs;
     };
     struct structOptimizationLoop {

@@ -147,8 +147,7 @@ public:
         iterativeCouplingLoop.iterativeCouplingLoop.convergenceChecker.checkResiduals.push_back(cr);
         iterativeCouplingLoop.iterativeCouplingLoop.convergenceObservers.push_back(STRING_CLIENT_A);
         iterativeCouplingLoop.iterativeCouplingLoop.convergenceObservers.push_back(STRING_CLIENT_B);
-        iterativeCouplingLoop.iterativeCouplingLoop.couplingAlgorithmRef.first = true;
-        iterativeCouplingLoop.iterativeCouplingLoop.couplingAlgorithmRef.second = STRING_AITKEN;
+        iterativeCouplingLoop.iterativeCouplingLoop.couplingAlgorithmRefs.push_back(STRING_AITKEN);
 
         structCouplingLogic timeStepLoop;
         timeStepLoop.type = EMPIRE_TimeStepLoop;
@@ -203,7 +202,7 @@ public:
         CPPUNIT_ASSERT( icl2->convergenceChecker->checkResiduals[0]->residualIndex == INTY);
         CPPUNIT_ASSERT(icl2->convergenceObserverVec[0] == clientA);
         CPPUNIT_ASSERT(icl2->convergenceObserverVec[1] == clientB);
-        CPPUNIT_ASSERT(icl2->couplingAlgorithm == aitken);
+        CPPUNIT_ASSERT(icl2->couplingAlgorithmVec[0] == aitken);
         CPPUNIT_ASSERT(icl2->couplingLogicSequence.size() == 2);
         CPPUNIT_ASSERT(icl2->couplingLogicSequence[0] == connectionA);
         CPPUNIT_ASSERT(icl2->couplingLogicSequence[1] == connectionB);

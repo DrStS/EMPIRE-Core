@@ -429,8 +429,8 @@ public:
                 CPPUNIT_ASSERT(stmp == "meshClientA");
                 stmp = settingICL.iterativeCouplingLoop.convergenceObservers[1];
                 CPPUNIT_ASSERT(stmp == "meshClientB");
-                CPPUNIT_ASSERT(settingICL.iterativeCouplingLoop.couplingAlgorithmRef.first);
-                stmp = settingICL.iterativeCouplingLoop.couplingAlgorithmRef.second;
+                CPPUNIT_ASSERT(settingICL.iterativeCouplingLoop.couplingAlgorithmRefs.size()==1);
+                stmp = settingICL.iterativeCouplingLoop.couplingAlgorithmRefs[0];
                 CPPUNIT_ASSERT(stmp == "cr");
                 CPPUNIT_ASSERT(settingICL.iterativeCouplingLoop.dataOutputRefs.size() == 1);
                 stmp = settingICL.iterativeCouplingLoop.dataOutputRefs[0];

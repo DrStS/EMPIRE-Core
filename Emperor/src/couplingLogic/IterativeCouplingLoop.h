@@ -75,13 +75,13 @@ public:
      * \param[in] _couplingAlgorithm the coupling algorithm to be set
      * \author Tianyang Wang
      ***********/
-    void setCouplingAlgorithm(AbstractCouplingAlgorithm *_couplingAlgorithm);
+    void addCouplingAlgorithm(AbstractCouplingAlgorithm *_couplingAlgorithm);
 
 private:
     /// convergence checker
     ConvergenceChecker *convergenceChecker;
     /// vector of coupling algorithms
-    AbstractCouplingAlgorithm* couplingAlgorithm;
+    std::vector<AbstractCouplingAlgorithm*>  couplingAlgorithmVec;
     /// vector of convergence observers
     std::vector<ClientCode*> convergenceObserverVec;
     /// output counter

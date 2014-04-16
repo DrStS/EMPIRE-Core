@@ -369,7 +369,6 @@ void Emperor::initCouplingAlgorithms() {
 		// init all coupling algorithms
 		couplingAlgorithm->init();
 
-
 		nameToCouplingAlgorithmMap.insert(
 				pair<string, AbstractCouplingAlgorithm*>(name, couplingAlgorithm));
 	}
@@ -483,8 +482,8 @@ AbstractCouplingLogic *Emperor::parseStructCouplingLogic(
 				settingCouplingLogic.iterativeCouplingLoop;
 		structCouplingLogic::structIterativeCouplingLoop::structConvergenceChecker &settingConvgChecker =
 				settingIterCoupLoop.convergenceChecker;
-		vector<string> &convergenceObservers = settingIterCoupLoop.convergenceObservers;
-		pair<bool, string> &couplingAlgorithmRef = settingIterCoupLoop.couplingAlgorithmRef;
+		vector<string> &convergenceObservers  = settingIterCoupLoop.convergenceObservers;
+		vector<string> &couplingAlgorithmRefs = settingIterCoupLoop.couplingAlgorithmRefs;
 
 		IterativeCouplingLoop *iterativeCouplingLoop = new IterativeCouplingLoop();
 		{ // convergence checker
@@ -513,13 +512,14 @@ AbstractCouplingLogic *Emperor::parseStructCouplingLogic(
 			}
 		}
 		{ // set coupling algorithm
-			if (settingIterCoupLoop.couplingAlgorithmRef.first) {
+			int tmpSize = couplingAlgorithmRefs.size();
+			for (int i = 0; i < tmpSize; i++) {
 				assert(
-						nameToCouplingAlgorithmMap.find(settingIterCoupLoop.couplingAlgorithmRef.second)!=nameToCouplingAlgorithmMap.end());
+						nameToCouplingAlgorithmMap.find(settingIterCoupLoop.couplingAlgorithmRefs[i])!=nameToCouplingAlgorithmMap.end());
 				AbstractCouplingAlgorithm *couplingAlgorithmTmp = nameToCouplingAlgorithmMap.at(
-						settingIterCoupLoop.couplingAlgorithmRef.second);
-				iterativeCouplingLoop->setCouplingAlgorithm(couplingAlgorithmTmp);
-			}
+						settingIterCoupLoop.couplingAlgorithmRefs[i]);
+				iterativeCouplingLoop->addCouplingAlgorithm(couplingAlgorithmTmp);
+						}
 		}
 		{ // add dataOutputs
 			const vector<string> &dataOutputRefs = settingIterCoupLoop.dataOutputRefs;

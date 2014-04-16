@@ -519,7 +519,7 @@ void parseCouplingLogicBlock(ticpp::Iterator<Element> &xmlCouplingLogicIn,
                 couplingLogicIn.timeStepLoop.extrapolatorRef.second =
                         xmlExtrapolatorRef->GetAttribute<string>("extrapolatorName");
             } else {
-                couplingLogicIn.iterativeCouplingLoop.couplingAlgorithmRef.first = false;
+                couplingLogicIn.timeStepLoop.extrapolatorRef.first = false;
             }
         }
 
@@ -571,16 +571,15 @@ void parseCouplingLogicBlock(ticpp::Iterator<Element> &xmlCouplingLogicIn,
             }
         }
 
-        { // add coupling algorithm ref
-            ticpp::Element *xmlCouplingAlgorithmRef = xmlIterativeCouplingLoop->FirstChildElement(
-                    "couplingAlgorithmRef", false);
+        {   // add coupling algorithm refs
+            ticpp::Iterator<Element> xmlCouplingAlgorithmRef("couplingAlgorithmRef");
+            for (xmlCouplingAlgorithmRef = xmlCouplingAlgorithmRef.begin(xmlIterativeCouplingLoop);
+            		xmlCouplingAlgorithmRef != xmlCouplingAlgorithmRef.end();
+            		xmlCouplingAlgorithmRef++) {
 
-            if (xmlCouplingAlgorithmRef != NULL) {
-                couplingLogicIn.iterativeCouplingLoop.couplingAlgorithmRef.first = true;
-                couplingLogicIn.iterativeCouplingLoop.couplingAlgorithmRef.second =
-                        xmlCouplingAlgorithmRef->GetAttribute<string>("couplingAlgorithmName");
-            } else {
-                couplingLogicIn.iterativeCouplingLoop.couplingAlgorithmRef.first = false;
+
+                couplingLogicIn.iterativeCouplingLoop.couplingAlgorithmRefs.push_back(
+                        xmlCouplingAlgorithmRef->GetAttribute<string>("couplingAlgorithmName"));
             }
         }
         { // add dataOutputs
@@ -593,7 +592,7 @@ void parseCouplingLogicBlock(ticpp::Iterator<Element> &xmlCouplingLogicIn,
         }
         // check whether there is coupling algorithm ref when check residuals in the convergence checker
         if (couplingLogicIn.iterativeCouplingLoop.convergenceChecker.checkResiduals.size() > 0) {
-            assert(couplingLogicIn.iterativeCouplingLoop.couplingAlgorithmRef.first);
+            assert(couplingLogicIn.iterativeCouplingLoop.couplingAlgorithmRefs.size()>0);
         }
     } else if (xmlCouplingLogicIn->GetAttribute<string>("type") == "connection") {
         couplingLogicIn.type = EMPIRE_connection;
