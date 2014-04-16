@@ -112,7 +112,7 @@ void DataOutput::initDataFieldFiles() {
         string dataFieldFileName = dataOutputName + UNDERSCORE + clientCodeName + UNDERSCORE
                 + meshName + ".res";
 
-        assert(nameToClientCodeMap.find(clientCodeName)!=nameToClientCodeMap.end());
+        assert(nameToClientCodeMap.find(clientCodeName) != nameToClientCodeMap.end());
         AbstractMesh *mesh = nameToClientCodeMap[clientCodeName]->getMeshByName(meshName);
         if (mesh->type == EMPIRE_Mesh_FEMesh) {
             FEMesh *feMesh = dynamic_cast<FEMesh*>(mesh);
@@ -200,7 +200,7 @@ void DataOutput::initSignalFiles() {
         fstream signalFile;
         signalFile.open(signalFileName.c_str(), ios_base::out);
         assert(!signalFile.fail());
-        assert(nameToClientCodeMap.find(clientCodeName)!=nameToClientCodeMap.end());
+        assert(nameToClientCodeMap.find(clientCodeName) != nameToClientCodeMap.end());
         const Signal *signal = nameToClientCodeMap[clientCodeName]->getSignalByName(signalName);
 
         signalFile << "Time";
@@ -228,7 +228,7 @@ void DataOutput::writeSignals(int step) {
         fstream signalFile;
         signalFile.open(signalFileName.c_str(), ios_base::out | ios_base::app);
         assert(!signalFile.fail());
-        assert(nameToClientCodeMap.find(clientCodeName)!=nameToClientCodeMap.end());
+        assert(nameToClientCodeMap.find(clientCodeName) != nameToClientCodeMap.end());
         const Signal *signal = nameToClientCodeMap[clientCodeName]->getSignalByName(signalName);
 
         signalFile << step;

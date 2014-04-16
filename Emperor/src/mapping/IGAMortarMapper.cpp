@@ -41,6 +41,9 @@ using namespace std;
 
 namespace EMPIRE {
 
+/// Declaration statement
+static const string HEADER_DECLARATION = "Author: Andreas Apostolatos";
+
 IGAMortarMapper::IGAMortarMapper(std::string _name, IGAMesh *_meshIGA, FEMesh *_meshFE,
         double _disTol, int _numGPsTri, int _numGPsQuad, bool _isMappingIGA2FEM) :
         name(_name), meshIGA(_meshIGA), disTol(_disTol), numGPsTri(_numGPsTri), numGPsQuad(
@@ -61,16 +64,10 @@ IGAMortarMapper::IGAMortarMapper(std::string _name, IGAMesh *_meshIGA, FEMesh *_
     if (isMappingIGA2FEM) {
         numNodesSlave = meshIGA->getNumNodes();
         numNodesMaster = meshFE->numNodes;
-        // cout << "isMappingIGA2FEM" << endl;
     } else {
         numNodesSlave = meshFE->numNodes;
         numNodesMaster = meshIGA->getNumNodes();
-        // cout << "isMappingIGA2FEM = false" << endl;
     }
-
-    // Debugging stuff
-    // cout << "numNodesSlave = " << numNodesSlave << endl;
-    // cout << "numNodesMaster = " << numNodesMaster << endl;
 
     C_NR = new MathLibrary::SparseMatrix<double>(numNodesMaster, numNodesSlave);
     C_NN = new MathLibrary::SparseMatrix<double>(numNodesMaster, true);
@@ -82,14 +79,12 @@ IGAMortarMapper::IGAMortarMapper(std::string _name, IGAMesh *_meshIGA, FEMesh *_
 
     projectPointsToSurface();
 
+    // Write the projected points on to a file
+    writeProjectedNodesOntoIGAMesh();
+
     computeCouplingMatrices();
 
     C_NN->factorize();
-
-    // Debugging stuff
-    // C_NN->printCSR();
-    // C_NR->printCSR();
-
 }
 
 IGAMortarMapper::~IGAMortarMapper() {
@@ -222,7 +217,7 @@ void IGAMortarMapper::projectPointsToSurface() {
     // Initialize the node ID
     int nodeIndex;
 
-    /// Initialize (???)
+    /// Initialize parametric coordinates of the projected node onto the NURBS patch
     double U, V;
     double P[3];
 
@@ -298,12 +293,14 @@ void IGAMortarMapper::projectPointsToSurface() {
                     projectedV = initialV;
 
                     /// 1iii.4ii.3. Compute point projection on the NURBS patch using the Newton-Rapshon iteration method
+
+                    // isConverged --> projected onto patch
                     isConvergedInside = thePatch->computePointProjectionOnPatch(projectedU,
                             projectedV, cartesianCoords, isConverged);
 
-                    /// 1iii.4ii.4. Check if the Newton-Rapshon iterations have converged and if the points are coinciding
+                    /// 1iii.4ii.4. Check if the Newton-Rapshon iterations have converged
                     if (isConvergedInside
-                            || IGAMortarMath::computePointDistance(&meshFE->nodes[nodeIndex * 3],
+                            && IGAMortarMath::computePointDistance(&meshFE->nodes[nodeIndex * 3],
                                     cartesianCoords) < disTol) {
 
                         /// 1iii.4ii.4i. Set projection flag to true
@@ -563,6 +560,7 @@ void IGAMortarMapper::computeCouplingMatrices() {
                                         << meshFE->nodes[nodeIndexNext * 3 + 1] << ","
                                         << meshFE->nodes[nodeIndexNext * 3 + 2] << ") on patch ["
                                         << patchCount << "] boundary" << endl;
+                                ERROR_OUT() << "Projection failed in IGA mapper " << name << endl;
                                 exit (EXIT_FAILURE);
                             }
                         }
@@ -577,6 +575,10 @@ void IGAMortarMapper::computeCouplingMatrices() {
                         bool isProjectedOnPatchBoundary =
                                 thePatch->computePointProjectionOnPatchBoundary(u, v, div, dis, P1,
                                         P2);
+                        ERROR_OUT() << "Node is projected On Patch Boundary = " << isProjectedOnPatchBoundary
+                                << endl;
+                        ERROR_OUT() << "Distance is smaller than Tolerance = " << (dis <= disTol) << endl;
+                        ERROR_OUT() << "Distance = " << dis << endl;
                         if (isProjectedOnPatchBoundary && dis <= disTol) {
                             clippedByPatchProjElementFEUV[numNodesClippedByPatchProjElementFE * 2] =
                                     u;
@@ -609,6 +611,7 @@ void IGAMortarMapper::computeCouplingMatrices() {
                                     << "," << meshFE->nodes[nodeIndexNext * 3 + 1] << ","
                                     << meshFE->nodes[nodeIndexNext * 3 + 2] << ") on patch ["
                                     << patchCount << "] boundary" << endl;
+                            ERROR_OUT() << "Projection failed in IGA mapper " << name << endl;
                             exit (EXIT_FAILURE);
                         }
                     }
@@ -1199,6 +1202,66 @@ void IGAMortarMapper::conservativeMapping(const double* _masterField, double *_s
 
     delete[] tmpVec;
 
+}
+
+void IGAMortarMapper::writeProjectedNodesOntoIGAMesh() {
+    // Initializations
+    IGAPatchSurface* IGAPatch;
+    int numXiKnots, numEtaKnots, numXiControlPoints, numEtaControlPoints;
+    double xiKnot, etaKnot;
+
+    // Open file for writing the projected nodes
+    ofstream projectedNodesFile;
+    const string UNDERSCORE = "_";
+    string projectedNodesFileName = "projectedNodesOntoNURBSSurface" + UNDERSCORE + name + ".m";
+    projectedNodesFile.open(projectedNodesFileName.c_str());
+    projectedNodesFile.precision(14);
+    projectedNodesFile << std::dec;
+
+    projectedNodesFile << HEADER_DECLARATION << endl << endl;
+
+    // Loop over all the patches
+    for (int patchCounter = 0; patchCounter < meshIGA->getSurfacePatches().size(); patchCounter++) {
+        // Get the IGA patch
+        IGAPatch = meshIGA->getSurfacePatches()[patchCounter];
+
+        // Get number of knots in each parametric direction
+        numXiKnots = IGAPatch->getIGABasis()->getUBSplineBasis1D()->getNoKnots();
+        numEtaKnots = IGAPatch->getIGABasis()->getVBSplineBasis1D()->getNoKnots();
+
+        // Write out the knot vector in u-direction
+        projectedNodesFile << "Patch" << patchCounter << endl << endl;
+        projectedNodesFile << "xiKnotVector" << endl;
+
+        for (int xiCounter = 0; xiCounter < numXiKnots; xiCounter++) {
+            xiKnot = IGAPatch->getIGABasis()->getUBSplineBasis1D()->getKnotVector()[xiCounter];
+            projectedNodesFile << xiKnot << " ";
+        }
+        projectedNodesFile << endl << endl;
+
+        // Write out the knot vector in v-direction
+        projectedNodesFile << "etaKnotVector" << endl;
+        for (int etaCounter = 0; etaCounter < numEtaKnots; etaCounter++) {
+            etaKnot = IGAPatch->getIGABasis()->getVBSplineBasis1D()->getKnotVector()[etaCounter];
+            projectedNodesFile << etaKnot << " ";
+        }
+        projectedNodesFile << endl << endl;
+
+        // Loop over all the nodes
+        for (int nodeIndex = 0; nodeIndex < meshFE->numNodes; nodeIndex++) {
+            // Loop over all the patches on which this node has been successfully projected
+            for (map<int, double*>::iterator it = (*projectedCoords)[nodeIndex].begin();
+                    it != (*projectedCoords)[nodeIndex].end(); it++)
+                if (it->first == patchCounter) {
+                    projectedNodesFile << nodeIndex << "\t" << it->first << "\t" << it->second[0]
+                            << "\t" << it->second[1] << endl;
+                }
+        }
+        projectedNodesFile << endl;
+    }
+
+    // Close file
+    projectedNodesFile.close();
 }
 
 void IGAMortarMapper::printCouplingMatrices() {

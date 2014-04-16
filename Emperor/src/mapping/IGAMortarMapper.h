@@ -177,6 +177,16 @@ public:
      ***********/
     void conservativeMapping(const double *fieldFE, double *fieldIGA);
 
+    /// Writing output functions
+public:
+    /***********************************************************************************************
+     * \brief Writes the projected nodes of the FE mesh onto the IGA surface into a file
+     * \author Andreas Apostolatos
+     ***********/
+    void writeProjectedNodesOntoIGAMesh();
+
+    /// Debugging functions
+public:
     /***********************************************************************************************
      * \brief Print both coupling matrices C_NN and C_NR
      * \author Chenshen Wu
