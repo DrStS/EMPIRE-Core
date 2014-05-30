@@ -488,6 +488,13 @@ void printElem(const double *elem, int size);
  ***********/
 void printPoint(const double *p);
 /***********************************************************************************************
+ * \brief print a diagonal matrix
+ * \param[in] A the matrix
+ * \param[in] numRows number of rows of A
+ * \author Tianyang Wang
+ ***********/
+void printDiagonalMatrix(const double *A, int numRows);
+/***********************************************************************************************
  * \brief print a general matrix
  * \param[in] A the matrix
  * \param[in] numRows number of rows of A

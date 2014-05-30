@@ -97,12 +97,18 @@ MortarMapper::MortarMapper(int _slaveNumNodes, int _slaveNumElems, const int *_s
 
     // 2. compute C_BB
     computeC_BB();
-    //MortarMath::printCSRMatrixSymmetric(C_BB_A, C_BB_IA, C_BB_JA, masterNumNodes);
-
+    /*if (!dual) {
+        MortarMath::printCSRMatrixSymmetric(C_BB_A, C_BB_IA, C_BB_JA, masterNumNodes);
+    } else {
+        MortarMath::printDiagonalMatrix(C_BB_A_DUAL, masterNumNodes);
+    }*/
     // 3. compute C_BA
     computeC_BA();
-    //MortarMath::printCSRMatrixUnsymmetric(C_BA_A, C_BA_IA, C_BA_JA, masterNumNodes, slaveNumNodes);
-
+    /*if (!dual) {
+        MortarMath::printCSRMatrixUnsymmetric(C_BA_A, C_BA_IA, C_BA_JA, masterNumNodes, slaveNumNodes);
+    } else {
+        MortarMath::printCSRMatrixUnsymmetric(C_BA_A_DUAL, C_BA_IA, C_BA_JA, masterNumNodes, slaveNumNodes);
+    }*/
     deleteANNTree();
     deleteTables();
 
@@ -1126,7 +1132,6 @@ void MortarMapper::ShapeFunctionProduct::computeShapeFunctionProducts() {
     for (int i = 0; i < numNodesMasterElem * numNodesSlaveElem; i++)
         shapeFunctionProducts[i] = new double[numGaussPoints];
 
-    cout.precision(15);	// set precision for debug output
     for (int i = 0; i < numGaussPoints; i++) {
         double *gaussPoint = &gaussPoints[i * 3];
         // *. compute shape function values on master element (on the Gauss point)

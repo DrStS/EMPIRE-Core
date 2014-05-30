@@ -1108,6 +1108,21 @@ void printPoint(const double *p) {
     cout << endl;
 }
 
+void printDiagonalMatrix(const double *A, int numRows) {
+    cout << "======================================================" << endl;
+    cout << "diagonal matrix:" << endl;
+    for (int i = 0; i < numRows; i++) {
+        for (int j = 0; j < numRows; j++) {
+            if (i==j)
+                cout << setw(15) << A[i];
+            else
+                cout << setw(15) << 0.0;
+        }
+        cout << endl;
+    }
+    cout << "======================================================" << endl;
+}
+
 void printGeneralMatrix(const double *A, int numRows, int numCols) {
     cout << "======================================================" << endl;
     cout << "general matrix:" << endl;
