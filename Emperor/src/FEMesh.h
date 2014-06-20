@@ -46,9 +46,10 @@ public:
      * \param[in] _name name of the mesh
      * \param[in] _numNodes number of nodes
      * \param[in] _numElems number of elements
+     * \param[in] _triangulateAll triangulate all elements
      * \author Tianyang Wang
      ***********/
-    FEMesh(std::string _name, int _numNodes, int _numElems);
+    FEMesh(std::string _name, int _numNodes, int _numElems, bool _triangulateAll = false);
     /***********************************************************************************************
      * \brief Destructor
      * \author Tianyang Wang
@@ -82,6 +83,8 @@ public:
      ***********/
     void computeBoundingBox();
 
+    /// triangulate all elments
+    bool triangulateAll;
     /// number of nodes
     const int numNodes;
     /// coordinates of all nodes

@@ -46,6 +46,7 @@ struct structClientCode {
         };
         std::string name;
         EMPIRE_Mesh_type type;
+        bool triangulateAll;
         std::vector<structDataField> dataFields;
     };
     struct structSignal {

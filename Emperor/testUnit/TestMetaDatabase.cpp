@@ -77,6 +77,7 @@ public:
             CPPUNIT_ASSERT(client0.name == "meshClientA");
             CPPUNIT_ASSERT(client0.meshes.size() == 1);
             CPPUNIT_ASSERT(client0.meshes[0].name == "myMesh");
+            CPPUNIT_ASSERT(client0.meshes[0].triangulateAll == true);
             CPPUNIT_ASSERT(client0.meshes[0].dataFields.size() == 2);
             CPPUNIT_ASSERT(client0.meshes[0].dataFields[0].name == "displacements");
             CPPUNIT_ASSERT(client0.meshes[0].dataFields[0].dimension == EMPIRE_DataField_vector);
@@ -96,6 +97,7 @@ public:
             CPPUNIT_ASSERT(client1.name == "meshClientB");
             CPPUNIT_ASSERT(client1.meshes.size() == 1);
             CPPUNIT_ASSERT(client1.meshes[0].name == "myMesh");
+            CPPUNIT_ASSERT(client1.meshes[0].triangulateAll == false);
             CPPUNIT_ASSERT(client1.meshes[0].dataFields.size() == 3);
             CPPUNIT_ASSERT(client1.meshes[0].dataFields[1].name == "tractionsElem");
             CPPUNIT_ASSERT(client1.meshes[0].dataFields[1].dimension == EMPIRE_DataField_vector);

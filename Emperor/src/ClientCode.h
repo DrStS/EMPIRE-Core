@@ -72,10 +72,16 @@ public:
     /***********************************************************************************************
      * \brief Receive the mesh from a real client
      * \param[in] meshName name of the mesh to be received
-     * \param[in] meshType type of the mesh
+     * \param[in] _triangulateAll triangulate all elements
      * \author Tianyang Wang
      ***********/
-    void recvMesh(std::string meshName, EMPIRE_Mesh_type meshType);
+    void recvFEMesh(std::string meshName, bool triangulateAll);
+    /***********************************************************************************************
+     * \brief Receive the mesh from a real client
+     * \param[in] meshName name of the mesh to be received
+     * \author Chenshen Wu
+     ***********/
+    void recvIGAMesh(std::string meshName);
     /***********************************************************************************************
      * \brief Receive the data field from a real client
      * \param[in] meshName name of the mesh which owns the data field

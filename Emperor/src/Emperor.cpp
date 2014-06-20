@@ -235,7 +235,13 @@ void Emperor::initClientCodes() {
 		clientCode->setServerCommunication(ServerCommunication::getSingleton());
 		for (int j = 0; j < settingMeshes.size(); j++) {
 			const structClientCode::structMesh &settingMesh = settingMeshes[j];
-			clientCode->recvMesh(settingMesh.name, settingMesh.type);
+			if (settingMesh.type == EMPIRE_Mesh_FEMesh) {
+			    clientCode->recvFEMesh(settingMesh.name, settingMesh.triangulateAll);
+			} else if (settingMesh.type == EMPIRE_Mesh_FEMesh) {
+			    clientCode->recvIGAMesh(settingMesh.name);
+			} else {
+			    assert(false);
+			}
 			const vector<structClientCode::structMesh::structDataField> &settingDataFields =
 					settingMesh.dataFields;
 			AbstractMesh *mesh = clientCode->getMeshByName(settingMesh.name);

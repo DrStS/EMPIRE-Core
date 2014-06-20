@@ -149,85 +149,164 @@ public:
          *    5/  \6
          *    7\__/8
          */
-        int numNodes = 9;
-        int numElems = 3;
-        FEMesh *mesh = new FEMesh("dummy", numNodes, numElems);
-        for (int i = 0; i < numNodes; i++)
-            mesh->nodeIDs[i] = i;
-        { // set up node coordinates
-            mesh->nodes[0 * 3 + 0] = 0;
-            mesh->nodes[0 * 3 + 1] = 4;
-            mesh->nodes[0 * 3 + 2] = 0;
-            mesh->nodes[1 * 3 + 0] = -1;
-            mesh->nodes[1 * 3 + 1] = 3;
-            mesh->nodes[1 * 3 + 2] = 0;
-            mesh->nodes[2 * 3 + 0] = 1;
-            mesh->nodes[2 * 3 + 1] = 3;
-            mesh->nodes[2 * 3 + 2] = 0;
-            mesh->nodes[3 * 3 + 0] = -1;
-            mesh->nodes[3 * 3 + 1] = 2;
-            mesh->nodes[3 * 3 + 2] = 0;
-            mesh->nodes[4 * 3 + 0] = 1;
-            mesh->nodes[4 * 3 + 1] = 2;
-            mesh->nodes[4 * 3 + 2] = 0;
-            mesh->nodes[5 * 3 + 0] = -2;
-            mesh->nodes[5 * 3 + 1] = 1;
-            mesh->nodes[5 * 3 + 2] = 0;
-            mesh->nodes[6 * 3 + 0] = 2;
-            mesh->nodes[6 * 3 + 1] = 1;
-            mesh->nodes[6 * 3 + 2] = 0;
-            mesh->nodes[7 * 3 + 0] = -1;
-            mesh->nodes[7 * 3 + 1] = 0;
-            mesh->nodes[7 * 3 + 2] = 0;
-            mesh->nodes[8 * 3 + 0] = 1;
-            mesh->nodes[8 * 3 + 1] = 0;
-            mesh->nodes[8 * 3 + 2] = 0;
+        { // do NOT triangulate all
+            int numNodes = 9;
+            int numElems = 3;
+            FEMesh *mesh = new FEMesh("dummy", numNodes, numElems);
+            for (int i = 0; i < numNodes; i++)
+                mesh->nodeIDs[i] = i;
+            { // set up node coordinates
+                mesh->nodes[0 * 3 + 0] = 0;
+                mesh->nodes[0 * 3 + 1] = 4;
+                mesh->nodes[0 * 3 + 2] = 0;
+                mesh->nodes[1 * 3 + 0] = -1;
+                mesh->nodes[1 * 3 + 1] = 3;
+                mesh->nodes[1 * 3 + 2] = 0;
+                mesh->nodes[2 * 3 + 0] = 1;
+                mesh->nodes[2 * 3 + 1] = 3;
+                mesh->nodes[2 * 3 + 2] = 0;
+                mesh->nodes[3 * 3 + 0] = -1;
+                mesh->nodes[3 * 3 + 1] = 2;
+                mesh->nodes[3 * 3 + 2] = 0;
+                mesh->nodes[4 * 3 + 0] = 1;
+                mesh->nodes[4 * 3 + 1] = 2;
+                mesh->nodes[4 * 3 + 2] = 0;
+                mesh->nodes[5 * 3 + 0] = -2;
+                mesh->nodes[5 * 3 + 1] = 1;
+                mesh->nodes[5 * 3 + 2] = 0;
+                mesh->nodes[6 * 3 + 0] = 2;
+                mesh->nodes[6 * 3 + 1] = 1;
+                mesh->nodes[6 * 3 + 2] = 0;
+                mesh->nodes[7 * 3 + 0] = -1;
+                mesh->nodes[7 * 3 + 1] = 0;
+                mesh->nodes[7 * 3 + 2] = 0;
+                mesh->nodes[8 * 3 + 0] = 1;
+                mesh->nodes[8 * 3 + 1] = 0;
+                mesh->nodes[8 * 3 + 2] = 0;
+            }
+
+            mesh->numNodesPerElem[0] = 3;
+            mesh->numNodesPerElem[1] = 4;
+            mesh->numNodesPerElem[2] = 6;
+
+            mesh->initElems();
+            CPPUNIT_ASSERT(mesh->tobeTriangulated == true);
+
+            { // triangle
+                mesh->elems[0] = 0;
+                mesh->elems[1] = 1;
+                mesh->elems[2] = 2;
+            }
+            { // quad
+                mesh->elems[3] = 1;
+                mesh->elems[4] = 3;
+                mesh->elems[5] = 4;
+                mesh->elems[6] = 2;
+            }
+            { // hexagon
+                mesh->elems[7] = 3;
+                mesh->elems[8] = 5;
+                mesh->elems[9] = 7;
+                mesh->elems[10] = 8;
+                mesh->elems[11] = 6;
+                mesh->elems[12] = 4;
+            }
+
+            FEMesh *triangulated = mesh->triangulate();
+            { // elemsTri should be defined
+                CPPUNIT_ASSERT(triangulated != NULL);
+                CPPUNIT_ASSERT(triangulated->numNodes == 9);
+                CPPUNIT_ASSERT(triangulated->numElems == 6);
+                CPPUNIT_ASSERT(triangulated->numNodesPerElem[0] == 3);
+                CPPUNIT_ASSERT(triangulated->numNodesPerElem[1] == 4);
+                CPPUNIT_ASSERT(triangulated->numNodesPerElem[2] == 3);
+                CPPUNIT_ASSERT(triangulated->numNodesPerElem[3] == 3);
+                CPPUNIT_ASSERT(triangulated->numNodesPerElem[4] == 3);
+                CPPUNIT_ASSERT(triangulated->numNodesPerElem[5] == 3);
+
+                // output to shell to check whether it is correct or not
+                // infoOut << triangulated;
+            }
+
+            delete mesh;
+        }
+        { // triangulate all
+            int numNodes = 9;
+            int numElems = 3;
+            FEMesh *mesh = new FEMesh("dummy", numNodes, numElems);
+            mesh->triangulateAll = true;
+            for (int i = 0; i < numNodes; i++)
+                mesh->nodeIDs[i] = i;
+            { // set up node coordinates
+                mesh->nodes[0 * 3 + 0] = 0;
+                mesh->nodes[0 * 3 + 1] = 4;
+                mesh->nodes[0 * 3 + 2] = 0;
+                mesh->nodes[1 * 3 + 0] = -1;
+                mesh->nodes[1 * 3 + 1] = 3;
+                mesh->nodes[1 * 3 + 2] = 0;
+                mesh->nodes[2 * 3 + 0] = 1;
+                mesh->nodes[2 * 3 + 1] = 3;
+                mesh->nodes[2 * 3 + 2] = 0;
+                mesh->nodes[3 * 3 + 0] = -1;
+                mesh->nodes[3 * 3 + 1] = 2;
+                mesh->nodes[3 * 3 + 2] = 0;
+                mesh->nodes[4 * 3 + 0] = 1;
+                mesh->nodes[4 * 3 + 1] = 2;
+                mesh->nodes[4 * 3 + 2] = 0;
+                mesh->nodes[5 * 3 + 0] = -2;
+                mesh->nodes[5 * 3 + 1] = 1;
+                mesh->nodes[5 * 3 + 2] = 0;
+                mesh->nodes[6 * 3 + 0] = 2;
+                mesh->nodes[6 * 3 + 1] = 1;
+                mesh->nodes[6 * 3 + 2] = 0;
+                mesh->nodes[7 * 3 + 0] = -1;
+                mesh->nodes[7 * 3 + 1] = 0;
+                mesh->nodes[7 * 3 + 2] = 0;
+                mesh->nodes[8 * 3 + 0] = 1;
+                mesh->nodes[8 * 3 + 1] = 0;
+                mesh->nodes[8 * 3 + 2] = 0;
+            }
+
+            mesh->numNodesPerElem[0] = 3;
+            mesh->numNodesPerElem[1] = 4;
+            mesh->numNodesPerElem[2] = 6;
+
+            mesh->initElems();
+            CPPUNIT_ASSERT(mesh->tobeTriangulated == true);
+
+            { // triangle
+                mesh->elems[0] = 0;
+                mesh->elems[1] = 1;
+                mesh->elems[2] = 2;
+            }
+            { // quad
+                mesh->elems[3] = 1;
+                mesh->elems[4] = 3;
+                mesh->elems[5] = 4;
+                mesh->elems[6] = 2;
+            }
+            { // hexagon
+                mesh->elems[7] = 3;
+                mesh->elems[8] = 5;
+                mesh->elems[9] = 7;
+                mesh->elems[10] = 8;
+                mesh->elems[11] = 6;
+                mesh->elems[12] = 4;
+            }
+
+            FEMesh *triangulated = mesh->triangulate();
+            { // elemsTri should be defined
+                CPPUNIT_ASSERT(triangulated != NULL);
+                CPPUNIT_ASSERT(triangulated->numNodes == 9);
+                CPPUNIT_ASSERT(triangulated->numElems == 7);
+                for (int i=0; i<7; i++) {
+                    CPPUNIT_ASSERT(triangulated->numNodesPerElem[i] == 3);
+                }
+            }
+
+            delete mesh;
         }
 
-        mesh->numNodesPerElem[0] = 3;
-        mesh->numNodesPerElem[1] = 4;
-        mesh->numNodesPerElem[2] = 6;
-
-        mesh->initElems();
-        CPPUNIT_ASSERT(mesh->tobeTriangulated == true);
-
-        { // triangle
-            mesh->elems[0] = 0;
-            mesh->elems[1] = 1;
-            mesh->elems[2] = 2;
-        }
-        { // quad
-            mesh->elems[3] = 1;
-            mesh->elems[4] = 3;
-            mesh->elems[5] = 4;
-            mesh->elems[6] = 2;
-        }
-        { // hexagon
-            mesh->elems[7] = 3;
-            mesh->elems[8] = 5;
-            mesh->elems[9] = 7;
-            mesh->elems[10] = 8;
-            mesh->elems[11] = 6;
-            mesh->elems[12] = 4;
-        }
-
-        FEMesh *triangulated = mesh->triangulate();
-        { // elemsTri should be defined
-            CPPUNIT_ASSERT(triangulated != NULL);
-            CPPUNIT_ASSERT(triangulated->numNodes == 9);
-            CPPUNIT_ASSERT(triangulated->numElems == 6);
-            CPPUNIT_ASSERT(triangulated->numNodesPerElem[0] == 3);
-            CPPUNIT_ASSERT(triangulated->numNodesPerElem[1] == 4);
-            CPPUNIT_ASSERT(triangulated->numNodesPerElem[2] == 3);
-            CPPUNIT_ASSERT(triangulated->numNodesPerElem[3] == 3);
-            CPPUNIT_ASSERT(triangulated->numNodesPerElem[4] == 3);
-            CPPUNIT_ASSERT(triangulated->numNodesPerElem[5] == 3);
-
-            // output to shell to check whether it is correct or not
-            // infoOut << triangulated;
-        }
-
-        delete mesh;
     }
 
     /***********************************************************************************************
@@ -364,16 +443,15 @@ public:
         delete mesh;
     }
 
-CPPUNIT_TEST_SUITE( TestFEMesh );
-        CPPUNIT_TEST( testMeshCreation);
-        CPPUNIT_TEST( testDataField);
-        CPPUNIT_TEST( testRevertSurfaceNormal);
-        CPPUNIT_TEST( testTriangulation);
-        CPPUNIT_TEST( testTriangulation2);
-        CPPUNIT_TEST( testBoundingBox);
-    CPPUNIT_TEST_SUITE_END();
+    CPPUNIT_TEST_SUITE(TestFEMesh);
+    CPPUNIT_TEST(testMeshCreation);
+    CPPUNIT_TEST(testDataField);
+    CPPUNIT_TEST(testRevertSurfaceNormal);
+    CPPUNIT_TEST(testTriangulation);
+    CPPUNIT_TEST(testTriangulation2);
+    CPPUNIT_TEST(testBoundingBox);CPPUNIT_TEST_SUITE_END();
 };
 
 } /* namespace EMPIRE */
 
-CPPUNIT_TEST_SUITE_REGISTRATION( EMPIRE::TestFEMesh);
+CPPUNIT_TEST_SUITE_REGISTRATION(EMPIRE::TestFEMesh);

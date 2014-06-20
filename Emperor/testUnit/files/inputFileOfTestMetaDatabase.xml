@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <EMPEROR>
 	<clientCode name="meshClientA">
-		<mesh name="myMesh">
+		<mesh name="myMesh" triangulateAll="true">
 			<dataField name="displacements" dimension="vector"
 				location="atNode" typeOfQuantity="field" />
 			<dataField name="forces" location="atNode" dimension="vector"

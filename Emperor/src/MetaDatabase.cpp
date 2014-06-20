@@ -133,6 +133,20 @@ void MetaDatabase::fillSettingClientCodesVec() {
             } else {
                 mesh.type = EMPIRE_Mesh_FEMesh;
             }
+            if (xmlMesh->HasAttribute("triangulateAll")) {
+                string tmp = xmlMesh->GetAttribute<string>("triangulateAll");
+                bool triangulateAll;
+                if (tmp == "true") {
+                    triangulateAll = true;
+                } else if (tmp == "false") {
+                    triangulateAll = false;
+                } else {
+                    assert(false);
+                }
+                mesh.triangulateAll = triangulateAll;
+            } else {
+                mesh.triangulateAll = false;
+            }
             ticpp::Iterator<Element> xmlDataField("dataField");
             for (xmlDataField = xmlDataField.begin(xmlMesh.Get());
                     xmlDataField != xmlDataField.end(); xmlDataField++) {

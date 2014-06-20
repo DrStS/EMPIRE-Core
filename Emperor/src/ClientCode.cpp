@@ -55,92 +55,89 @@ void ClientCode::setServerCommunication(ServerCommunication *_serverComm) {
     serverComm = _serverComm;
 }
 
-void ClientCode::recvMesh(std::string meshName, EMPIRE_Mesh_type meshType) {
+void ClientCode::recvFEMesh(std::string meshName, bool triangulateAll) {
     assert(serverComm != NULL);
     assert(nameToMeshMap.find(meshName) == nameToMeshMap.end());
 
-    if (meshType == EMPIRE_Mesh_FEMesh) {
-        const int BUFFER_SIZE = 2;
-        int meshInfo[BUFFER_SIZE]; // number of nodes, number of elements, number of nodes per element
-        { // output to shell
-            HEADING_OUT(3, "ClientCode", "receiving mesh (" + meshName + ") from [" + name + "]...",
-                    infoOut);
-        }
-        serverComm->receiveFromClientBlocking<int>(name, BUFFER_SIZE, meshInfo);
-        int numNodes = meshInfo[0];
-        int numElems = meshInfo[1];
-
-        FEMesh *mesh = new FEMesh(meshName, numNodes, numElems);
-        serverComm->receiveFromClientBlocking<double>(name, numNodes * 3, mesh->nodes);
-        serverComm->receiveFromClientBlocking<int>(name, numNodes, mesh->nodeIDs);
-        serverComm->receiveFromClientBlocking<int>(name, numElems, mesh->numNodesPerElem);
-        mesh->initElems();
-        serverComm->receiveFromClientBlocking<int>(name, mesh->elemsArraySize, mesh->elems);
-        nameToMeshMap.insert(pair<string, AbstractMesh*>(meshName, mesh));
-        { // output to shell
-            DEBUG_OUT() << (*mesh) << endl;
-            mesh->computeBoundingBox();
-            INFO_OUT() << mesh->boundingBox << endl;
-        }
-    } else if (meshType == EMPIRE_Mesh_IGAMesh) {
-
-        const int BUFFER_SIZE_MESH = 2;
-        int meshInfo[BUFFER_SIZE_MESH];
-        { // output to shell
-            HEADING_OUT(3, "ClientCode",
-                    "receiving IGA Mesh (" + meshName + ") from [" + name + "]...", infoOut);
-        }
-        serverComm->receiveFromClientBlocking<int>(name, BUFFER_SIZE_MESH, meshInfo);
-
-        int numPatches = meshInfo[0];
-        int numNodes = meshInfo[1];
-
-        IGAMesh* theIGAMesh = new IGAMesh(meshName, numNodes);
-
-        const int BUFFER_SIZE_PATCH = 6;
-        int patchInfo[BUFFER_SIZE_PATCH];
-        for (int patchCount = 0; patchCount < numPatches; patchCount++) {
-
-            serverComm->receiveFromClientBlocking<int>(name, BUFFER_SIZE_PATCH, patchInfo);
-
-            int pDegree = patchInfo[0];
-            int uNoKnots = patchInfo[1];
-            int qDegree = patchInfo[2];
-            int vNoKnots = patchInfo[3];
-            int uNoControlPoints = patchInfo[4];
-            int vNoControlPoints = patchInfo[5];
-
-            double* uKnotVector = new double[uNoKnots];
-            double* vKnotVector = new double[vNoKnots];
-            double* controlPointNet = new double[uNoControlPoints * vNoControlPoints * 4];
-            int* dofIndexNet = new int[uNoControlPoints * vNoControlPoints];
-
-
-            serverComm->receiveFromClientBlocking<double>(name, uNoKnots, uKnotVector);
-            serverComm->receiveFromClientBlocking<double>(name, vNoKnots, vKnotVector);
-            serverComm->receiveFromClientBlocking<double>(name,
-                    uNoControlPoints * vNoControlPoints * 4, controlPointNet);
-            serverComm->receiveFromClientBlocking<int>(name, uNoControlPoints * vNoControlPoints,
-                    dofIndexNet);
-
-            theIGAMesh->addPatch(pDegree, uNoKnots, uKnotVector, qDegree, vNoKnots, vKnotVector,
-                    uNoControlPoints, vNoControlPoints, controlPointNet, dofIndexNet);
-
-        }
-
-        { // output to shell
-            DEBUG_OUT() << (*theIGAMesh) << endl;
-            theIGAMesh->computeBoundingBox();
-            INFO_OUT() << "\t+Number of Patches: " << theIGAMesh->getSurfacePatches().size() << endl;
-            INFO_OUT() << "\t+---------------------------------" << endl << endl;
-            INFO_OUT() << theIGAMesh->boundingBox << endl;
-        }
-
-        nameToMeshMap.insert(pair<string, AbstractMesh*>(meshName, theIGAMesh));
-
-    } else {
-        assert(false);
+    const int BUFFER_SIZE = 2;
+    int meshInfo[BUFFER_SIZE]; // number of nodes, number of elements, number of nodes per element
+    { // output to shell
+        HEADING_OUT(3, "ClientCode", "receiving mesh (" + meshName + ") from [" + name + "]...",
+                infoOut);
     }
+    serverComm->receiveFromClientBlocking<int>(name, BUFFER_SIZE, meshInfo);
+    int numNodes = meshInfo[0];
+    int numElems = meshInfo[1];
+
+    FEMesh *mesh = new FEMesh(meshName, numNodes, numElems, triangulateAll);
+    serverComm->receiveFromClientBlocking<double>(name, numNodes * 3, mesh->nodes);
+    serverComm->receiveFromClientBlocking<int>(name, numNodes, mesh->nodeIDs);
+    serverComm->receiveFromClientBlocking<int>(name, numElems, mesh->numNodesPerElem);
+    mesh->initElems();
+    serverComm->receiveFromClientBlocking<int>(name, mesh->elemsArraySize, mesh->elems);
+    nameToMeshMap.insert(pair<string, AbstractMesh*>(meshName, mesh));
+    { // output to shell
+        DEBUG_OUT() << (*mesh) << endl;
+        mesh->computeBoundingBox();
+        INFO_OUT() << mesh->boundingBox << endl;
+    }
+}
+void ClientCode::recvIGAMesh(std::string meshName) {
+    assert(serverComm != NULL);
+    assert(nameToMeshMap.find(meshName) == nameToMeshMap.end());
+
+    const int BUFFER_SIZE_MESH = 2;
+    int meshInfo[BUFFER_SIZE_MESH];
+    { // output to shell
+        HEADING_OUT(3, "ClientCode", "receiving IGA Mesh (" + meshName + ") from [" + name + "]...",
+                infoOut);
+    }
+    serverComm->receiveFromClientBlocking<int>(name, BUFFER_SIZE_MESH, meshInfo);
+
+    int numPatches = meshInfo[0];
+    int numNodes = meshInfo[1];
+
+    IGAMesh* theIGAMesh = new IGAMesh(meshName, numNodes);
+
+    const int BUFFER_SIZE_PATCH = 6;
+    int patchInfo[BUFFER_SIZE_PATCH];
+    for (int patchCount = 0; patchCount < numPatches; patchCount++) {
+
+        serverComm->receiveFromClientBlocking<int>(name, BUFFER_SIZE_PATCH, patchInfo);
+
+        int pDegree = patchInfo[0];
+        int uNoKnots = patchInfo[1];
+        int qDegree = patchInfo[2];
+        int vNoKnots = patchInfo[3];
+        int uNoControlPoints = patchInfo[4];
+        int vNoControlPoints = patchInfo[5];
+
+        double* uKnotVector = new double[uNoKnots];
+        double* vKnotVector = new double[vNoKnots];
+        double* controlPointNet = new double[uNoControlPoints * vNoControlPoints * 4];
+        int* dofIndexNet = new int[uNoControlPoints * vNoControlPoints];
+
+        serverComm->receiveFromClientBlocking<double>(name, uNoKnots, uKnotVector);
+        serverComm->receiveFromClientBlocking<double>(name, vNoKnots, vKnotVector);
+        serverComm->receiveFromClientBlocking<double>(name, uNoControlPoints * vNoControlPoints * 4,
+                controlPointNet);
+        serverComm->receiveFromClientBlocking<int>(name, uNoControlPoints * vNoControlPoints,
+                dofIndexNet);
+
+        theIGAMesh->addPatch(pDegree, uNoKnots, uKnotVector, qDegree, vNoKnots, vKnotVector,
+                uNoControlPoints, vNoControlPoints, controlPointNet, dofIndexNet);
+
+    }
+
+    { // output to shell
+        DEBUG_OUT() << (*theIGAMesh) << endl;
+        theIGAMesh->computeBoundingBox();
+        INFO_OUT() << "\t+Number of Patches: " << theIGAMesh->getSurfacePatches().size() << endl;
+        INFO_OUT() << "\t+---------------------------------" << endl << endl;
+        INFO_OUT() << theIGAMesh->boundingBox << endl;
+    }
+
+    nameToMeshMap.insert(pair<string, AbstractMesh*>(meshName, theIGAMesh));
 }
 
 void ClientCode::recvDataField(std::string meshName, std::string dataFieldName) {

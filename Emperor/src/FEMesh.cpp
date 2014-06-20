@@ -30,7 +30,7 @@ namespace EMPIRE {
 
 using namespace std;
 
-FEMesh::FEMesh(std::string _name, int _numNodes, int _numElems) :
+FEMesh::FEMesh(std::string _name, int _numNodes, int _numElems, bool _triangulateAll) :
         AbstractMesh(_name, EMPIRE_Mesh_FEMesh), numNodes(_numNodes), numElems(_numElems) {
     boundingBox.isComputed = false;
     nodes = new double[numNodes * 3];
@@ -43,6 +43,7 @@ FEMesh::FEMesh(std::string _name, int _numNodes, int _numElems) :
         elemIDs[i] = i + 1; // set element ID by hand instead of receiving from the client, element ID starts from 1.
 
     tobeTriangulated = false;
+    triangulateAll = _triangulateAll;
     triangulatedMesh = NULL;
 }
 
@@ -72,6 +73,8 @@ void FEMesh::initElems() {
             break;
         }
     }
+    if (triangulateAll)
+        tobeTriangulated = true;
 }
 
 void FEMesh::addDataField(string dataFieldName, EMPIRE_DataField_location location,
@@ -102,12 +105,16 @@ FEMesh *FEMesh::triangulate() {
     int count = 0;
     for (int i = 0; i < numElems; i++) {
         int numNodesThisElem = numNodesPerElem[i];
-        if (numNodesThisElem == 3 || numNodesThisElem == 4) {
+        if (numNodesThisElem == 3) { // put triangles in the new mesh
             numNodesPerElemTri->push_back(numNodesThisElem);
             for (int j = 0; j < numNodesThisElem; j++)
                 elemsTri->push_back(elems[count + j]);
+        } else if ((numNodesThisElem == 4) && (!triangulateAll)) { // if not triangulateAll, put quads in the new mesh
+                numNodesPerElemTri->push_back(numNodesThisElem);
+                for (int j = 0; j < numNodesThisElem; j++)
+                    elemsTri->push_back(elems[count + j]);
         } else {
-            // if more than 4 nodes, use third party triangulation algorithm
+            // use third party triangulation algorithm
             TriangulatorAdaptor *triangulator = new TriangulatorAdaptor();
             for (int j = 0; j < numNodesThisElem; j++) {
                 int nodeID = elems[count + j];
