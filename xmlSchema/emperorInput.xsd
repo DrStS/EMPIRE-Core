@@ -484,7 +484,12 @@
 					<attribute name="name" type="string"
 						use="required">
 					</attribute>
-					<attribute name="type" type="tns:meshType" use="optional"></attribute>
+					<attribute name="type" type="tns:meshType"
+						use="optional">
+					</attribute>
+					<attribute name="triangulateAll" type="boolean" 
+						use="optional">
+					</attribute>
 				</complexType>
 			</element>
 			<element name="signal" maxOccurs="unbounded" minOccurs="0">
