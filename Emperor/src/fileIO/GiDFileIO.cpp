@@ -720,6 +720,124 @@ void readNodalDataFromDotRes(std::string fileName, std::string resultName,
     delete nodeIDToPosMap;
 }
 
+void readNodalDataFromDotResFast(std::ifstream &dotResFile, std::string fileName, std::string resultName,
+        std::string analysisName, int stepNum, std::string type,
+        int numberOfNodes, const int *nodeIds, double *data) {
+
+    assert(resultName.size()!=0);
+    if (resultName[0] != '\"')
+        resultName.insert(0, "\"");
+    if (resultName[resultName.size()-1] != '\"')
+        resultName.append("\"");
+    assert(analysisName.size()!=0);
+    if (analysisName[0] != '\"')
+        analysisName.insert(0, "\"");
+    if (analysisName[analysisName.size()-1] != '\"')
+        analysisName.append("\"");
+
+
+    int dimension = 0;
+    convertToLowerCase(type);
+    if (type == "vector")
+        dimension = 3;
+    else if (type == "scalar")
+        dimension = 1;
+    else
+        assert(false);
+
+    map<int, int> *nodeIDToPosMap = new map<int, int>;
+    for (int i = 0; i < numberOfNodes; i++) {
+        nodeIDToPosMap->insert(nodeIDToPosMap->end(), pair<int, int>(nodeIds[i], i));
+    }
+
+    while (true) { /* parse line */
+        if (!dotResFile.good()) { // terminate if failbit, eofbit or badbit is set
+            cerr << "result with the following parameters is not found in " << fileName << endl;
+            cerr << "result name: " << resultName << endl;
+            cerr << "analysis name: " << analysisName << endl;
+            cerr << "step number: " << stepNum << endl;
+            cerr << "type: " << type << endl;
+            cerr << "Exit!" << endl;
+            exit(EXIT_FAILURE);
+        }
+        string textLine;
+        string lineToken;
+        getline(dotResFile, textLine, '\n');
+
+        istringstream lineStream(textLine);
+        lineStream >> skipws >> lineToken;
+        convertToLowerCase(lineToken);
+        if (lineToken == "result") {
+            string resultNameInFile;
+            do {
+                lineStream >> lineToken;
+                resultNameInFile.append(" ").append(lineToken); // here a space is added to the beginning
+            } while (resultNameInFile[resultNameInFile.size() - 1] != '\"'); // parse the name with spaces in
+            resultNameInFile.erase(resultNameInFile.begin()); // remove the space at the beginning
+
+            string analysisNameInFile;
+            do {
+                lineStream >> lineToken;
+                analysisNameInFile.append(" ").append(lineToken); // here a space is added to the beginning
+            } while (analysisNameInFile[analysisNameInFile.size() - 1] != '\"'); // parse the name with spaces in
+            analysisNameInFile.erase(analysisNameInFile.begin()); // remove the space at the beginning
+
+            int stepNumInFile;
+            lineStream >> stepNumInFile;
+
+            string typeInFile;
+            lineStream >> typeInFile;
+            convertToLowerCase(typeInFile);
+
+            string locationInFile;
+            lineStream >> locationInFile;
+            convertToLowerCase(locationInFile);
+
+            if (stepNumInFile > stepNum) { // save time if it is beyond the interesting time step
+                cerr << "result with the following parameters is not found in " << fileName << endl;
+                cerr << "result name: " << resultName << endl;
+                cerr << "analysis name: " << analysisName << endl;
+                cerr << "step number: " << stepNum << endl;
+                cerr << "type: " << type << endl;
+                cerr << "Exit!" << endl;
+                exit(EXIT_FAILURE);
+            }
+
+            if (resultName == resultNameInFile && analysisName == analysisNameInFile
+                    && stepNum == stepNumInFile && type == typeInFile
+                    && locationInFile == "onnodes") { // read nodal data, do not allow empty lines or comments
+                getline(dotResFile, textLine, '\n');
+                istringstream lineStream1(textLine);
+                lineStream1 >> skipws >> lineToken;
+                convertToLowerCase(lineToken);
+                assert(lineToken == "values");
+                for (int i = 0; i < numberOfNodes; i++) {
+                    getline(dotResFile, textLine, '\n');
+                    istringstream lineStream2(textLine);
+                    int nodeID;
+                    lineStream2 >> skipws >> nodeID;
+                    assert(nodeIDToPosMap->find(nodeID) != nodeIDToPosMap->end());
+                    for (int j = 0; j < dimension; j++) {
+                        int nodePos = nodeIDToPosMap->at(nodeID);
+                        lineStream2 >> data[nodePos * dimension + j];
+                    }
+                }
+                getline(dotResFile, textLine, '\n');
+                istringstream lineStream3(textLine);
+                lineStream3 >> skipws >> lineToken;
+                convertToLowerCase(lineToken);
+                assert(lineToken == "end");
+
+                return;
+            } else {
+                continue;
+            }
+
+        }
+    }
+    delete nodeIDToPosMap;
+}
+
 void readElementalDataFromDotRes(std::string fileName, std::string resultName,
         std::string analysisName, int stepNum, std::string type,
         int numberOfElements, const int *elemIds, const int *numberOfNodesPerElement,
@@ -891,4 +1009,171 @@ void readElementalDataFromDotRes(std::string fileName, std::string resultName,
     delete elemIDToPosMapQuad;
 }
 
+void readElementalDataFromDotResFast(std::ifstream &dotResFile, std::string fileName, std::string resultName,
+        std::string analysisName, int stepNum, std::string type,
+        int numberOfElements, const int *elemIds, const int *numberOfNodesPerElement,
+        double *data) {
+    assert(resultName.size()!=0);
+    if (resultName[0] != '\"')
+        resultName.insert(0, "\"");
+    if (resultName[resultName.size()-1] != '\"')
+        resultName.append("\"");
+    assert(analysisName.size()!=0);
+    if (analysisName[0] != '\"')
+        analysisName.insert(0, "\"");
+    if (analysisName[analysisName.size()-1] != '\"')
+        analysisName.append("\"");
+
+    int dimension = 0;
+    convertToLowerCase(type);
+    if (type == "vector")
+        dimension = 3;
+    else if (type == "scalar")
+        dimension = 1;
+    else
+        assert(false);
+
+    map<int, int> *elemIDToPosMapTriangle = new map<int, int>;
+    for (int i = 0; i < numberOfElements; i++) {
+        if (numberOfNodesPerElement[i] == 3)
+            elemIDToPosMapTriangle->insert(elemIDToPosMapTriangle->end(),
+                    pair<int, int>(elemIds[i], i));
+    }
+
+    map<int, int> *elemIDToPosMapQuad = new map<int, int>;
+    for (int i = 0; i < numberOfElements; i++) {
+        if (numberOfNodesPerElement[i] == 4)
+            elemIDToPosMapQuad->insert(elemIDToPosMapQuad->end(), pair<int, int>(elemIds[i], i));
+    }
+
+    bool hasTriangles = false;
+    bool hasQuads = false;
+
+    while (true) { /* parse line */
+        if (!dotResFile.good()) { // terminate if failbit, eofbit or badbit is set
+            if (!hasTriangles && !hasQuads) {
+                cerr << "result with the following parameters is not found in " << fileName
+                        << endl;
+                cerr << "result name: " << resultName << endl;
+                cerr << "analysis name: " << analysisName << endl;
+                cerr << "step number: " << stepNum << endl;
+                cerr << "type: " << type << endl;
+                cerr << "Exit!" << endl;
+                exit(EXIT_FAILURE);
+            } else {
+                return;
+            }
+        }
+        string textLine;
+        string lineToken;
+        getline(dotResFile, textLine, '\n');
+
+        istringstream lineStream(textLine);
+        lineStream >> skipws >> lineToken;
+        convertToLowerCase(lineToken);
+        if (lineToken == "result") {
+            string resultNameInFile;
+            do {
+                lineStream >> lineToken;
+                resultNameInFile.append(" ").append(lineToken); // here a space is added to the beginning
+            } while (resultNameInFile[resultNameInFile.size() - 1] != '\"'); // parse the name with spaces in
+            resultNameInFile.erase(resultNameInFile.begin()); // remove the space at the beginning
+
+            string analysisNameInFile;
+            do {
+                lineStream >> lineToken;
+                analysisNameInFile.append(" ").append(lineToken); // here a space is added to the beginning
+            } while (analysisNameInFile[analysisNameInFile.size() - 1] != '\"'); // parse the name with spaces in
+            analysisNameInFile.erase(analysisNameInFile.begin()); // remove the space at the beginning
+
+            int stepNumInFile;
+            lineStream >> stepNumInFile;
+
+            string typeInFile;
+            lineStream >> typeInFile;
+            convertToLowerCase(typeInFile);
+
+            string locationInFile;
+            lineStream >> locationInFile;
+            convertToLowerCase(locationInFile);
+
+            if (stepNumInFile > stepNum) { // save time if it is beyond the interesting time step
+                if (!hasTriangles && !hasQuads) {
+                    cerr << "result with the following parameters is not found in " << fileName
+                            << endl;
+                    cerr << "result name: " << resultName << endl;
+                    cerr << "analysis name: " << analysisName << endl;
+                    cerr << "step number: " << stepNum << endl;
+                    cerr << "type: " << type << endl;
+                    cerr << "Exit!" << endl;
+                    exit(EXIT_FAILURE);
+                } else {
+                    return;
+                }
+            }
+
+            if (resultName == resultNameInFile && analysisName == analysisNameInFile
+                    && stepNum == stepNumInFile && type == typeInFile
+                    && locationInFile == "ongausspoints") { // read nodal data, do not allow empty lines or comments
+                string triangleOrQuad;
+                lineStream >> triangleOrQuad;
+                if (triangleOrQuad == "\"GP_triangles\"") {
+                    getline(dotResFile, textLine, '\n');
+                    istringstream lineStream1(textLine);
+                    lineStream1 >> skipws >> lineToken;
+                    convertToLowerCase(lineToken);
+                    assert(lineToken == "values");
+                    for (int i = 0; i < elemIDToPosMapTriangle->size(); i++) {
+                        getline(dotResFile, textLine, '\n');
+                        istringstream lineStream2(textLine);
+                        int elemID;
+                        lineStream2 >> skipws >> elemID;
+                        assert(
+                                elemIDToPosMapTriangle->find(elemID) != elemIDToPosMapTriangle->end());
+                        for (int j = 0; j < dimension; j++) {
+                            int elemPos = elemIDToPosMapTriangle->at(elemID);
+                            lineStream2 >> data[elemPos * dimension + j];
+                        }
+                    }
+                    getline(dotResFile, textLine, '\n');
+                    istringstream lineStream3(textLine);
+                    lineStream3 >> skipws >> lineToken;
+                    convertToLowerCase(lineToken);
+                    assert(lineToken == "end");
+                    hasTriangles = true;
+                } else if (triangleOrQuad == "\"GP_quads\"") {
+                    getline(dotResFile, textLine, '\n');
+                    istringstream lineStream1(textLine);
+                    lineStream1 >> skipws >> lineToken;
+                    convertToLowerCase(lineToken);
+                    assert(lineToken == "values");
+                    for (int i = 0; i < elemIDToPosMapQuad->size(); i++) {
+                        getline(dotResFile, textLine, '\n');
+                        istringstream lineStream2(textLine);
+                        int elemID;
+                        lineStream2 >> skipws >> elemID;
+                        assert(elemIDToPosMapQuad->find(elemID) != elemIDToPosMapQuad->end());
+                        for (int j = 0; j < dimension; j++) {
+                            int elemPos = elemIDToPosMapQuad->at(elemID);
+                            lineStream2 >> data[elemPos * dimension + j];
+                        }
+                    }
+                    getline(dotResFile, textLine, '\n');
+                    istringstream lineStream3(textLine);
+                    lineStream3 >> skipws >> lineToken;
+                    convertToLowerCase(lineToken);
+                    assert(lineToken == "end");
+                    hasQuads = true;
+                } else {
+                    assert(false);
+                }
+            } else {
+                continue;
+            }
+
+        }
+    }
+    delete elemIDToPosMapTriangle;
+    delete elemIDToPosMapQuad;
+}
 } /* namespace GiDFileIO */

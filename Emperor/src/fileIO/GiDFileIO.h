@@ -111,6 +111,21 @@ void appendElementalDataToDotRes(std::string fileName, std::string resultName,
 void readNodalDataFromDotRes(std::string fileName, std::string resultName, std::string analysisName,
         int stepNum, std::string type, int numberOfNodes, const int *nodeIds, double *data);
 /***********************************************************************************************
+ * \brief Read nodal data in a .res file in a fast way by using the existing file stream
+ * \param[in] dotResFile stream of the result file
+ * \param[in] fileName name of the result file
+ * \param[in] resultName name of the data
+ * \param[in] analysisName name of the analysis
+ * \param[in] stepNum step number
+ * \param[in] type "Scalar" or "Vector"
+ * \param[in] numberOfNodes number of nodes
+ * \param[in] nodeIds Ids of nodes
+ * \param[out] data data of this step
+ * \author Tianyang Wang
+ ***********/
+void readNodalDataFromDotResFast(std::ifstream &dotResFile, std::string fileName, std::string resultName, std::string analysisName,
+        int stepNum, std::string type, int numberOfNodes, const int *nodeIds, double *data);
+/***********************************************************************************************
  * \brief Read elemental data in a .res file given the parameters of the data
  * \param[in] fileName name of the result file
  * \param[in] resultName name of the data
@@ -124,6 +139,23 @@ void readNodalDataFromDotRes(std::string fileName, std::string resultName, std::
  * \author Tianyang Wang
  ***********/
 void readElementalDataFromDotRes(std::string fileName, std::string resultName,
+        std::string analysisName, int stepNum, std::string type, int numberOfElements,
+        const int *elemIds, const int *numberOfNodesPerElement, double *data);
+/***********************************************************************************************
+ * \brief Read elemental data in a .res in a fast way by using the existing file stream
+ * \param[in] dotResFile stream of the result file
+ * \param[in] fileName name of the result file
+ * \param[in] resultName name of the data
+ * \param[in] analysisName name of the analysis
+ * \param[in] stepNum step number
+ * \param[in] type "Scalar" or "Vector"
+ * \param[in] numberOfElements number of elements
+ * \param[in] elemIds Ids of elements
+ * \param[in] numberOfNodesPerElement number of nodes in each element
+ * \param[out] data data of this step
+ * \author Tianyang Wang
+ ***********/
+void readElementalDataFromDotResFast(std::ifstream &dotResFile, std::string fileName, std::string resultName,
         std::string analysisName, int stepNum, std::string type, int numberOfElements,
         const int *elemIds, const int *numberOfNodesPerElement, double *data);
 
