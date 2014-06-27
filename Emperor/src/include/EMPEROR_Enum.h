@@ -60,7 +60,11 @@ enum EMPIRE_BlasLevel1Filter_RoutineName {
  * use "MortarMapper" instead of "MortarMapperAdapter"
  ***********/
 enum EMPIRE_Mapper_type {
-    EMPIRE_IGAMortarMapper, EMPIRE_MortarMapper, EMPIRE_NearestNeighborMapper, EMPIRE_BarycentricInterpolationMapper
+    EMPIRE_MortarMapper,
+    EMPIRE_NearestNeighborMapper,
+    EMPIRE_BarycentricInterpolationMapper,
+    EMPIRE_NearestElementMapper,
+    EMPIRE_IGAMortarMapper,
 };
 
 enum EMPIRE_Mesh_type {

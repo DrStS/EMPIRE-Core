@@ -296,9 +296,12 @@ void Emperor::initMappers() {
 		} else if (settingMapper.type == EMPIRE_NearestNeighborMapper) {
 			mapper->initNearestNeighborMapper();
 			nameToMapperMap.insert(pair<string, MapperAdapter*>(name, mapper));
-		} else if (settingMapper.type == EMPIRE_BarycentricInterpolationMapper) {
-			mapper->initBarycentricInterpolationMapper();
-			nameToMapperMap.insert(pair<string, MapperAdapter*>(name, mapper));
+        } else if (settingMapper.type == EMPIRE_BarycentricInterpolationMapper) {
+            mapper->initBarycentricInterpolationMapper();
+            nameToMapperMap.insert(pair<string, MapperAdapter*>(name, mapper));
+        } else if (settingMapper.type == EMPIRE_NearestElementMapper) {
+            mapper->initNearestElementMapper();
+            nameToMapperMap.insert(pair<string, MapperAdapter*>(name, mapper));
 		} else if (settingMapper.type == EMPIRE_IGAMortarMapper) {
 			mapper->initIGAMortarMapper(settingMapper.igaMortarMapper.tolProjectionDistance,
 					settingMapper.igaMortarMapper.numGPsTriangle,

@@ -275,6 +275,8 @@ void MetaDatabase::fillSettingMapperVec() {
             mapper.type = EMPIRE_NearestNeighborMapper;
         } else if (xmlMapper->GetAttribute<string>("type") == "barycentricInterpolationMapper") {
             mapper.type = EMPIRE_BarycentricInterpolationMapper;
+        } else if (xmlMapper->GetAttribute<string>("type") == "nearestElementMapper") {
+            mapper.type = EMPIRE_NearestElementMapper;
         } else if (xmlMapper->GetAttribute<string>("type") == "IGAMortarMapper") {
             mapper.type = EMPIRE_IGAMortarMapper;
             ticpp::Element *xmlIGAMortar = xmlMapper->FirstChildElement("IGAMortarMapper");
