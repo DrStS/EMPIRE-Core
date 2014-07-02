@@ -408,25 +408,10 @@ bool computeLocalCoorInQuad(const double *quad, int planeToProject, const double
     localCoor[0] = 0;
     localCoor[1] = 0;
     //int dummy[2];
-    const double EPS = 1E-15;
+    const double EPS = 1E-13; // should be smaller than 1E-15 from experience
 
     const int MAX_ITER_NUM = 100;
     for (int i = 0; i < MAX_ITER_NUM; i++) {
-        if (i >= 10) { // normally should find a solution within 10 iterations
-            /* printElem(quad, 4);
-             printPoint(point);
-             cout << "plane to project:  " << planeToProject << endl;
-             cout << "xi:  " << localCoor[0] << " ita: " << localCoor[1] << endl;*/
-            // if point is far out of quad, return false
-            for (int i = 0; i < 2; i++) { // do not care accuracy if point is far outside the quad
-                if (localCoor[i] > 2.0)
-                    return false;
-                if (localCoor[i] < -2.0)
-                    return false;
-            }
-            cout<<"WARNING: More than 10 iterations are necessary for computing local coordinates in quad"<<endl;
-            //assert(false);
-        }
         J_T[0] = b1 + d1 * localCoor[1];
         J_T[2] = c1 + d1 * localCoor[0];
         J_T[1] = b2 + d2 * localCoor[1];
@@ -442,6 +427,22 @@ bool computeLocalCoorInQuad(const double *quad, int planeToProject, const double
          exit(EXIT_FAILURE);
          }*/
         solve2x2LinearSystem(J_T, delta, EPS);
+        if (i >= 10) { // normally should find a solution within 10 iterations
+             printElem(quad, 4);
+             printPoint(point);
+             cout << "plane to project:  " << planeToProject << endl;
+             cout << "xi:  " << localCoor[0] << " ita: " << localCoor[1] << endl;
+             cout << "delta-xi:  " << delta[0] << " delta-ita: " << delta[1] << endl;
+            // if point is far out of quad, return false
+            for (int i = 0; i < 2; i++) { // do not care accuracy if point is far outside the quad
+                if (localCoor[i] > 2.0)
+                    return false;
+                if (localCoor[i] < -2.0)
+                    return false;
+            }
+            cout<<"WARNING: More than 10 iterations are necessary for computing local coordinates in quad"<<endl;
+            //assert(false);
+        }
         if (fabs(delta[0]) < EPS && fabs(delta[1]) < EPS) {
             break;
         }
