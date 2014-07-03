@@ -429,6 +429,7 @@ bool computeLocalCoorInQuad(const double *quad, int planeToProject, const double
         solve2x2LinearSystem(J_T, delta, EPS);
         if (i >= 10) { // normally should find a solution within 10 iterations
             cout<<"WARNING(MortarMath::computeLocalCoorInQuad): More than 10 iterations are necessary for computing local coordinates in quad"<<endl;
+            cout << "iteration #: " << i << endl;
             printElem(quad, 4);
             printPoint(point);
             cout << "plane to project:  " << planeToProject << endl;
