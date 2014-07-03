@@ -595,6 +595,8 @@ void MortarMapper::enforceConsistency(map<int, double> **sparsityMapC_BA) {
             }
 
             if (sum < factor[i] * 0.5) { // if the master element is not fully covered by slave elements, use nearest neighbor
+                cout << "WARNING(MortarMapper::enforceConsistency): Nearest neighbor is used for node: ";
+                MortarMath::printPoint(&masterNodeCoors[i*3]);
                 sparsityMapC_BA[i]->clear();
                 double dummy;
                 int nb;

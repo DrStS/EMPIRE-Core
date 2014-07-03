@@ -440,7 +440,7 @@ bool computeLocalCoorInQuad(const double *quad, int planeToProject, const double
                 if (localCoor[i] < -2.0)
                     return false;
             }
-            cout<<"WARNING: More than 10 iterations are necessary for computing local coordinates in quad"<<endl;
+            cout<<"WARNING(MortarMath::computeLocalCoorInQuad): More than 10 iterations are necessary for computing local coordinates in quad"<<endl;
             //assert(false);
         }
         if (fabs(delta[0]) < EPS && fabs(delta[1]) < EPS) {
