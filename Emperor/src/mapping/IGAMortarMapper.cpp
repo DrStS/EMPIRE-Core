@@ -506,93 +506,54 @@ void IGAMortarMapper::computeCouplingMatrices() {
                     bool isNextNodeInsidePatch = (*projectedCoords)[nodeIndexNext].find(patchCount)
                             != (*projectedCoords)[nodeIndexNext].end();
 
-                    if (isInsidePatch) {
-                        // if the node is inside the patch, put it into the Clipped By Patch Projected Element
+                    if (isInsidePatch xor isNextNodeInsidePatch) {
+
+                        int nodeIndexInside;
+                        int nodeIndexOutside;
+                        int nodeCountInside;
+                        int nodeCountOutside;
+
+                        if (isInsidePatch) {
+                            nodeIndexInside = nodeIndex;
+                            nodeIndexOutside = nodeIndexNext;
+                            nodeCountInside = nodeCount;
+                            nodeCountOutside = nodeCountNext;
+                        } else {
+                            nodeIndexInside = nodeIndexNext;
+                            nodeIndexOutside = nodeIndex;
+                            nodeCountInside = nodeCountNext;
+                            nodeCountOutside = nodeCount;
+                        }
+
                         clippedByPatchProjElementFEUV[numNodesClippedByPatchProjElementFE * 2] =
-                                (*projectedCoords)[nodeIndex][patchCount][0];
+                                (*projectedCoords)[nodeIndexInside][patchCount][0];
                         clippedByPatchProjElementFEUV[numNodesClippedByPatchProjElementFE * 2 + 1] =
-                                (*projectedCoords)[nodeIndex][patchCount][1];
+                                (*projectedCoords)[nodeIndexInside][patchCount][1];
                         clippedByPatchProjElementFEWZ[numNodesClippedByPatchProjElementFE * 2] =
-                                projectedElementFEWZ[nodeCount * 2];
+                                projectedElementFEWZ[nodeCountInside * 2];
                         clippedByPatchProjElementFEWZ[numNodesClippedByPatchProjElementFE * 2 + 1] =
-                                projectedElementFEWZ[nodeCount * 2 + 1];
+                                projectedElementFEWZ[nodeCountInside * 2 + 1];
                         isEdge[numNodesClippedByPatchProjElementFE] = true;
                         numNodesClippedByPatchProjElementFE++;
 
-                        // if the node is inside and the next node is outside the patch,
-                        // find the intersection with patch boundary, and put it into the Clipped By Patch Projected Element
-                        if (!isNextNodeInsidePatch) {
-                            double u = (*projectedCoords)[nodeIndex][patchCount][0], v =
-                                    (*projectedCoords)[nodeIndex][patchCount][1];
-                            double div, dis;
-                            double* P1 = &(meshFE->nodes[nodeIndex * 3]);
-                            double* P2 = &(meshFE->nodes[nodeIndexNext * 3]);
-
-                            bool isProjectedOnPatchBoundary =
-                                    thePatch->computePointProjectionOnPatchBoundary(u, v, div, dis,
-                                            P1, P2);
-                            if (isProjectedOnPatchBoundary && dis <= disTol) {
-                                clippedByPatchProjElementFEUV[numNodesClippedByPatchProjElementFE
-                                        * 2] = u;
-                                clippedByPatchProjElementFEUV[numNodesClippedByPatchProjElementFE
-                                        * 2 + 1] = v;
-                                double P1x = projectedElementFEWZ[nodeCount * 2];
-                                double P1y = projectedElementFEWZ[nodeCount * 2 + 1];
-                                double P2x = projectedElementFEWZ[nodeCountNext * 2];
-                                double P2y = projectedElementFEWZ[nodeCountNext * 2 + 1];
-                                clippedByPatchProjElementFEWZ[numNodesClippedByPatchProjElementFE
-                                        * 2] = P1x * (1 - div) + P2x * div;
-                                clippedByPatchProjElementFEWZ[numNodesClippedByPatchProjElementFE
-                                        * 2 + 1] = P1y * (1 - div) + P2y * div;
-                                numNodesClippedByPatchProjElementFE++;
-                            } else {
-                                ERROR_OUT() << "Error in IGAMortarMapper::computeCouplingMatrices"
-                                        << endl;
-                                ERROR_OUT() << "Cannot find point projection on patch boundary"
-                                        << endl;
-                                ERROR_OUT()
-                                        << "Cannot find point projection on patch boundary between node ["
-                                        << nodeIndex << "]:(" << meshFE->nodes[nodeIndex * 3] << ","
-                                        << meshFE->nodes[nodeIndex * 3 + 1] << ","
-                                        << meshFE->nodes[nodeIndex * 3 + 2] << ") and node ["
-                                        << nodeIndexNext << "]:("
-                                        << meshFE->nodes[nodeIndexNext * 3] << ","
-                                        << meshFE->nodes[nodeIndexNext * 3 + 1] << ","
-                                        << meshFE->nodes[nodeIndexNext * 3 + 2] << ") on patch ["
-                                        << patchCount << "] boundary" << endl;
-                                ERROR_OUT() << "Projection failed in IGA mapper " << name << endl;
-                                exit (EXIT_FAILURE);
-                            }
-                        }
-                    } else if (isNextNodeInsidePatch) {
-                        // if this node is outside and the next node is inside, find the intersection with patch boundary
-                        // and put it into the Clipped By Patch Projected Element
-                        double u = (*projectedCoords)[nodeIndexNext][patchCount][0], v =
-                                (*projectedCoords)[nodeIndexNext][patchCount][1];
+                        double u = (*projectedCoords)[nodeIndexInside][patchCount][0], v =
+                                (*projectedCoords)[nodeIndexInside][patchCount][1];
                         double div, dis;
-                        double* P1 = &(meshFE->nodes[nodeIndex * 3]);
-                        double* P2 = &(meshFE->nodes[nodeIndexNext * 3]);
+                        double* P1 = &(meshFE->nodes[nodeIndexInside * 3]);
+                        double* P2 = &(meshFE->nodes[nodeIndexOutside * 3]);
+
                         bool isProjectedOnPatchBoundary =
                                 thePatch->computePointProjectionOnPatchBoundary(u, v, div, dis, P1,
                                         P2);
-                        ERROR_OUT() << "Node is projected On Patch Boundary = " << isProjectedOnPatchBoundary
-                                << endl;
-                        ERROR_OUT() << "Distance is smaller than Tolerance = " << (dis <= disTol) << endl;
-                        ERROR_OUT() << "Distance = " << dis << endl;
                         if (isProjectedOnPatchBoundary && dis <= disTol) {
                             clippedByPatchProjElementFEUV[numNodesClippedByPatchProjElementFE * 2] =
                                     u;
                             clippedByPatchProjElementFEUV[numNodesClippedByPatchProjElementFE * 2
                                     + 1] = v;
-                            double P1x = projectedElementFEWZ[nodeCount * 2];
-                            double P1y = projectedElementFEWZ[nodeCount * 2 + 1];
-                            double P2x = projectedElementFEWZ[nodeCountNext * 2];
-                            double P2y = projectedElementFEWZ[nodeCountNext * 2 + 1];
-                            clippedByPatchProjElementFEWZ[numNodesClippedByPatchProjElementFE * 2] =
-                                    P1x * (1 - div) + P2x * div;
-                            clippedByPatchProjElementFEWZ[numNodesClippedByPatchProjElementFE * 2
-                                    + 1] = P1y * (1 - div) + P2y * div;
-                            isEdge[numNodesClippedByPatchProjElementFE] = true;
+                            double P1x = projectedElementFEWZ[nodeCountInside * 2];
+                            double P1y = projectedElementFEWZ[nodeCountInside * 2 + 1];
+                            double P2x = projectedElementFEWZ[nodeCountOutside * 2];
+                            double P2y = projectedElementFEWZ[nodeCountOutside * 2 + 1];
                             clippedByPatchProjElementFEWZ[numNodesClippedByPatchProjElementFE * 2] =
                                     P1x * (1 - div) + P2x * div;
                             clippedByPatchProjElementFEWZ[numNodesClippedByPatchProjElementFE * 2
@@ -604,17 +565,19 @@ void IGAMortarMapper::computeCouplingMatrices() {
                             ERROR_OUT() << "Cannot find point projection on patch boundary" << endl;
                             ERROR_OUT()
                                     << "Cannot find point projection on patch boundary between node ["
-                                    << nodeIndex << "]:(" << meshFE->nodes[nodeIndex * 3] << ","
-                                    << meshFE->nodes[nodeIndex * 3 + 1] << ","
-                                    << meshFE->nodes[nodeIndex * 3 + 2] << ") and node ["
-                                    << nodeIndexNext << "]:(" << meshFE->nodes[nodeIndexNext * 3]
-                                    << "," << meshFE->nodes[nodeIndexNext * 3 + 1] << ","
-                                    << meshFE->nodes[nodeIndexNext * 3 + 2] << ") on patch ["
+                                    << nodeIndexInside << "]:(" << meshFE->nodes[nodeIndexInside * 3] << ","
+                                    << meshFE->nodes[nodeIndexInside * 3 + 1] << ","
+                                    << meshFE->nodes[nodeIndexInside * 3 + 2] << ") and node ["
+                                    << nodeIndexOutside << "]:(" << meshFE->nodes[nodeIndexOutside * 3]
+                                    << "," << meshFE->nodes[nodeIndexOutside * 3 + 1] << ","
+                                    << meshFE->nodes[nodeIndexOutside * 3 + 2] << ") on patch ["
                                     << patchCount << "] boundary" << endl;
                             ERROR_OUT() << "Projection failed in IGA mapper " << name << endl;
                             exit (EXIT_FAILURE);
                         }
+
                     }
+
                 }
 
                 // Find the corner node of the IGA patch which is inside the projected FE element
