@@ -237,7 +237,7 @@ void Emperor::initClientCodes() {
 			const structClientCode::structMesh &settingMesh = settingMeshes[j];
 			if (settingMesh.type == EMPIRE_Mesh_FEMesh) {
 			    clientCode->recvFEMesh(settingMesh.name, settingMesh.triangulateAll);
-			} else if (settingMesh.type == EMPIRE_Mesh_FEMesh) {
+			} else if (settingMesh.type == EMPIRE_Mesh_IGAMesh) {
 			    clientCode->recvIGAMesh(settingMesh.name);
 			} else {
 			    assert(false);
