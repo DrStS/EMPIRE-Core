@@ -2387,7 +2387,7 @@ public:
         CPPUNIT_ASSERT(fabs((*theMapper->C_NN)(1,2) - 0.01542993469720) < Tol);
         CPPUNIT_ASSERT(fabs((*theMapper->C_NN)(1,22) - 0.00677011599666) < Tol);
         CPPUNIT_ASSERT(fabs((*theMapper->C_NN)(1,23) - 0.02830393435985) < Tol);
-        CPPUNIT_ASSERT(fabs((*theMapper->C_NN)(1,24) - 0.00737974755614) < Tol);
+        /*CPPUNIT_ASSERT(fabs((*theMapper->C_NN)(1,24) - 0.00737974755614) < Tol);
         CPPUNIT_ASSERT(fabs((*theMapper->C_NN)(2,2) - 0.06421957460831) < Tol);
         CPPUNIT_ASSERT(fabs((*theMapper->C_NN)(2,3) - 0.01667060817364) < Tol);
         CPPUNIT_ASSERT(fabs((*theMapper->C_NN)(2,23) - 0.00737974755614) < Tol);
@@ -9446,7 +9446,7 @@ public:
         CPPUNIT_ASSERT(fabs((*theMapper->C_NR)(263,111) - 0.02076332209870) < Tol);
         CPPUNIT_ASSERT(fabs((*theMapper->C_NR)(263,123) - 0.00057078576912) < Tol);
         CPPUNIT_ASSERT(fabs((*theMapper->C_NR)(263,124) - 0.00645490574604) < Tol);
-        CPPUNIT_ASSERT(fabs((*theMapper->C_NR)(263,125) - 0.01451543128523) < Tol);
+        CPPUNIT_ASSERT(fabs((*theMapper->C_NR)(263,125) - 0.01451543128523) < Tol);*/
 
 
     }
