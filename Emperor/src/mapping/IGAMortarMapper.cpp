@@ -241,7 +241,7 @@ void IGAMortarMapper::projectPointsToSurface() {
             projectedNode = 0;
 
             /// 1iii.2. Loop over all nodes of the current element to check if there exist one node has been projected already
-            for (int j = 0; j < meshFE->numNodesPerElem[i]; j++)
+            for (int j = 0; j < meshFE->numNodesPerElem[i]; j++) {
                 if (isProjected[meshFEDirectElemTable[i][j]]) {
                     /// 1iii.2i. If the node has already been projected set projection flag to true
                     isNodeInsideElementProjecteded = true;
@@ -252,7 +252,7 @@ void IGAMortarMapper::projectPointsToSurface() {
                     /// 1iii.2iii. Break the loop
                     break;
                 }
-
+            }
             /// 1iii.3. Check if there exist one node in the current element has been successfully projected
             if (isNodeInsideElementProjecteded) {
                 /// 1iii.3i. If so, use result of the projected node as the initial guess for the projection step
@@ -323,8 +323,8 @@ void IGAMortarMapper::projectPointsToSurface() {
     for (int nodeIndex = 0; nodeIndex < meshFE->numNodes; nodeIndex++) {
         /// 2i. Initialize projection flag to false
         isNodeProjected = false;
-
         /// 2ii. Loop over all the patches in the IGA mesh and check if the node is has been projected to any patch
+        ///TODO why not simply check the size of (*projectedCoords)[nodeIndex] to see if it has been projected ?
         for (int patchCount = 0; patchCount < numPatches; patchCount++) {
             if ((*projectedCoords)[nodeIndex].find(patchCount)
                     != (*projectedCoords)[nodeIndex].end()) {
@@ -402,7 +402,7 @@ void IGAMortarMapper::computeCouplingMatrices() {
      */
 // The vertices of the canonical polygons
     double parentTriangle[6] = { 0, 0, 1, 0, 0, 1 };
-    double parentQuadriliteral[8] = { -1, -1, 1, -1, 1, 1, -1, 1 };
+    double parentQuadrilateral[8] = { -1, -1, 1, -1, 1, 1, -1, 1 };
 
 /// Loop over all the elements in the FE side
     for (int elemCount = 0; elemCount < meshFE->numElems; elemCount++) {
@@ -417,7 +417,7 @@ void IGAMortarMapper::computeCouplingMatrices() {
         if (numNodesElementFE == 3)
             projectedElementFEWZ = parentTriangle;
         else
-            projectedElementFEWZ = parentQuadriliteral;
+            projectedElementFEWZ = parentQuadrilateral;
 
         /// 1. Find whether the projected FE element is located on one patch
 
@@ -522,8 +522,8 @@ void IGAMortarMapper::computeCouplingMatrices() {
                         // if the node is inside and the next node is outside the patch,
                         // find the intersection with patch boundary, and put it into the Clipped By Patch Projected Element
                         if (!isNextNodeInsidePatch) {
-                            double u = (*projectedCoords)[nodeIndex][patchCount][0], v =
-                                    (*projectedCoords)[nodeIndex][patchCount][1];
+                            double u = (*projectedCoords)[nodeIndex][patchCount][0];
+							double v = (*projectedCoords)[nodeIndex][patchCount][1];
                             double div, dis;
                             double* P1 = &(meshFE->nodes[nodeIndex * 3]);
                             double* P2 = &(meshFE->nodes[nodeIndexNext * 3]);
@@ -644,7 +644,7 @@ void IGAMortarMapper::computeCouplingMatrices() {
                     int patchCornerNodesInsideElemIndex[4];
                     int numPatchCornerNodesInsideElem = 0;
 
-                    // Loop over the 4 corner node of the IGA Patch to check which of them are in side the current element
+                    // Loop over the 4 corner node of the IGA Patch to check which of them are inside the current element
                     for (int nodeCount = 0; nodeCount < 4; nodeCount++) {
                         bool isNodeInsideElem = true;
                         for (int edgeCount = 0; edgeCount < numNodesClippedByPatchProjElementFE;
