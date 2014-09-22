@@ -83,13 +83,13 @@ public:
 // Control Points for a NURBS
 
         controlPointNet[0] = new IGAControlPoint(0, 0.0, -1.0, 0.0, 1.0);
-        controlPointNet[1] = new IGAControlPoint(1, 1.0, -1.0, 0.0, 0.707106781186548);
-        controlPointNet[2] = new IGAControlPoint(2, 1.0, 0.0, 0.0, 1.0);
-        controlPointNet[3] = new IGAControlPoint(3, 0.0, -1.0, 1.0, 0.707106781186548);
+        controlPointNet[1] = new IGAControlPoint(3, 0.0, -1.0, 1.0, 0.707106781186548);
+        controlPointNet[2] = new IGAControlPoint(6, 0.0, 0.0, 1.0, 1.0);
+        controlPointNet[3] = new IGAControlPoint(1, 1.0, -1.0, 0.0, 0.707106781186548);
         controlPointNet[4] = new IGAControlPoint(4, 1.0, -1.0, 1.0, 0.5);
-        controlPointNet[5] = new IGAControlPoint(5, 1.0, 0.0, 1.0, 0.707106781186548);
-        controlPointNet[6] = new IGAControlPoint(6, 0.0, 0.0, 1.0, 1.0);
-        controlPointNet[7] = new IGAControlPoint(7, 0.0, 0.0, 1.0, 0.707106781186548);
+        controlPointNet[5] = new IGAControlPoint(7, 0.0, 0.0, 1.0, 0.707106781186548);
+        controlPointNet[6] = new IGAControlPoint(2, 1.0, 0.0, 0.0, 1.0);
+        controlPointNet[7] = new IGAControlPoint(5, 1.0, 0.0, 1.0, 0.707106781186548);
         controlPointNet[8] = new IGAControlPoint(8, 0.0, 0.0, 1.0, 1.0);
 
         theIGAPatchSurface = new IGAPatchSurface(id_basis, p, uNoKnots, uKnotVector, q, vNoKnots,
@@ -139,5 +139,5 @@ public:
 
 } /* namespace EMPIRE */
 
-//CPPUNIT_TEST_SUITE_REGISTRATION (EMPIRE::TestProjectionSemiSphere);
+CPPUNIT_TEST_SUITE_REGISTRATION (EMPIRE::TestProjectionSemiSphere);
 

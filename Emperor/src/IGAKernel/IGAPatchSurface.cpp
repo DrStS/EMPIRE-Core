@@ -147,6 +147,26 @@ double IGAPatchSurface::computePostprocessingScalarValue(double _u, double _v,
     return result;
 }
 
+void IGAPatchSurface::addTrimLoop(int inner, int numCurves) {
+    Trimming.addTrimLoop(inner, numCurves);
+}
+
+void IGAPatchSurface::addTrimCurve(int direction, int ID, int _pDegree, int _uNoKnots, double* _uKnotVector,
+                  int _uNoControlPoints, double* _controlPointNet) {
+                    
+    int IDBasis = 0; ///???
+    
+    int numCPs = _uNoControlPoints;
+    IGAControlPoint **cpNet;
+    cpNet = new IGAControlPoint*[numCPs];
+    
+    for (int i = 0; i < numCPs; i++) {
+            cpNet[i] = new IGAControlPoint(i, &_controlPointNet[i * 4]);
+    }
+    Trimming.addTrimCurve(direction, IDBasis, _pDegree, _uNoKnots, _uKnotVector,
+                                               _uNoControlPoints, cpNet); 
+}
+
 void IGAPatchSurface::computeCartesianCoordinates(double* _cartesianCoordinates, double _uPrm,
         int _uKnotSpanIndex, double _vPrm, int _vKnotSpanIndex) {
     /*

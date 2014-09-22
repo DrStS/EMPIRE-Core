@@ -86,6 +86,24 @@ void Empire::sendIGAPatch(int _pDegree, int _uNumKnots, double* _uKnotVector, in
     ClientCommunication::getSingleton()->sendToServerBlocking<int>(_uNumControlPoints * _vNumControlPoints, _nodeNet);
 }
 
+void Empire::sendIGATrimmingInfo(int _isTrimmed, int _numLoops){
+    const int BUFFER_SIZE = 2;
+    int trimInfo[BUFFER_SIZE] = { _isTrimmed, _numLoops};
+    ClientCommunication::getSingleton()->sendToServerBlocking<int>(BUFFER_SIZE,trimInfo);
+}
+void Empire::sendIGATrimmingLoopInfo(int _inner, int _numCurves){
+    const int BUFFER_SIZE = 2;
+    int trimInfo[BUFFER_SIZE] = { _inner, _numCurves};
+    ClientCommunication::getSingleton()->sendToServerBlocking<int>(BUFFER_SIZE,trimInfo);
+}
+void Empire::sendIGATrimmingCurve(int _direction, int _pDegree, int _uNumKnots, double* _uKnotVector, int _uNumControlPoints, double* _cpNet){
+    const int BUFFER_SIZE = 4;
+    int trimInfo[BUFFER_SIZE] = { _direction, _pDegree, _uNumKnots, _uNumControlPoints};
+    ClientCommunication::getSingleton()->sendToServerBlocking<int>(BUFFER_SIZE,trimInfo);
+    ClientCommunication::getSingleton()->sendToServerBlocking<double>(_uNumKnots,_uKnotVector);
+    ClientCommunication::getSingleton()->sendToServerBlocking<double>(_uNumControlPoints, _cpNet);
+}
+
 void Empire::sendDataField(int sizeOfArray, double *dataField) {
     ClientCommunication::getSingleton()->sendToServerBlocking<int>(1, &sizeOfArray);
     ClientCommunication::getSingleton()->sendToServerBlocking<double>(sizeOfArray, dataField);
