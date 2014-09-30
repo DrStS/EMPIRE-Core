@@ -124,51 +124,8 @@ void ClientCode::recvIGAMesh(std::string meshName) {
         serverComm->receiveFromClientBlocking<int>(name, uNoControlPoints * vNoControlPoints,
                 dofIndexNet);
 
-        IGAPatchSurface* thePatch = theIGAMesh->addPatch(pDegree, uNoKnots, uKnotVector, qDegree, vNoKnots, vKnotVector,
+        theIGAMesh->addPatch(pDegree, uNoKnots, uKnotVector, qDegree, vNoKnots, vKnotVector,
                 uNoControlPoints, vNoControlPoints, controlPointNet, dofIndexNet);
-        
-        /*
-        int isTrimmed = 0;
-        serverComm->receiveFromClientBlocking<int>(name, 1, isTrimmed);
-        
-        int numLoops;
-        serverComm->receiveFromClientBlocking<int>(name, 1, numLoops);
-        for(int loopCount = 0; loopCount < numLoops; loopCount++) {
-                
-            const int BUFFER_SIZE_TRIM = 2;
-            int trimInfo[BUFFER_SIZE_TRIM];
-            serverComm->receiveFromClientBlocking<int>(name, BUFFER_SIZE_TRIM, trimInfo);
-
-            int inner = trimInfo[0];
-            int numCurves = trimInfo[1];
-            thePatch->addTrimLoop(inner, numCurves);
-            
-            const int BUFFER_SIZE_CURVE = 4;
-            int curveInfo[BUFFER_SIZE_CURVE];
-            for(int curveCount = 0; curveCount < numCurves; curveCount++) {
-                serverComm->receiveFromClientBlocking<int>(name, BUFFER_SIZE_CURVE, curveInfo);
-                
-                int direction = patchInfo[0];
-                int pDegree = patchInfo[1];
-                int uNoKnots = patchInfo[2];
-                int uNoControlPoints = patchInfo[3];
-                
-                double* uKnotVector = new double[uNoKnots];
-                double* controlPointNet = new double[uNoControlPoints * 4];
-                int* dofIndexNet = new int[uNoControlPoints];
-                
-                serverComm->receiveFromClientBlocking<double>(name, uNoKnots, uKnotVector);
-                serverComm->receiveFromClientBlocking<double>(name, uNoControlPoints * 4, controlPointNet);
-                serverComm->receiveFromClientBlocking<int>(name, uNoControlPoints, dofIndexNet);
-                
-                thePatch->addTrimCurve(direction, ID??int ID, pDegree, uNoKnots, uKnotVector,
-                uNoControlPoints, controlPointNet;
-                
-                ///HOW TO DO FOR COUPLING CURVES ??
-            }
-        }
-        */
-        
 
     }
 

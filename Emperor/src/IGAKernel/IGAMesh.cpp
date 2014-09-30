@@ -44,7 +44,7 @@ IGAMesh::~IGAMesh() {
         delete surfacePatches[i];
 }
 
-IGAPatchSurface* IGAMesh::addPatch(int _pDegree, int _uNoKnots, double* _uKnotVector, int _qDegree,
+void IGAMesh::addPatch(int _pDegree, int _uNoKnots, double* _uKnotVector, int _qDegree,
         int _vNoKnots, double* _vKnotVector, int _uNoControlPoints, int _vNoControlPoints,
         double* _controlPointNet, int* _dofIndexNet) {
 
@@ -67,19 +67,7 @@ IGAPatchSurface* IGAMesh::addPatch(int _pDegree, int _uNoKnots, double* _uKnotVe
     surfacePatches.push_back(
             new IGAPatchSurface(IDBasis, _pDegree, _uNoKnots, _uKnotVector, _qDegree, _vNoKnots,
                     _vKnotVector, _uNoControlPoints, _vNoControlPoints, cpNet));
-    return surfacePatches.back();
-    
 }
-
-// IGAPatchSurface* IGAMesh::addPatch(int _pDegree, int _uNoKnots, double* _uKnotVector, int _qDegree,
-//                        int _vNoKnots, double* _vKnotVector, int _uNoControlPoints, int _vNoControlPoints,
-//                        double* _controlPointNet, int* _dofIndexNet) {
-//     
-//     addPatch(int _pDegree, int _uNoKnots, double* _uKnotVector, int _qDegree,
-//              int _vNoKnots, double* _vKnotVector, int _uNoControlPoints, int _vNoControlPoints,
-//              double* _controlPointNet, int* _dofIndexNet);
-//     return surfacePatches.back();
-// }
 
 void IGAMesh::computeBoundingBox() {
     if (boundingBox.isComputed)
