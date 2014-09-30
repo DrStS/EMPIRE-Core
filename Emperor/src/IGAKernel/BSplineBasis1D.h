@@ -121,7 +121,7 @@ public:
      * \brief Returns the polynomial degree of the B-Spline 1D basis
      * \author Andreas Apostolatos
      ***********/
-    inline int getPolynomialDegree() {
+    inline int getPolynomialDegree() const {
         return PDegree;
     }
 
@@ -129,7 +129,7 @@ public:
      * \brief Returns the number of knots for the 1D B-Spline basis
      * \author Andreas Apostolatos
      ***********/
-    inline int getNoKnots() {
+    inline int getNoKnots() const {
         return NoKnots;
     }
 
@@ -137,7 +137,7 @@ public:
      * \brief Returns the knot vector of the B-Spline 1D basis
      * \author Andreas Apostolatos
      ***********/
-    double* getKnotVector() {
+    double* getKnotVector() const {
         return KnotVector;
     }
 

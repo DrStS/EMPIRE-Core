@@ -82,9 +82,13 @@ public:
      * \param[in] _dofIndexNet The index of the dof of the each Control Points related to
      * \author Chenshen Wu
      ***********/
-    void addPatch(int _pDegree, int _uNoKnots, double* _uKnotVector, int _qDegree, int _vNoKnots,
-            double* _vKnotVector, int _uNoControlPoints, int _vNoControlPoints,
-            double* controlPointNet, int* _dofIndexNet);
+//     void addPatch(int _pDegree, int _uNoKnots, double* _uKnotVector, int _qDegree, int _vNoKnots,
+//             double* _vKnotVector, int _uNoControlPoints, int _vNoControlPoints,
+//             double* controlPointNet, int* _dofIndexNet);
+    
+    IGAPatchSurface* addPatch(int _pDegree, int _uNoKnots, double* _uKnotVector, int _qDegree, int _vNoKnots,
+                  double* _vKnotVector, int _uNoControlPoints, int _vNoControlPoints,
+                  double* controlPointNet, int* _dofIndexNet);
 
     /// Specializing abstract functions from AbstractMesh class
 public:

@@ -31,6 +31,7 @@
 #include "AbstractMesh.h"
 #include "NurbsBasis2D.h"
 #include "IGAControlPoint.h"
+#include "IGAPatchSurfaceTrimming.h"
 #include <limits>
 
 namespace EMPIRE {
@@ -55,6 +56,9 @@ protected:
 
     /// The set of the Control Points of the patch
     IGAControlPoint** ControlPointNet;
+    
+    /// The class holding the trimming information
+    IGAPatchSurfaceTrimming Trimming;
 
     /// The constructor and the destructor and the copy constructor
 public:
@@ -80,6 +84,31 @@ public:
      ***********/
     ~IGAPatchSurface();
 
+    
+    /// Trimming related functions
+public:
+    /***********************************************************************************************
+     * \brief Setup information about the loop soon to be received
+     * \param[in] inner 0 for outter and 1 for inner
+     * \param[in] numCurves Number of curves to be received for this loop 
+     * \author Fabien Pean
+     ***********/
+    void addTrimLoop(int inner, int numCurves);
+    /***********************************************************************************************
+     * \brief Add a Nurbs curve for the current loop and its attached information
+     * \param[in] inner Value 0 for outter and 1 for inner
+     * \param[in] direction The direction of the curve if is following standard or not
+     * \param[in] ID The id of the curve
+     * \param[in] _pDegree The polynomial degree of the IGA 1D curve in the u-direction
+     * \param[in] _uNoKnots The number of knots for the knot vector in the u-direction
+     * \param[in] _uKnotVector The underlying knot vector of the IGA 1D curve in the u-direction
+     * \param[in] _uNoControlPoints The number of the Control Points for the 1D NURBS patch in the u-direction
+     * \param[in] _controlPointNet The set of the Control Points related to the 1D NURBS patch
+     * \author Fabien Pean
+     ***********/
+    void addTrimCurve(int direction,int ID, int _pDegree, int _uNoKnots, double* _uKnotVector,
+                      int _uNoControlPoints, double* _controlPointNet);
+    
     /// Basis related functions
 public:
     /***********************************************************************************************

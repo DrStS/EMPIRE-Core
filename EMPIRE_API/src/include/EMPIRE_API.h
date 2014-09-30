@@ -112,6 +112,32 @@ void EMPIRE_API_sendIGAPatch(int _pDegree,  int _uNumKnots, double* _uKnotVector
 void EMPIRE_API_sendIGAMesh(char *_name, int _numPatches, int _numNodes);
 
 /***********************************************************************************************
+ * \brief Send the IGA trimming information to the server
+ * \param[in] _isTrimmed Whether the current considered patch is trimmed
+ * \param[in] _numLoops The number of loops defining boundary
+ * \author Fabien Pean
+ ***********/
+void EMPIRE_API_sendIGATrimmingInfo(int _isTrimmed, int _numLoops);
+/***********************************************************************************************
+ * \brief Send the IGA trimming information about the loop to the server
+ * \param[in] _inner whether loop is outter boundary loop or inner
+ * \param[in] _numCurves The number of curves defining the loop
+ * \author Fabien Pean
+ ***********/
+void EMPIRE_API_sendIGATrimmingLoopInfo(int _inner, int _numCurves);
+/***********************************************************************************************
+ * \brief Send a IGA trimming curve to the server
+ * \param[in] direction The direction of the curve if is following standard or not
+ * \param[in] _pDegree The polynomial degree of the IGA 1D curve in the u-direction
+ * \param[in] _uNumKnots The number of knots for the knot vector in the u-direction
+ * \param[in] _uKnotVector The underlying knot vector of the IGA 1D curve in the u-direction
+ * \param[in] _uNoControlPoints The number of the Control Points for the 1D NURBS patch in the u-direction
+ * \param[in] _controlPointNet The set of the Control Points related to the 1D NURBS patch
+ * \author Fabien Pean
+ ***********/
+void EMPIRE_API_sendIGATrimmingCurve(int _direction, int _pDegree, int _uNumKnots, double* _uKnotVector, int _uNumControlPoints, double* _cpNet);
+
+/***********************************************************************************************
  * \brief Send data field to the server
  * \param[in] name name of the field
  * \param[in] sizeOfArray size of the array (data field)
