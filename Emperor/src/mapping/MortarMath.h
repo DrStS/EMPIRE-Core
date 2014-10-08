@@ -207,6 +207,8 @@ bool computeLocalCoorInQuad(const double *quad, int planeToProject, const double
  * \brief This class is used to cooperate with the clipping algorithm
  *        The algorithm is from the book "J.Foley, Computer Graphics, Principles and Practice,
  *        2nd edition, Addison-Wesley" P237 - P240.
+ *        In practice this algorithm can have any strictly convex polygon as clipping window.
+ *        This means consecutive points are not authorized to be colinear
  * ***********/
 class PolygonClipper {
 public:
