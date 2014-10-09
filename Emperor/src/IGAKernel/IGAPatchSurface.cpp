@@ -146,12 +146,16 @@ double IGAPatchSurface::computePostprocessingScalarValue(double _u, double _v,
 
     return result;
 }
-
+void IGAPatchSurface::addTrimInfo(int* _knotSpanBelonging){
+	int u=IGABasis->getUBSplineBasis1D()->getNoKnots();
+	int v=IGABasis->getVBSplineBasis1D()->getNoKnots();
+	Trimming.addTrimInfo(u,v,_knotSpanBelonging);
+}
 void IGAPatchSurface::addTrimLoop(int inner, int numCurves) {
     Trimming.addTrimLoop(inner, numCurves);
 }
 
-void IGAPatchSurface::addTrimCurve(int direction, int ID, int _pDegree, int _uNoKnots, double* _uKnotVector,
+void IGAPatchSurface::addTrimCurve(int direction, int _pDegree, int _uNoKnots, double* _uKnotVector,
                   int _uNoControlPoints, double* _controlPointNet) {
                     
     int IDBasis = 0; ///???
@@ -165,6 +169,35 @@ void IGAPatchSurface::addTrimCurve(int direction, int ID, int _pDegree, int _uNo
     }
     Trimming.addTrimCurve(direction, IDBasis, _pDegree, _uNoKnots, _uKnotVector,
                                                _uNoControlPoints, cpNet); 
+}
+
+void IGAPatchSurface::getUntrimmedCPindexes(std::set<int>& out) {
+	const std::vector<std::vector<int> > knotSpan=Trimming.getKnotSpanInfo();
+
+	int uNoKnots=IGABasis->getUBSplineBasis1D()->getNoKnots();
+	int vNoKnots=IGABasis->getVBSplineBasis1D()->getNoKnots();
+
+	for(int uSpan=0;uSpan<uNoKnots-1;uSpan++) {
+		for(int vSpan=0;vSpan<vNoKnots-1;vSpan++) {
+			int notOutside=knotSpan[uSpan][vSpan]>=0;
+			if(notOutside) {
+				addCPidsToSet(out,uSpan,vSpan);
+			}
+		}
+	}
+}
+
+void IGAPatchSurface::addCPidsToSet(std::set<int>& CPids,const int uSpan, const int vSpan) {
+    int pDegree = IGABasis->getUBSplineBasis1D()->getPolynomialDegree();
+    int qDegree = IGABasis->getVBSplineBasis1D()->getPolynomialDegree();
+
+	for(int p=uSpan-pDegree;p<=uSpan+1;p++ ) {
+		for(int q=vSpan-qDegree;q<=vSpan+1;q++ ) {
+           int CPindex = q * uNoControlPoints + p;
+           int dofIndex=ControlPointNet[CPindex]->getDofIndex();
+           CPids.insert(dofIndex);
+		}
+	}
 }
 
 void IGAPatchSurface::computeCartesianCoordinates(double* _cartesianCoordinates, double _uPrm,
@@ -1008,7 +1041,6 @@ bool IGAPatchSurface::computePointProjectionOnPatchBoundaryOnGivenEdge(double& _
         v = IGABasis->getVBSplineBasis1D()->getKnotVector()[lengthVKnotVct - 1];
 
     double P0[3];
-
     // 2. Loop over all the Newton-Raphson iterations
     while (counter <= MAX_NUM_ITERATIONS) {
 
@@ -1079,7 +1111,6 @@ bool IGAPatchSurface::computePointProjectionOnPatchBoundaryOnGivenEdge(double& _
         if (v < IGABasis->getVBSplineBasis1D()->getKnotVector()[0])
             v = IGABasis->getVBSplineBasis1D()->getKnotVector()[0];
     }
-
     // 3. Check whether maximum number of iterations has been reached and if yes return 0 to the flag (non-converged iterations)
     if (counter > MAX_NUM_ITERATIONS)
         flagNewtonRaphson = false;
@@ -1132,49 +1163,70 @@ bool IGAPatchSurface::computePointProjectionOnPatchBoundary(double& _u, double& 
     bool isConverged = false;
     _distance = numeric_limits<double>::max();
 
+    // The lengths of the knot vectors to the NURBS patch
+    int lengthUKnotVct = IGABasis->getUBSplineBasis1D()->getNoKnots();
+    int lengthVKnotVct = IGABasis->getVBSplineBasis1D()->getNoKnots();
+
     // Loop over all the edges of the NURBS patch (for tensor product surfaces there are 4 edges)
     for (int edge = 0; edge < 4; edge++) {
+    	double u[2];
+    	double v[2];
+    	// Do the test for every edge for each extremity of the boundary patch
+    	for(int point=0;point<2;point++) {
+			// Find the fixed and the running parameter on the patch boundary
+			if (edge == 0 || edge == 1)
+				if(point==0)
+					t=IGABasis->getUBSplineBasis1D()->getKnotVector()[0];
+				else
+					t=IGABasis->getUBSplineBasis1D()->getKnotVector()[lengthUKnotVct - 1];
+			else
+				if(point==0)
+					t=IGABasis->getVBSplineBasis1D()->getKnotVector()[0];
+				else
+					t=IGABasis->getVBSplineBasis1D()->getKnotVector()[lengthVKnotVct - 1];
 
-        // Find the fixed and the running parameter on the patch boundary
-        if (edge == 0 || edge == 1)
-            t = u1;
-        else
-            t = v1;
+			// Compute point projection from the line to the NURBS patch boundary
+			isConverged = computePointProjectionOnPatchBoundaryOnGivenEdge(t, div, distance, _P1, _P2,
+					edge);
+			// Fix possible numerical error
+			if(fabs(div-1.0)<10*EPS) div=1.0;
+			if(fabs(div)	<10*EPS) div=0.0;
+//			DEBUG_OUT()<<"\tEdge["<<edge<<"] converged ? "<<isConverged<<" and distance is "<<distance<<" and div is "<<div<<endl;
+			if (isConverged) {
+				switch (edge) {
+				case 0:
+					u[point] = t;
+					v[point] = IGABasis->getVBSplineBasis1D()->getKnotVector()[0];
+					break;
+				case 1:
+					u[point] = t;
+					v[point] = IGABasis->getVBSplineBasis1D()->getKnotVector()[lengthVKnotVct - 1];
+					break;
+				case 2:
+					u[point] = IGABasis->getUBSplineBasis1D()->getKnotVector()[0];
+					v[point] = t;
+					break;
+				case 3:
+					u[point] = IGABasis->getUBSplineBasis1D()->getKnotVector()[lengthUKnotVct - 1];
+					v[point] = t;
+					break;
+				}
+				// If the point is the same as the entry point
+				bool validPoint1=(u[point]!=u1 || v[point]!=v1);//Different from entry point then true else false
+				bool validPoint2=(point==1)?(u[0]==u1 && v[0]==v1 && u[1]==u1 && v[1]==v1):false;//Both are the same then true else false
+				// If it is not a point to take into account, continue
+				if(!(validPoint1 || validPoint2)) continue;
+				//Otherwise store it under following conditions
+				if (distance < _distance && div >= 0.0 && div <= 1.0) {
+					_u=u[point];
+					_v=v[point];
+					_distance = distance;
+					_ratio = div;
 
-        // Compute point projection from the line to the NURBS patch boundary
-        isConverged = computePointProjectionOnPatchBoundaryOnGivenEdge(t, div, distance, _P1, _P2,
-                edge);
-
-        if (isConverged)
-            if (distance < _distance && div >= 0.0 && div <= 1.0) {
-
-                _distance = distance;
-                _ratio = div;
-                switch (edge) {
-                case 0:
-                    _u = t;
-                    _v = IGABasis->getVBSplineBasis1D()->getKnotVector()[0];
-                    break;
-                case 1:
-                    _u = t;
-                    _v =
-                            IGABasis->getVBSplineBasis1D()->getKnotVector()[IGABasis->getVBSplineBasis1D()->getNoKnots()
-                                    - 1];
-                    break;
-                case 2:
-                    _u = IGABasis->getUBSplineBasis1D()->getKnotVector()[0];
-                    _v = t;
-                    break;
-                case 3:
-                    _u =
-                            IGABasis->getUBSplineBasis1D()->getKnotVector()[IGABasis->getUBSplineBasis1D()->getNoKnots()
-                                    - 1];
-                    _v = t;
-                    break;
-                }
-            }
+				}
+			}
+    	}
     }
-
     if (_distance == numeric_limits<double>::max())
         return false;
     else if (_ratio >= 0.0 && _ratio <= 1.0) {
@@ -1480,7 +1532,7 @@ void IGAPatchSurface::computeCartesianCoordinatesAndNormalVector(double* _coords
     _normal[2] = baseVec[0] * baseVec[4] - baseVec[1] * baseVec[3];
 }
 
-Message &operator<<(Message &message, IGAPatchSurface &mesh) {
+Message &operator<<(Message &message, const IGAPatchSurface &mesh) {
 //  message << "\t" << "IGA Patch name: " << mesh.name << endl;
 
     message << "\t\tpDegree:  " << mesh.getIGABasis()->getUBSplineBasis1D()->getPolynomialDegree()
@@ -1513,8 +1565,10 @@ Message &operator<<(Message &message, IGAPatchSurface &mesh) {
         }
         message << endl;
     }
-
-    message() << "\t" << "---------------------------------" << endl;
+    if(mesh.isTrimmed()) {
+		message << mesh.getTrimming();
+	}
+    message << "\t" << "---------------------------------End Patch" << endl;
     return message;
 }
 

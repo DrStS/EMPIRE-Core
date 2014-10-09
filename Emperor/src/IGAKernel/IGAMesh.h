@@ -49,6 +49,8 @@ protected:
 
     /// The number of the Control Points in the IGAMesh
     int numNodes;
+    /// The number of NOT TRIMMED OUT Control Points in the IGAMesh
+    int untrimmedNumNodes;
 
     /// The constructor, the destructor and the copy constructor
 public:
@@ -56,8 +58,6 @@ public:
      * \brief Constructor
      * \param[in] _name The name of the IGA mesh
      * \param[in] _numControlPoints The number of the Control Points
-     * \param[in] _globalControlPoints The coordinates and the weights of the Control Points sorted in an array
-     * \param[in] _controlPointID The Control Point IDs sorted in an array
      * \author Chenshen Wu
      ***********/
     IGAMesh(std::string _name, int _numNodes);
@@ -80,12 +80,9 @@ public:
      * \param[in] _vNoControlPoints The number of the Control Points for the 2D NURBS patch in the v-direction
      * \param[in] _controlPointNet The set of the Control Points related to the 2D NURBS patch
      * \param[in] _dofIndexNet The index of the dof of the each Control Points related to
+     * \return The pointer to the patch just created
      * \author Chenshen Wu
      ***********/
-//     void addPatch(int _pDegree, int _uNoKnots, double* _uKnotVector, int _qDegree, int _vNoKnots,
-//             double* _vKnotVector, int _uNoControlPoints, int _vNoControlPoints,
-//             double* controlPointNet, int* _dofIndexNet);
-    
     IGAPatchSurface* addPatch(int _pDegree, int _uNoKnots, double* _uKnotVector, int _qDegree, int _vNoKnots,
                   double* _vKnotVector, int _uNoControlPoints, int _vNoControlPoints,
                   double* controlPointNet, int* _dofIndexNet);
@@ -117,6 +114,9 @@ public:
      * \author Chenshen Wu
      ***********/
     inline std::vector<IGAPatchSurface*> getSurfacePatches() {
+		return surfacePatches;
+    }
+    inline const std::vector<IGAPatchSurface*>& getSurfacePatches() const {
         return surfacePatches;
     }
 
@@ -125,17 +125,19 @@ public:
      * \param[out] The number of the Nodes
      * \author Chenshen Wu
      ***********/
-    inline int getNumNodes() {
+    inline int getNumNodes() const {
         return numNodes;
     }
+
+    int getUntrimmedNumNodes();
 
 };
 
 /***********************************************************************************************
  * \brief Allows for nice debug output
- * \author Chenshen Wu
+ * \author Fabien Pean, Chenshen Wu
  ***********/
-Message &operator<<(Message &message, IGAMesh &mesh);
+Message &operator<<(Message &message, const IGAMesh &mesh);
 
 }/* namespace EMPIRE */
 

@@ -36,7 +36,7 @@ using namespace std;
 namespace EMPIRE {
 
 IGAMesh::IGAMesh(std::string _name, int _numNodes) :
-        AbstractMesh(_name, EMPIRE_Mesh_IGAMesh), numNodes(_numNodes) {
+        AbstractMesh(_name, EMPIRE_Mesh_IGAMesh), numNodes(_numNodes), untrimmedNumNodes(-1) {
 }
 
 IGAMesh::~IGAMesh() {
@@ -70,16 +70,6 @@ IGAPatchSurface* IGAMesh::addPatch(int _pDegree, int _uNoKnots, double* _uKnotVe
     return surfacePatches.back();
     
 }
-
-// IGAPatchSurface* IGAMesh::addPatch(int _pDegree, int _uNoKnots, double* _uKnotVector, int _qDegree,
-//                        int _vNoKnots, double* _vKnotVector, int _uNoControlPoints, int _vNoControlPoints,
-//                        double* _controlPointNet, int* _dofIndexNet) {
-//     
-//     addPatch(int _pDegree, int _uNoKnots, double* _uKnotVector, int _qDegree,
-//              int _vNoKnots, double* _vKnotVector, int _uNoControlPoints, int _vNoControlPoints,
-//              double* _controlPointNet, int* _dofIndexNet);
-//     return surfacePatches.back();
-// }
 
 void IGAMesh::computeBoundingBox() {
     if (boundingBox.isComputed)
@@ -131,59 +121,72 @@ void IGAMesh::addDataField(string _dataFieldName, EMPIRE_DataField_location _loc
 
 }
 
-Message &operator<<(Message & _message, IGAMesh & _mesh) {
+int IGAMesh::getUntrimmedNumNodes() {
+	if(untrimmedNumNodes==-1){
+		std::set<int> CPids;
+		for(int i=0;i<surfacePatches.size();i++){
+			surfacePatches[i]->getUntrimmedCPindexes(CPids);
+		}
+		untrimmedNumNodes=CPids.size();
+	}
+	return untrimmedNumNodes;
+}
+
+Message &operator<<(Message & _message, const IGAMesh & _mesh) {
+    _message <<endl;
+    _message << "\t" << "---------------------------------Start Mesh" << endl;
     _message << "\t" << "IGA Mesh name: " << _mesh.name << endl;
-
     _message << "\t\tNumber of Patches: " << _mesh.getSurfacePatches().size() << endl;
-
+    //_message << "\t" << "---------------------------------" << endl;
     for (int k = 0; k < _mesh.getSurfacePatches().size(); k++) {
-
-        _message << "\t\t\tPatch" << k << ":" << endl;
-        _message << "\t\t\tpDegree:  "
-                << _mesh.getSurfacePatches()[k]->getIGABasis()->getUBSplineBasis1D()->getPolynomialDegree()
-                << endl;
-        _message << "\t\t\tqDegree:  "
-                << _mesh.getSurfacePatches()[k]->getIGABasis()->getVBSplineBasis1D()->getPolynomialDegree()
-                << endl;
-        _message << "\t\t\tKnots Vector U: \t";
-
-        for (int i = 0;
-                i < _mesh.getSurfacePatches()[k]->getIGABasis()->getUBSplineBasis1D()->getNoKnots();
-                i++)
-            _message
-                    << _mesh.getSurfacePatches()[k]->getIGABasis()->getUBSplineBasis1D()->getKnotVector()[i]
-                    << "  ";
-        _message << endl;
-
-        _message << "\t\t\tKnots Vector V: \t";
-        for (int i = 0;
-                i < _mesh.getSurfacePatches()[k]->getIGABasis()->getVBSplineBasis1D()->getNoKnots();
-                i++)
-            _message
-                    << _mesh.getSurfacePatches()[k]->getIGABasis()->getVBSplineBasis1D()->getKnotVector()[i]
-                    << "  ";
-        _message << endl;
-
-        _message << "\t\t\t" << "number of control points U: "
-                << _mesh.getSurfacePatches()[k]->getUNoControlPoints() << endl;
-        _message << "\t\t\t" << "number of control points V: "
-                << _mesh.getSurfacePatches()[k]->getVNoControlPoints() << endl;
-
-        _message << "\t\t\tControl Points Net: " << endl;
-        int count = 0;
-        for (int i = 0; i < _mesh.getSurfacePatches()[k]->getUNoControlPoints(); i++) {
-            _message << "\t\t\t";
-            for (int j = 0; j < _mesh.getSurfacePatches()[k]->getVNoControlPoints(); j++) {
-                _message << _mesh.getSurfacePatches()[k]->getControlPointNet()[count]->getX()
-                        << ", " << _mesh.getSurfacePatches()[k]->getControlPointNet()[count]->getY()
-                        << ", " << _mesh.getSurfacePatches()[k]->getControlPointNet()[count]->getZ()
-                        << "\t \t";
-                count++;
-            }
-            _message << endl;
-        }
-        _message() << "\t" << "---------------------------------" << endl;
+        _message << "\t" << "---------------------------------Start Patch" << endl;
+        _message << "\tPatch[" << k << "]:" << endl;
+        _message << *(_mesh.getSurfacePatches()[k]);
+//        _message << "\t\t\tpDegree:  "
+//                << _mesh.getSurfacePatches()[k]->getIGABasis()->getUBSplineBasis1D()->getPolynomialDegree()
+//                << endl;
+//        _message << "\t\t\tqDegree:  "
+//                << _mesh.getSurfacePatches()[k]->getIGABasis()->getVBSplineBasis1D()->getPolynomialDegree()
+//                << endl;
+//        _message << "\t\t\tKnots Vector U: \t";
+//
+//        for (int i = 0;
+//                i < _mesh.getSurfacePatches()[k]->getIGABasis()->getUBSplineBasis1D()->getNoKnots();
+//                i++)
+//            _message
+//                    << _mesh.getSurfacePatches()[k]->getIGABasis()->getUBSplineBasis1D()->getKnotVector()[i]
+//                    << "  ";
+//        _message << endl;
+//
+//        _message << "\t\t\tKnots Vector V: \t";
+//        for (int i = 0;
+//                i < _mesh.getSurfacePatches()[k]->getIGABasis()->getVBSplineBasis1D()->getNoKnots();
+//                i++)
+//            _message
+//                    << _mesh.getSurfacePatches()[k]->getIGABasis()->getVBSplineBasis1D()->getKnotVector()[i]
+//                    << "  ";
+//        _message << endl;
+//
+//        _message << "\t\t\t" << "number of control points U: "
+//                << _mesh.getSurfacePatches()[k]->getUNoControlPoints() << endl;
+//        _message << "\t\t\t" << "number of control points V: "
+//                << _mesh.getSurfacePatches()[k]->getVNoControlPoints() << endl;
+//
+//        _message << "\t\t\tControl Points Net: " << endl;
+//        int count = 0;
+//        for (int i = 0; i < _mesh.getSurfacePatches()[k]->getUNoControlPoints(); i++) {
+//            _message << "\t\t\t";
+//            for (int j = 0; j < _mesh.getSurfacePatches()[k]->getVNoControlPoints(); j++) {
+//                _message << _mesh.getSurfacePatches()[k]->getControlPointNet()[count]->getX()
+//                        << ", " << _mesh.getSurfacePatches()[k]->getControlPointNet()[count]->getY()
+//                        << ", " << _mesh.getSurfacePatches()[k]->getControlPointNet()[count]->getZ()
+//                        << "\t \t";
+//                count++;
+//            }
+//            _message << endl;
+//        }
     }
+    _message << "\t" << "---------------------------------End Mesh" << endl;
     return _message;
 }
 

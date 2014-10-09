@@ -33,6 +33,7 @@
 #include "IGAControlPoint.h"
 #include "IGAPatchSurfaceTrimming.h"
 #include <limits>
+#include <set>
 
 namespace EMPIRE {
 class DataField;
@@ -87,6 +88,7 @@ public:
     
     /// Trimming related functions
 public:
+    void addTrimInfo(int* _knotSpanBelonging);
     /***********************************************************************************************
      * \brief Setup information about the loop soon to be received
      * \param[in] inner 0 for outter and 1 for inner
@@ -106,9 +108,15 @@ public:
      * \param[in] _controlPointNet The set of the Control Points related to the 1D NURBS patch
      * \author Fabien Pean
      ***********/
-    void addTrimCurve(int direction,int ID, int _pDegree, int _uNoKnots, double* _uKnotVector,
+    void addTrimCurve(int direction, int _pDegree, int _uNoKnots, double* _uKnotVector,
                       int _uNoControlPoints, double* _controlPointNet);
     
+    void linearizeTrimming(){Trimming.linearizeLoops();};
+
+    void getUntrimmedCPindexes(std::set<int>& out);
+private:
+    void addCPidsToSet(std::set<int>& CPids,const int uSpan, const int vSpan);
+
     /// Basis related functions
 public:
     /***********************************************************************************************
@@ -319,7 +327,7 @@ public:
      * \brief Get the underlying IsoGeometric basis of the patch
      * \author Andreas Apostolatos
      ***********/
-    inline BSplineBasis2D* getIGABasis() {
+    inline BSplineBasis2D* getIGABasis() const {
         return IGABasis;
     }
 
@@ -327,7 +335,7 @@ public:
      * \brief Get the number of the Control Points of the patch in u-direction
      * \author Andreas Apostolatos
      ***********/
-    inline int getUNoControlPoints() {
+    inline int getUNoControlPoints() const {
         return uNoControlPoints;
     }
 
@@ -335,7 +343,7 @@ public:
      * \brief Get the number of the Control Points of the patch in v-direction
      * \author Andreas Apostolatos
      ***********/
-    inline int getVNoControlPoints() {
+    inline int getVNoControlPoints() const {
         return vNoControlPoints;
     }
 
@@ -343,7 +351,7 @@ public:
      * \brief Get the number of the Control Points of the patch
      * \author Chenshen Wu
      ***********/
-    inline int getNoControlPoints() {
+    inline int getNoControlPoints() const {
         return uNoControlPoints * vNoControlPoints;
     }
 
@@ -351,7 +359,7 @@ public:
      * \brief Get the Control Points of the patch
      * \author Andreas Apostolatos
      ***********/
-    inline IGAControlPoint** getControlPointNet() {
+    inline IGAControlPoint** getControlPointNet() const {
         return ControlPointNet;
     }
 
@@ -371,6 +379,24 @@ public:
         return getIGABasis()->getVBSplineBasis1D()->findKnotSpan(_v);
     }
 
+    /***********************************************************************************************
+     * \brief Get Trimming class
+     * \author Fabien Pean
+     ***********/
+    inline IGAPatchSurfaceTrimming& getTrimming() {
+    	return Trimming;
+    }
+    inline const IGAPatchSurfaceTrimming& getTrimming() const {
+        return Trimming;
+    }
+    /***********************************************************************************************
+     * \brief Check if patch is trimmed
+     * \author Fabien Pean
+     ***********/
+    inline bool isTrimmed() const {
+    	return Trimming.isTrimmed();
+    }
+
     /// The maximum number of Newton-Raphson iterations for the computation of the orthogonal projection of point on the NURBS patch
     static const int MAX_NUM_ITERATIONS;
 
@@ -386,9 +412,9 @@ public:
 
 /***********************************************************************************************
  * \brief Allows for nice debug output
- * \author Chenshen Wu
+ * \author Fabien Pean, Chenshen Wu
  ***********/
-Message &operator<<(Message &message, IGAPatchSurface &mesh);
+Message &operator<<(Message &message, const IGAPatchSurface &mesh);
 
 }/* namespace EMPIRE */
 
