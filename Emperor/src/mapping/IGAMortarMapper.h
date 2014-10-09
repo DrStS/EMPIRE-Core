@@ -160,7 +160,6 @@ public:
      ***********/
     void integrate(IGAPatchSurface* _igaPatchSurface, int _numNodes, double* _polygonIGA,
             int _spanU, int _spanV, double* _polygonFE, int _elementIndex, int _nShapeFuncsFE);
-
     /***********************************************************************************************
      * \brief Perform consistent mapping from IGA to FE (map displacements)
      * \param[in] fieldIGA is the input data
@@ -176,6 +175,34 @@ public:
      * \author Chenshen Wu
      ***********/
     void conservativeMapping(const double *fieldFE, double *fieldIGA);
+
+    /// intern function used for mapping
+private:
+    /***********************************************************************************************
+     * \brief Compute the span of the projected element living in _thePatch
+     * \param[in] _igaPatchSurface The patch to compute the coupling matrices for
+     * \param[in] _numNodes The number of nodes of the clipped polygon
+     * \param[in] _polygonIGA The resulting from the clipping polygon at each knot span in the NURBS space
+     * \param[out] _span An array size 4 containing [minSpanU maxSpanU minSpanV maxSpanV]
+     * \author Fabien Pean
+     ***********/
+    void computeKnotSpanOfProjElement(IGAPatchSurface* _thePatch, int _numNodesClippedByPatchProjectedElement,
+            double* _clippedByPatchProjElementFEUV, int (&_span)[4]);
+    /***********************************************************************************************
+     * \brief Compute the polygon that will finally be integrated. Is done just after that element is clipped by knot span.
+     * \param[in] _igaPatchSurface The patch to compute the coupling matrices for
+     * \param[in] _numNodes The number of nodes of the polygon clipped by the knot span in input
+     * \param[in] _polygonIGA The polygon clipped at each knot span as input.
+     * \param[out] _numNodesClippedByTrimming The number of nodes of the output polygon after clipping by trimming
+     * \param[out] _clippedByTrimming The polygon after clipping by the trimming loops of the patch
+     * \author Fabien Pean
+     ***********/
+    void computeTrimmedPolygon(IGAPatchSurface* _thePatch,int _numNodesClippedByPatchProjectedElement,
+            double* _clippedByPatchProjElementFEUV, int& _numNodesClippedByTrimming, double*& _clippedByTrimming);
+
+    void computeLocalElementCoord(int _numNodesClippedByKnotSpanProjElementFE, double* _clippedByKnotSpanProjElementFEUV,
+    		int _numNodesClippedByPatchProjectedElement, double* _clippedByPatchProjElementFEUV,
+    		double* _clippedByPatchProjElementFEWZ, double*&  ClippedByKnotSpanProjElementFEWZ);
 
     /// Writing output functions
 public:
