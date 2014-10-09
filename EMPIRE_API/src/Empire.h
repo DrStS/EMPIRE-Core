@@ -117,6 +117,14 @@ public:
      ***********/
     void sendIGATrimmingInfo(int _isTrimmed, int _numLoops);
     /***********************************************************************************************
+     * \brief Send the IGA trimming information about patch to the server
+     * \param[in] _uNumKnots The number of knots in U direction
+     * \param[in] _vNumKnots The number of knots in V direction
+     * \param[in] _knotSpanBelonging The array indicating the knots state, inside,trimmed,outside
+     * \author Fabien Pean
+     ***********/
+    void sendIGATrimmingPatchInfo(int _uNumKnots, int _vNumKnots, int* _knotSpanBelonging);
+    /***********************************************************************************************
      * \brief Send the IGA trimming information about the loop to the server
      * \param[in] _inner whether loop is outter boundary loop or inner
      * \param[in] _numCurves The number of curves defining the loop

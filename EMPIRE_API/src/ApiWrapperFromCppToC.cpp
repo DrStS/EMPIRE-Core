@@ -65,6 +65,10 @@ void EMPIRE_API_sendIGATrimmingInfo(int _isTrimmed, int _numLoops) {
     empire->sendIGATrimmingInfo(_isTrimmed, _numLoops);
 }
 
+void EMPIRE_API_sendIGATrimmingPatchInfo(int _uNumKnots, int _vNumKnots, int* _knotSpanBelonging) {
+    empire->sendIGATrimmingPatchInfo(_uNumKnots, _vNumKnots, _knotSpanBelonging);
+}
+
 void EMPIRE_API_sendIGATrimmingLoopInfo(int _inner, int _numCurves) {
     empire->sendIGATrimmingLoopInfo(_inner, _numCurves);
 }
