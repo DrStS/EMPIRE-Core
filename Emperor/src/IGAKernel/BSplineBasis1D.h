@@ -90,8 +90,16 @@ public:
     }
 
     /***********************************************************************************************
+     * \brief Clamps the parameter to the Knot vector bounds
+     * \param[in/out] _uPrm The parameter to clamp
+     * \return bool Gives 1 if the input knot was inside the Knot vector or close enough, 0 if outside
+     * \author Fabien Pean
+     ***********/
+    bool clampKnot(double&);
+
+    /***********************************************************************************************
      * \brief Returns the polynomial degree of the B-Spline 1D basis
-     * \param[in] _uPrm The parameter on which the knot span is searced
+     * \param[in] _uPrm The parameter on which the knot span is searched
      * \author Andreas Apostolatos
      ***********/
     int findKnotSpan(double);
@@ -141,6 +149,20 @@ public:
         return KnotVector;
     }
 
+    /***********************************************************************************************
+     * \brief Get the first knot of the vector
+     * \author Fabien Pean
+     ***********/
+    inline double getFirstKnot() const {
+        return KnotVector[0];
+    }
+    /***********************************************************************************************
+     * \brief Get last knot of the vector
+     * \author Fabien Pean
+     ***********/
+    inline double getLastKnot() const{
+        return KnotVector[NoKnots-1];
+    }
     /***********************************************************************************************
      * \brief Sets the polynomial degree of the B-Spline 1D basis
      * \author Andreas Apostolatos
