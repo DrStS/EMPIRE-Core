@@ -22,7 +22,7 @@
 #include <iostream>
 #include <stdlib.h>
 #include <math.h>
-#include<assert.h>
+#include <assert.h>
 
 // Inclusion of user defined libraries
 #include "Message.h"
