@@ -38,7 +38,7 @@ private:
 public:
     void setUp() {
 
-        Tol = 1e-15;
+        Tol = 1e-13;
 
         // Provide an id for the basis
         int id_basis = 1;
