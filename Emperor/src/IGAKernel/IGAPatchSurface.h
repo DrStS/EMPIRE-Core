@@ -260,6 +260,29 @@ public:
             double& _distance, double* _P1, double* _P2);
 
     /***********************************************************************************************
+     * \brief Returns the point on the NURBS patch boundary which is closest to the physical point provided
+     * \param[out] The flag on whether or not the Newton-Raphson iterations have converged for the defined set of parameters
+     * \param[in/out] _t The running parameter on the given NURBS patch boundary
+     * \param[in/out] _v Given is the initial guess for the Newton-Raphson iterations and returned value is the converged v-surface parameter
+     * \param[in/out] _distance The distance from the NURBS boundary to the physical point
+     * \param[in] _P1 The physical point
+     * \param[in] _edge (0,1,2,3) --> (uRunsvStart,uRunsvEnd,uStartvRuns,uEndvRuns)
+     * \author Fabien Pean
+     ***********/
+    bool computePointMinimumDistanceToPatchBoundaryOnGivenEdge(double& _t,
+            double& _distance, double* _P1, int _edge);
+    /***********************************************************************************************
+     * \brief Returns the point on the NURBS patch boundary which is closest to the physical point provided
+     * \param[out] The flag on whether or not the Newton-Raphson iterations have converged for the defined set of parameters
+     * \param[in/out] _u Given is the initial guess for the Newton-Raphson iterations and returned value is the converged u-surface parameter
+     * \param[in/out] _v Given is the initial guess for the Newton-Raphson iterations and returned value is the converged v-surface parameter
+     * \param[in/out] _distance The distance from the point to the physical point
+     * \param[in] _P1 The physical point
+     * \param[out] _edge The list of edge the point is on
+     * \author Fabien Pean
+     ***********/
+    void computePointMinimumDistanceToPatchBoundary(double& _u, double& _v, double& _distance, double* _P1, int* _edge);
+    /***********************************************************************************************
      * \brief Returns the point on the NURBS patch boundary which is closest to the line segment
      * \param[out] The flag on whether or not the Newton-Raphson iterations have converged for the defined set of parameters
      * \param[in/out] _u Given is the initial guess for the Newton-Raphson iterations and returned value is the converged u-surface parameter
@@ -408,6 +431,9 @@ public:
 
     /// The tolerance for the distance of the computed point to the surface
     static const double EPS_DISTANCE;
+
+    /// The tolerance for the distance of the computed point to the surface for points which are expected to be projected in irregular locations of the patch
+    static const double EPS_DISTANCE_RELAXED;
 };
 
 /***********************************************************************************************
