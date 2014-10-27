@@ -22,7 +22,7 @@
 #include <iostream>
 #include <stdlib.h>
 #include <math.h>
-#include<assert.h>
+#include <assert.h>
 
 // Inclusion of user defined libraries
 #include "Message.h"
@@ -89,18 +89,36 @@ BSplineBasis1D::~BSplineBasis1D() {
 
 }
 
+bool BSplineBasis1D::clampKnot(double& _uPrm) {
+	bool isInside=true;
+
+	// Clamp to lower boundary according to tolerance
+	double firstKnot=getFirstKnot();
+    if (_uPrm < firstKnot && firstKnot - _uPrm < EPS_ACCPETEDINTOKNOTSPAN) {
+    	_uPrm = firstKnot;
+    //In case knot is fully outside, clamp it anyway but set up output flag to false
+    } else if(_uPrm < firstKnot){
+    	isInside=false;
+    	_uPrm = firstKnot;
+    }
+	// Clamp to upper boundary according to tolerance
+	double lastKnot=getLastKnot();
+    if (_uPrm > lastKnot && _uPrm - lastKnot < EPS_ACCPETEDINTOKNOTSPAN) {
+        _uPrm = lastKnot;
+    } else if(_uPrm > lastKnot){
+    	isInside=false;
+        _uPrm = lastKnot;
+    }
+    return isInside;
+}
+
 int BSplineBasis1D::findKnotSpan(double _uPrm) {
     // Check input
-    if (_uPrm < KnotVector[0] && KnotVector[0] - _uPrm < EPS_ACCPETEDINTOKNOTSPAN)
-        _uPrm = KnotVector[0];
-    if (_uPrm > KnotVector[NoKnots - 1] && _uPrm - KnotVector[NoKnots - 1] < EPS_ACCPETEDINTOKNOTSPAN)
-
-        _uPrm = KnotVector[0];
-    if (_uPrm < KnotVector[0] || _uPrm > KnotVector[NoKnots - 1]) {
-        ERROR_OUT("in BSplineBasis1D::BSplineBasis1D");
+	if(!clampKnot(_uPrm)) {
+        ERROR_OUT("in BSplineBasis1D::findKnotSpan");
         ERROR_OUT("Given parameter is outside of the knot span");
-        exit(EXIT_FAILURE);
-    }
+		exit(EXIT_FAILURE);
+	}
 
     // Compute the number of basis functions
     int n = computeNoBasisFunctions();

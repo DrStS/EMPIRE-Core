@@ -124,10 +124,56 @@ void ClientCode::recvIGAMesh(std::string meshName) {
         serverComm->receiveFromClientBlocking<int>(name, uNoControlPoints * vNoControlPoints,
                 dofIndexNet);
 
-        theIGAMesh->addPatch(pDegree, uNoKnots, uKnotVector, qDegree, vNoKnots, vKnotVector,
+        IGAPatchSurface* thePatch = theIGAMesh->addPatch(pDegree, uNoKnots, uKnotVector, qDegree, vNoKnots, vKnotVector,
                 uNoControlPoints, vNoControlPoints, controlPointNet, dofIndexNet);
+        
 
-    }
+        int trimInfo[2];
+        serverComm->receiveFromClientBlocking<int>(name, 2, trimInfo);
+        int isTrimmed = trimInfo[0];
+        int numLoops = trimInfo[1];
+        if(isTrimmed) {
+            assert(numLoops>0);
+            //Get knot span belonging (OUT,TRIM,IN), useful ?
+            int* knotSpanBelonging = new int[uNoKnots*vNoKnots];
+            serverComm->receiveFromClientBlocking<int>(name, (uNoKnots-1)*(vNoKnots-1), knotSpanBelonging);
+            thePatch->addTrimInfo(knotSpanBelonging);
+            delete knotSpanBelonging;
+            //Get every loop
+            for(int loopCount = 0; loopCount < numLoops; loopCount++) {
+                    
+                const int BUFFER_SIZE_TRIM = 2;
+                int loopInfo[BUFFER_SIZE_TRIM];
+                serverComm->receiveFromClientBlocking<int>(name, BUFFER_SIZE_TRIM, loopInfo);
+
+                int inner = loopInfo[0];
+                int numCurves = loopInfo[1];
+                thePatch->addTrimLoop(inner, numCurves);
+                
+                const int BUFFER_SIZE_CURVE = 4;
+                int curveInfo[BUFFER_SIZE_CURVE];
+                //Get every curve
+                for(int curveCount = 0; curveCount < numCurves; curveCount++) {
+                    serverComm->receiveFromClientBlocking<int>(name, BUFFER_SIZE_CURVE, curveInfo);
+                    
+                    int direction = curveInfo[0];
+                    int pDegree = curveInfo[1];
+                    int uNoKnots = curveInfo[2];
+                    int uNoControlPoints = curveInfo[3];
+                    
+                    double* uKnotVector = new double[uNoKnots];
+                    double* controlPointNet = new double[uNoControlPoints * 4];
+                    
+                    serverComm->receiveFromClientBlocking<double>(name, uNoKnots, uKnotVector);
+                    serverComm->receiveFromClientBlocking<double>(name, uNoControlPoints * 4, controlPointNet);
+                    
+                    thePatch->addTrimCurve(direction, pDegree, uNoKnots, uKnotVector,
+                    		uNoControlPoints, controlPointNet);
+                } // end curve
+            } // end trimming loops
+            thePatch->linearizeTrimming();
+        } // end isTrimmed
+    } // end patch
 
     { // output to shell
         DEBUG_OUT() << (*theIGAMesh) << endl;

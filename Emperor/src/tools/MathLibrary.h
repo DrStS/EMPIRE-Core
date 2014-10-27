@@ -401,7 +401,7 @@ public:
 
     }
     /***********************************************************************************************
-     * \brief This prints the matrix in full style in a file
+     * \brief This prints the matrix in full style in a file ready to be imported in matlab via dlmread('filename',' ')
      * \author Fabien Pean
      ***********/
     void printToFile(std::string filename) {
@@ -410,18 +410,22 @@ public:
         
         std::ofstream ofs;
         ofs.open(filename.c_str(), std::ofstream::out);
-        ofs<<"[";
+        ofs << std::scientific;
         for (ii_counter = 0; ii_counter < m; ii_counter++) {
             for (jj_counter = 0; jj_counter < n; jj_counter++) {
-                if ((*mat)[ii_counter].find(jj_counter) != (*mat)[ii_counter].end()) {
-                    ofs << (*mat)[ii_counter].find(jj_counter)->second << " ";
-                } else {
-                    ofs<<"0 ";
+            	if(jj_counter!=0) ofs<<" ";
+                if(isSymmetric) {
+                    if(ii_counter<=jj_counter) {
+                        ofs<<(this->operator()(ii_counter,jj_counter));
+                    } else {
+                        ofs<<(this->operator()(jj_counter,ii_counter));
+                    }
+                }else{
+                    ofs<<(this->operator()(ii_counter,jj_counter));
                 }
             }
             ofs<<std::endl;
         }
-        ofs<<"];";
         ofs.close();
     }
 private:

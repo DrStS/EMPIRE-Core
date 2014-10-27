@@ -79,7 +79,7 @@ public:
     /***********************************************************************************************
      * \brief Receive the mesh from a real client
      * \param[in] meshName name of the mesh to be received
-     * \author Chenshen Wu
+     * \author Fabien Pean, Chenshen Wu
      ***********/
     void recvIGAMesh(std::string meshName);
     /***********************************************************************************************
