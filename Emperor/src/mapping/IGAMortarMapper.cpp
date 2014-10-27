@@ -85,6 +85,23 @@ IGAMortarMapper::IGAMortarMapper(std::string _name, IGAMesh *_meshIGA, FEMesh *_
     computeCouplingMatrices();
 
     C_NN->factorize();
+
+    double ones[numNodesSlave];
+    for (int i = 0; i < numNodesSlave; i++) {
+        ones[i] = 1.0;
+    }
+    double output[numNodesMaster];
+    this->consistentMapping(ones, output);
+    double norm = 0;
+     for (int i = 0; i < numNodesMaster; i++) {
+         DEBUG_OUT() << output[i] << endl;
+     norm += output[i] * output[i];
+     }
+     norm = sqrt(norm / numNodesMaster);
+     DEBUG_OUT() << "Norm of output field = " << norm << endl;
+
+    C_NN->printToFile("C_NN.txt");
+    C_NR->printToFile("C_NR.txt");
 }
 
 IGAMortarMapper::~IGAMortarMapper() {
@@ -565,11 +582,13 @@ void IGAMortarMapper::computeCouplingMatrices() {
                             ERROR_OUT() << "Cannot find point projection on patch boundary" << endl;
                             ERROR_OUT()
                                     << "Cannot find point projection on patch boundary between node ["
-                                    << nodeIndexInside << "]:(" << meshFE->nodes[nodeIndexInside * 3] << ","
+                                    << nodeIndexInside << "]:("
+                                    << meshFE->nodes[nodeIndexInside * 3] << ","
                                     << meshFE->nodes[nodeIndexInside * 3 + 1] << ","
                                     << meshFE->nodes[nodeIndexInside * 3 + 2] << ") and node ["
-                                    << nodeIndexOutside << "]:(" << meshFE->nodes[nodeIndexOutside * 3]
-                                    << "," << meshFE->nodes[nodeIndexOutside * 3 + 1] << ","
+                                    << nodeIndexOutside << "]:("
+                                    << meshFE->nodes[nodeIndexOutside * 3] << ","
+                                    << meshFE->nodes[nodeIndexOutside * 3 + 1] << ","
                                     << meshFE->nodes[nodeIndexOutside * 3 + 2] << ") on patch ["
                                     << patchCount << "] boundary" << endl;
                             ERROR_OUT() << "Projection failed in IGA mapper " << name << endl;

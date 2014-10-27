@@ -63,12 +63,12 @@ void writeIGAMesh(IGAMesh* igaMesh) {
                 << patch->getIGABasis()->getUBSplineBasis1D()->getPolynomialDegree() << ";" << endl;
         myfile << "surfacePatch(" << patchCount + 1 << ").q = "
                 << patch->getIGABasis()->getVBSplineBasis1D()->getPolynomialDegree() << ";" << endl;
-        myfile << "surfacePatch(" << patchCount + 1 << ").knotU = [";
+        myfile << "surfacePatch(" << patchCount + 1 << ").Xi = [";
 
         for (int i = 0; i < patch->getIGABasis()->getUBSplineBasis1D()->getNoKnots(); i++)
             myfile << patch->getIGABasis()->getUBSplineBasis1D()->getKnotVector()[i] << "  ";
         myfile << "];" << endl;
-        myfile << "surfacePatch(" << patchCount + 1 << ").knotV = [";
+        myfile << "surfacePatch(" << patchCount + 1 << ").Eta = [";
         for (int i = 0; i < patch->getIGABasis()->getVBSplineBasis1D()->getNoKnots(); i++)
             myfile << patch->getIGABasis()->getVBSplineBasis1D()->getKnotVector()[i] << "  ";
         myfile << "];" << endl;
@@ -92,23 +92,22 @@ void writeIGAMesh(IGAMesh* igaMesh) {
 
     myfile.close();
 
-    const char * fileNameTmp = "displacements";
-    myfile.open(fileNameTmp);
-    myfile.close();
+
 
 }
 
-void writeDisplacementOnCPs(string _dataFieldName, int _step, DataField* _dataField) {
+void writeVectorFieldOnCPs(string _dataFieldName, int _step, DataField* _dataField) {
     ofstream myfile;
-    if (!_dataFieldName.compare("displacements")) {
-        myfile.open(_dataFieldName.c_str(), ios::app);
-        myfile.precision(14);
-        myfile << std::dec;
-        myfile << "    " << _step << "\n";
-        for (int i = 0; i < _dataField->numLocations * 3; i++)
-            myfile << _dataField->data[i] << "\n";
-        myfile.close();
-    }
+
+    string fileName = _dataFieldName+"IGA.m";
+    myfile.open(fileName.c_str() , ios::app);
+    myfile.precision(14);
+    myfile << std::dec;
+    myfile << "timestep:" << _step << "\n";
+    for (int i = 0; i < _dataField->numLocations * 3; i++)
+        myfile << _dataField->data[i] << "\n";
+    myfile.close();
+
 }
 } /* namespace GiDFileIO */
 } /* namespace EMPIRE */

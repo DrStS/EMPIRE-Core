@@ -26,6 +26,7 @@
 #ifndef MATHLIBRARY_H_
 #define MATHLIBRARY_H_
 
+#include <fstream> 
 #include <vector>
 #include <cstdlib>
 #include <map>
@@ -398,6 +399,30 @@ public:
         }
         std::cout << std::endl;
 
+    }
+    /***********************************************************************************************
+     * \brief This prints the matrix in full style in a file
+     * \author Fabien Pean
+     ***********/
+    void printToFile(std::string filename) {
+        size_t ii_counter;
+        size_t jj_counter;
+        
+        std::ofstream ofs;
+        ofs.open(filename.c_str(), std::ofstream::out);
+        ofs<<"[";
+        for (ii_counter = 0; ii_counter < m; ii_counter++) {
+            for (jj_counter = 0; jj_counter < n; jj_counter++) {
+                if ((*mat)[ii_counter].find(jj_counter) != (*mat)[ii_counter].end()) {
+                    ofs << (*mat)[ii_counter].find(jj_counter)->second << " ";
+                } else {
+                    ofs<<"0 ";
+                }
+            }
+            ofs<<std::endl;
+        }
+        ofs<<"];";
+        ofs.close();
     }
 private:
     /// pointer to the vector of maps

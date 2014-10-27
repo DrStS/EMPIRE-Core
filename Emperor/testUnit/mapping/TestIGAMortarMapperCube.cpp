@@ -15,6 +15,7 @@
 #include "DataField.h"
 #include <iostream>
 #include <math.h>
+#include <stdlib.h>
 
 using namespace std;
 
@@ -37,7 +38,7 @@ private:
 public:
     void setUp() {
 
-        Tol = 1e-13;
+        Tol = 1e-15;
 
         // Provide an id for the basis
         int id_basis = 1;
@@ -247,6 +248,8 @@ public:
         theMapper->consistentMapping(fieldS, fieldF);
         for (int i = 0; i < nF; i++)
             CPPUNIT_ASSERT(fabs(fieldF[i] - 1.0) < Tol);
+	
+	exit(-1);
 
     }
 
@@ -261,4 +264,4 @@ public:
 ;
 
 } /* namespace EMPIRE */
-//CPPUNIT_TEST_SUITE_REGISTRATION (EMPIRE::TestIGAMortarMapperCube);
+CPPUNIT_TEST_SUITE_REGISTRATION (EMPIRE::TestIGAMortarMapperCube);

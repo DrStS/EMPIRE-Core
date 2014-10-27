@@ -46,7 +46,7 @@ void writeIGAMesh(IGAMesh* igaMesh);
  * \param[in] _dataField The array containing the Control Point displacement field
  * \author Chenshen Wu
  ***********/
-void writeDisplacementOnCPs(std::string dataFieldName, int _step, DataField* _dataField);
+void writeVectorFieldOnCPs(std::string dataFieldName, int _step, DataField* _dataField);
 
 } /* namespace MatlabIGAFileIO */
 } /* namespace EMPIRE */
