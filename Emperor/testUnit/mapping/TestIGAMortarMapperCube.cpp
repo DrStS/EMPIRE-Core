@@ -248,9 +248,6 @@ public:
         theMapper->consistentMapping(fieldS, fieldF);
         for (int i = 0; i < nF; i++)
             CPPUNIT_ASSERT(fabs(fieldF[i] - 1.0) < Tol);
-	
-	exit(-1);
-
     }
 
 // Make the tests
@@ -258,8 +255,7 @@ public:
 
     CPPUNIT_TEST (testMapping);
 //	CPPUNIT_TEST(testMappingPrint);
-    CPPUNIT_TEST_SUITE_END()
-    ;
+    CPPUNIT_TEST_SUITE_END();
 }
 ;
 
