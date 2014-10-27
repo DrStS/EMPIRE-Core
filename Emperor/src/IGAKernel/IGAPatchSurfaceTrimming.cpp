@@ -176,12 +176,14 @@ void IGAPatchSurfaceTrimmingLoop::linearize() {
 
 double IGAPatchSurfaceTrimmingLoop::computeGrevilleAbscissae(const int cp, const int pDeg, const double*const knotVector) {
 	double GrevilleAbscissae=0;
-	for(int i=1;i<=pDeg;i++) {
-		GrevilleAbscissae+=knotVector[cp+i];
+	int limit=max(pDeg-1,1);
+	for(int i=0;i<limit;i++) {
+		GrevilleAbscissae+=knotVector[limit+cp+i];
 	}
-	GrevilleAbscissae/=pDeg;
-	if(GrevilleAbscissae<knotVector[cp+1]-EPS || GrevilleAbscissae>knotVector[cp+pDeg]+EPS) {
-		ERROR_OUT()<<"Greville abscissae "<<GrevilleAbscissae<<" is out of Knot vector bound"<<endl;
+	GrevilleAbscissae/=limit;
+	if(GrevilleAbscissae<knotVector[limit+cp]-EPS || GrevilleAbscissae>knotVector[limit+cp+(limit-1)]+EPS) {
+		ERROR_OUT()<<"Greville abscissae "<<GrevilleAbscissae<<" is out of Knot vector bound ["
+				<<knotVector[limit+cp]<<", "<<knotVector[limit+cp+(limit-1)]<<"]"<<endl;
 		exit(-1);
 	}
 	return GrevilleAbscissae;
