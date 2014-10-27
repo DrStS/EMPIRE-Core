@@ -528,6 +528,68 @@ double computePointDistance(double* _x1, double* _x2) {
                     + (_x1[2] - _x2[2]) * (_x1[2] - _x2[2]));
 }
 
+void cleanPolygon(std::vector<double>& polygon) {
+	// Remove duplicated points and consecutive aligned points
+	int tmp_n_pts=polygon.size()/2;
+	for(int k=0;k<tmp_n_pts;k++) {
+		int p1=k%tmp_n_pts;
+		int p2=(k+1)%tmp_n_pts;
+		int p3=(k+2)%tmp_n_pts;
+		bool isSame=polygon[p1*2]==polygon[p2*2] && polygon[p1*2+1]==polygon[p2*2+1];
+
+		double v1x=polygon[p2*2]-polygon[p1*2];
+		double v1y=polygon[p2*2+1]-polygon[p1*2+1];
+		double v2x=polygon[p3*2]-polygon[p1*2];
+		double v2y=polygon[p3*2+1]-polygon[p1*2+1];
+		double v1[3]={v1x, v1y, 0};
+		double v2[3]={v2x, v2y, 0};
+		double v=computeCrossProduct2D(v1x,v1y,v2x,v2y);
+		// Result of cross product only in Z direction
+		bool isColinear=fabs(v)<1e-9?true:false;
+		//double n1=v1x*v1x+v1y*v1y;
+		//double n2=v2x*v2x+v2y*v2y;
+		//bool isWrong=n1>3*fmin(n1,n2);
+		if(isSame || isColinear) {
+			// Remove middle point, noted as idx2 here
+			polygon.erase(polygon.begin()+p2*2+1);
+			polygon.erase(polygon.begin()+p2*2);
+			// Update loop to keep loop traversal consistent
+			tmp_n_pts=polygon.size()/2;
+			k--;
+		}
+	}
+}
+void cleanPolygon(std::vector<pair<double,double> >& polygon) {
+	// Remove duplicated points and consecutive aligned points
+	int tmp_n_pts=polygon.size();
+	for(int k=0;k<tmp_n_pts;k++) {
+		int p1=k%tmp_n_pts;
+		int p2=(k+1)%tmp_n_pts;
+		int p3=(k+2)%tmp_n_pts;
+		bool isSame=polygon[p1]==polygon[p2];
+
+		double v1x=polygon[p2].first-polygon[p1].first;
+		double v1y=polygon[p2].second-polygon[p1].second;
+		double v2x=polygon[p3].first-polygon[p1].first;
+		double v2y=polygon[p3].second-polygon[p1].second;
+		double v1[3]={v1x, v1y, 0};
+		double v2[3]={v2x, v2y, 0};
+		double v=computeCrossProduct2D(v1x,v1y,v2x,v2y);
+		// Result of cross product only in Z direction
+		bool isColinear=fabs(v)<1e-9?true:false;
+		//double n1=v1x*v1x+v1y*v1y;
+		//double n2=v2x*v2x+v2y*v2y;
+		//bool isWrong=n1>3*fmin(n1,n2);
+		if(isSame || isColinear) {
+			// Remove middle point, noted as idx2 here
+			polygon.erase(polygon.begin()+p2);
+			// Update loop to keep loop traversal consistent
+			tmp_n_pts=polygon.size();
+			k--;
+		}
+	}
+}
+
 } // end of IGAMortarMath
 } // end of EMPIRE
 

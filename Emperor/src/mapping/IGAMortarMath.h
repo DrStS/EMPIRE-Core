@@ -315,6 +315,15 @@ double computePointDistance(double* _x1, double* _x2);
  * \author Chenshen Wu
  ***********/
 double computeCrossProduct2D(double x1, double y1, double x2, double y2);
+
+/***********************************************************************************************
+ * \brief Clean the input polygon, remove colinear or identical point
+ * \param[in/out] _polygon, vector of points coordinates
+ * \author Fabien Pean
+ ***********/
+void cleanPolygon(std::vector<double>& _polygon);
+void cleanPolygon(std::vector<std::pair<double,double> >& polygon);
+
 }
 }
 
