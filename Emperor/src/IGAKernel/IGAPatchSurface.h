@@ -244,7 +244,8 @@ public:
      ***********/
     bool computePointProjectionOnPatchBoundaryOnGivenEdge(double& _t, double& _ratio,
             double& _distance, double* _P1, double* _P2, int _edge);
-
+    bool computePointProjectionOnPatchBoundaryOnGivenEdge_Brute(double& _u,double& _v, double& _ratio,
+            double& _distance, double* _P1, double* _P2);
     /***********************************************************************************************
      * \brief Returns the point on the given NURBS patch boundary which defines an orthogonal projection from the given line to the NURBS boundary
      * \param[out] The flag on whether or not the Newton-Raphson iterations have converged for the defined set of parameters
@@ -269,7 +270,7 @@ public:
      * \param[in] _edge (0,1,2,3) --> (uRunsvStart,uRunsvEnd,uStartvRuns,uEndvRuns)
      * \author Fabien Pean
      ***********/
-    bool computePointMinimumDistanceToPatchBoundaryOnGivenEdge(double& _t,
+    bool computePointMinimumDistanceToPatchBoundaryOnGivenEdge(double& _w,
             double& _distance, double* _P1, int _edge);
     /***********************************************************************************************
      * \brief Returns the point on the NURBS patch boundary which is closest to the physical point provided

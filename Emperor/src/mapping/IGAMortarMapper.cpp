@@ -57,6 +57,10 @@ IGAMortarMapper::IGAMortarMapper(std::string _name, IGAMesh *_meshIGA, FEMesh *_
     assert(_meshIGA->type == EMPIRE_Mesh_IGAMesh);
     assert(_meshFE->type == EMPIRE_Mesh_FEMesh);
 
+    DEBUG_OUT()<<"------------------------------"<<endl;
+    DEBUG_OUT()<<"DEBUG for mapper "<<_name<<endl;
+    DEBUG_OUT()<<"------------------------------"<<endl;
+
     if (_meshFE->triangulate() == NULL)
         meshFE = _meshFE;
     else
@@ -475,8 +479,8 @@ void IGAMortarMapper::computeCouplingMatrices() {
                 continue;
             }
         }
-//        DEBUG_OUT()<<"Number of patch in set FULL "<<patchWithFullElt.size()<<endl;
-//        DEBUG_OUT()<<"Number of patch in set SPLIT "<<patchWithSplitElt.size()<<endl;
+        DEBUG_OUT()<<"Number of patch in set FULL "<<patchWithFullElt.size()<<endl;
+        DEBUG_OUT()<<"Number of patch in set SPLIT "<<patchWithSplitElt.size()<<endl;
 
         /// 2. Compute the coupling matrices
         /// 2i. If the current element can be projected on one patch
@@ -545,12 +549,13 @@ void IGAMortarMapper::computeCouplingMatrices() {
 			int edge[2] = {-1, -1};
 			double* P1 = &(meshFE->nodes[nodeIndex * 3]);
 			double* P2 = &(meshFE->nodes[nodeIndexNext * 3]);
+			DEBUG_OUT()<<"inside "<<isInsidePatch<<" / "<<isNextNodeInsidePatch<<endl;
+			double u0=thePatch->getIGABasis()->getUBSplineBasis1D()->getFirstKnot();
+			double uN=thePatch->getIGABasis()->getUBSplineBasis1D()->getLastKnot();
+			double v0=thePatch->getIGABasis()->getVBSplineBasis1D()->getFirstKnot();
+			double vN=thePatch->getIGABasis()->getVBSplineBasis1D()->getLastKnot();
+			bool corner;
 			if(!isInsidePatch && !isNextNodeInsidePatch) {
-				double u0=thePatch->getIGABasis()->getUBSplineBasis1D()->getFirstKnot();
-				double uN=thePatch->getIGABasis()->getUBSplineBasis1D()->getLastKnot();
-				double v0=thePatch->getIGABasis()->getVBSplineBasis1D()->getFirstKnot();
-				double vN=thePatch->getIGABasis()->getVBSplineBasis1D()->getLastKnot();
-				bool corner;
 				u = 0;
 				v = 0;
 				thePatch->computePointMinimumDistanceToPatchBoundary(u, v, dis, P1, edge);
@@ -644,8 +649,45 @@ void IGAMortarMapper::computeCouplingMatrices() {
 					z = P1y * (1 - div) + P2y * div;
 					polygonWZ.push_back(make_pair(w,z));
 				}
+				thePatch->computePointMinimumDistanceToPatchBoundary(u, v, dis, P2, edge);
+				corner=(u==u0 || u==uN) && (v==v0 || v==vN);
+				if(corner) {
+					polygonUV.push_back(make_pair(u,v));
+					double nodeXYZ[3];
+					double normalVec[3];
+					thePatch->computeCartesianCoordinatesAndNormalVector(nodeXYZ, normalVec, u, v);
+					double coordFE[2];
+					if (numNodesElementFE == 3)
+						IGAMortarMath::computeIntersectionBetweenLineAndTriangle(
+								elementFEXYZ, nodeXYZ, normalVec, coordFE);
+					else
+						IGAMortarMath::computeIntersectionBetweenLineAndQuad(
+								elementFEXYZ, nodeXYZ, normalVec, coordFE);
+					w = coordFE[0];
+					z = coordFE[1];
+					polygonWZ.push_back(make_pair(w,z));
+				}
+
 
 			} else if(!isInsidePatch && isNextNodeInsidePatch) {
+				thePatch->computePointMinimumDistanceToPatchBoundary(u, v, dis, P2, edge);
+				corner=(u==u0 || u==uN) && (v==v0 || v==vN);
+				if(corner) {
+					polygonUV.push_back(make_pair(u,v));
+					double nodeXYZ[3];
+					double normalVec[3];
+					thePatch->computeCartesianCoordinatesAndNormalVector(nodeXYZ, normalVec, u, v);
+					double coordFE[2];
+					if (numNodesElementFE == 3)
+						IGAMortarMath::computeIntersectionBetweenLineAndTriangle(
+								elementFEXYZ, nodeXYZ, normalVec, coordFE);
+					else
+						IGAMortarMath::computeIntersectionBetweenLineAndQuad(
+								elementFEXYZ, nodeXYZ, normalVec, coordFE);
+					w = coordFE[0];
+					z = coordFE[1];
+					polygonWZ.push_back(make_pair(w,z));
+				}
 				// First point
 				u = (*projectedCoords)[nodeIndexNext][patchIndex][0];
 				v = (*projectedCoords)[nodeIndexNext][patchIndex][1];
@@ -696,9 +738,18 @@ void IGAMortarMapper::computeCouplingMatrices() {
 /////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////
 			}
-			IGAMortarMath::cleanPolygon(polygonUV);
-			IGAMortarMath::cleanPolygon(polygonWZ);
+			DEBUG_OUT()<<"Display coordinates of FE element in parametric domain"<<endl;
+			for(int nodeCount=0;nodeCount<polygonUV.size();nodeCount++) {
+				DEBUG_OUT()<<polygonUV[nodeCount].first<<" / "<<polygonUV[nodeCount].second<<endl;
+			}
+			DEBUG_OUT()<<"Display coordinates of normalized FE element"<<endl;
+			for(int nodeCount=0;nodeCount<polygonWZ.size();nodeCount++) {
+				DEBUG_OUT()<<polygonWZ[nodeCount].first<<" / "<<polygonWZ[nodeCount].second<<endl;
+			}
+			IGAMortarMath::cleanPolygon(polygonUV,polygonWZ);
+			//IGAMortarMath::cleanPolygon(polygonWZ);
 
+			DEBUG_OUT()<<"["<<elemCount<<"] Element of size "<<polygonUV.size()<<endl;
 			numNodesClippedByPatchProjElementFE=polygonUV.size();
 
 			//Proceed toward integration if the polygon is valid, i.e. at least a triangle
@@ -714,21 +765,20 @@ void IGAMortarMapper::computeCouplingMatrices() {
 					reverse(polygonWZ.begin(),polygonWZ.end());
 				}
 				///Copy the output polygon into output single pointer array
-				//DEBUG_OUT()<<"Display coordinates of FE element in parametric domain"<<endl;
+				DEBUG_OUT()<<"Display coordinates of FE element in parametric domain"<<endl;
 				for(int nodeCount=0;nodeCount<polygonUV.size();nodeCount++) {
-					//DEBUG_OUT()<<polygonUV[nodeCount].first<<" / "<<polygonUV[nodeCount].second<<endl;
+					DEBUG_OUT()<<polygonUV[nodeCount].first<<" / "<<polygonUV[nodeCount].second<<endl;
 					clippedByPatchProjElementFEUV[2*nodeCount]=polygonUV[nodeCount].first;
 					clippedByPatchProjElementFEUV[2*nodeCount+1]=polygonUV[nodeCount].second;
 
 				}
-				//DEBUG_OUT()<<"Display coordinates of normalized FE element"<<endl;
+				DEBUG_OUT()<<"Display coordinates of normalized FE element"<<endl;
 				for(int nodeCount=0;nodeCount<polygonWZ.size();nodeCount++) {
-					//DEBUG_OUT()<<polygonWZ[nodeCount].first<<" / "<<polygonWZ[nodeCount].second<<endl;
+					DEBUG_OUT()<<polygonWZ[nodeCount].first<<" / "<<polygonWZ[nodeCount].second<<endl;
 					clippedByPatchProjElementFEWZ[2*nodeCount]  =polygonWZ[nodeCount].first;
 					clippedByPatchProjElementFEWZ[2*nodeCount+1]=polygonWZ[nodeCount].second;
 
 				}
-
 				// compute the coupling matrix for the sub-element
 				bool isIntegrated=computeCouplingMatrices4ClippedByPatchProjectedElement(thePatch,
 						numNodesClippedByPatchProjElementFE, clippedByPatchProjElementFEUV,
@@ -742,6 +792,11 @@ void IGAMortarMapper::computeCouplingMatrices() {
 
     } // end of loop over all the element
     if(elementIntegrated.size()!=meshFE->numElems) {
+    	ERROR_OUT()<<"Number of FE mesh integrated is "<<elementIntegrated.size()<<" over "<<meshFE->numElems<<endl;
+    	for(int i=0;i<meshFE->numElems;i++) {
+    		if(!elementIntegrated.count(i))
+    			ERROR_OUT()<<"Missing element number "<<i<<endl;
+    	}
     	ERROR_BLOCK_OUT("IGAMortarMapper","ComputeCouplingMatrices","Not all element in FE mesh integrated ! Coupling matrices invalid");
     	exit(-1);
     }
