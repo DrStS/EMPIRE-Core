@@ -638,7 +638,7 @@ void IGAMortarMapper::computeCouplingMatrices() {
 				z=projectedElementFEWZ[nodeCount * 2 + 1];
 				polygonWZ.push_back(make_pair(w,z));
 				// Second point
-				isProjectedOnPatchBoundary=thePatch->computePointProjectionOnPatchBoundary(u, v, div, dis, P1, P2);
+				isProjectedOnPatchBoundary=thePatch->computePointProjectionOnPatchBoundary_Brute(u, v, div, dis, P1, P2);
 				if (isProjectedOnPatchBoundary && dis <= disTol) {
 					polygonUV.push_back(make_pair(u,v));
 					double P1x = projectedElementFEWZ[nodeCount * 2];
@@ -691,7 +691,7 @@ void IGAMortarMapper::computeCouplingMatrices() {
 				// First point
 				u = (*projectedCoords)[nodeIndexNext][patchIndex][0];
 				v = (*projectedCoords)[nodeIndexNext][patchIndex][1];
-				isProjectedOnPatchBoundary=thePatch->computePointProjectionOnPatchBoundary(u, v, div, dis, P2, P1);
+				isProjectedOnPatchBoundary=thePatch->computePointProjectionOnPatchBoundary_Brute(u, v, div, dis, P2, P1);
 				if (isProjectedOnPatchBoundary && dis <= disTol) {
 					polygonUV.push_back(make_pair(u,v));
 					double P1x = projectedElementFEWZ[nodeCountNext * 2];
