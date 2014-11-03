@@ -259,7 +259,8 @@ public:
      ***********/
     bool computePointProjectionOnPatchBoundary(double& _u, double& _v, double& _ratio,
             double& _distance, double* _P1, double* _P2);
-
+    bool computePointProjectionOnPatchBoundary_Brute(double& _u, double& _v, double& _ratio,
+            double& _distance, double* _P1, double* _P2);
     /***********************************************************************************************
      * \brief Returns the point on the NURBS patch boundary which is closest to the physical point provided
      * \param[out] The flag on whether or not the Newton-Raphson iterations have converged for the defined set of parameters
@@ -435,6 +436,13 @@ public:
 
     /// The tolerance for the distance of the computed point to the surface for points which are expected to be projected in irregular locations of the patch
     static const double EPS_DISTANCE_RELAXED;
+
+    static const char EDGE_U0;
+    static const char EDGE_UN;
+    static const char EDGE_V0;
+    static const char EDGE_VN;
+    static const char EDGES[4];
+
 };
 
 /***********************************************************************************************
