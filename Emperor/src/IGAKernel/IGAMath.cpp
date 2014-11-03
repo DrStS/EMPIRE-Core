@@ -281,4 +281,90 @@ bool solve2x2linearSystem(double* _b, double* _A) {
     return true;
 }
 
+double distancePointSegment(double* _P, double* _P1, double* _P2) {
+	double distance[3];
+	double P1P[3], PP2[3];
+	double P1P2[3];
+	double normP1P2;
+	for(int i=0;i<3;i++){
+		P1P[i]=_P[i]-_P1[i];
+		PP2[i]=_P2[i]-_P[i];
+		P1P2[i]=_P2[i]-_P1[i];
+	}
+	normP1P2=sqrt(square2normVector(3,P1P2));
+
+    double projP1P = sqrt(dotProduct(3,P1P,P1P2));
+     if ( projP1P <= 0 )
+          return sqrt(square2normVector(3,P1P));
+
+     if ( normP1P2 <= projP1P )
+         return sqrt(square2normVector(3,PP2));
+
+	double t = projP1P / normP1P2;
+	double tmp[3];
+	for(int i=0;i<3;i++){
+	     tmp[i]= _P1[i] + t * P1P2[i];
+		 tmp[i]= _P[i] - tmp[i];
+	}
+    return sqrt(square2normVector(3,tmp));
+}
+
+double distanceLinePlane(double* Pline,double* Uline, double* Pplane,double* Nplane) {
+
+	double denom=dotProduct(3,Nplane,Uline);
+	if(denom<1e-9) return -1;
+	double PpPl[3];
+	for(int i=0;i<3;i++){
+		PpPl[i]=Pline[i]-Pplane[i];
+	}
+	return dotProduct(3,PpPl,Nplane)/denom;
+}
+
+double distanceLineLine(double& _ratioA, double& _ratioB, double* _P1, double* _P2,double* _P3, double* _P4) {
+	double distance[3];
+	double P1P2[3],P1P3[3], P3P4[3];
+	double normP1P2, normP3P4;
+	for(int i=0;i<3;i++){
+		P1P2[i]=_P2[i]-_P1[i];
+		P1P3[i]=_P3[i]-_P1[i];
+		P3P4[i]=_P4[i]-_P3[i];
+
+	}
+	normP1P2=sqrt(square2normVector(3,P1P2));
+	normP3P4=sqrt(square2normVector(3,P3P4));
+	if(normP3P4 < EPS)
+	    return -1;
+	if(normP1P2 < EPS)
+	    return -1;
+
+	double d13_34=dotProduct(3,P1P3,P3P4);
+	double d34_12=dotProduct(3,P3P4,P1P2);
+	double d13_12=dotProduct(3,P1P3,P1P2);
+	double d34_34=dotProduct(3,P3P4,P3P4);
+	double d12_12=dotProduct(3,P1P2,P1P2);
+
+	double numer,denom;
+	denom = d12_12 * d34_34 - d34_12 * d34_12;
+	if (fabs(denom) < EPS)
+	  return -1;
+	numer = d13_34 * d34_12 - d13_12 * d34_34;
+
+	_ratioA = numer / denom;
+	_ratioB = (d13_34 + d34_12 * _ratioA) / d34_34;
+
+	double Pa[3], Pb[3];
+	Pa[0] = _P1[0] + _ratioA * P1P2[0];
+	Pa[1] = _P1[1] + _ratioA * P1P2[1];
+	Pa[2] = _P1[2] + _ratioA * P1P2[2];
+	Pb[0] = _P3[0] + _ratioB * P3P4[0];
+	Pb[1] = _P3[1] + _ratioB * P3P4[1];
+	Pb[2] = _P3[2] + _ratioB * P3P4[2];
+	double PaPb[3];
+	for(int i=0;i<3;i++){
+		PaPb[i]=Pb[i]-Pa[i];
+	}
+	return sqrt(square2normVector(3,PaPb));
+}
+
+
 }/* IGAMATH_H_ */

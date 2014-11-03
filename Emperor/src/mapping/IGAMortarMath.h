@@ -323,7 +323,7 @@ double computeCrossProduct2D(double x1, double y1, double x2, double y2);
  ***********/
 void cleanPolygon(std::vector<double>& _polygon);
 void cleanPolygon(std::vector<std::pair<double,double> >& polygon);
-
+void cleanPolygon(std::vector<std::pair<double,double> >& polygon,std::vector<std::pair<double,double> >& polygonSlave);
 }
 }
 

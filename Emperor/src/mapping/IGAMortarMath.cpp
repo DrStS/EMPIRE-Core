@@ -363,7 +363,7 @@ bool computeLocalCoordsInQuad(const double *_coordsQuad, const double *_coordsNo
 
         solve2x2LinearSystem(J_T, delta, EPS);
         if (fabs(delta[0]) < EPS && fabs(delta[1]) < EPS) {
-            assert(i < 10);
+            assert(i < 100);
             break;
         }
         _localCoords[0] += delta[0];
@@ -583,6 +583,38 @@ void cleanPolygon(std::vector<pair<double,double> >& polygon) {
 		if(isSame || isColinear) {
 			// Remove middle point, noted as idx2 here
 			polygon.erase(polygon.begin()+p2);
+			// Update loop to keep loop traversal consistent
+			tmp_n_pts=polygon.size();
+			k--;
+		}
+	}
+}
+
+void cleanPolygon(std::vector<pair<double,double> >& polygon,std::vector<pair<double,double> >& polygonSlave) {
+	// Remove duplicated points and consecutive aligned points
+	int tmp_n_pts=polygon.size();
+	for(int k=0;k<tmp_n_pts;k++) {
+		int p1=k%tmp_n_pts;
+		int p2=(k+1)%tmp_n_pts;
+		int p3=(k+2)%tmp_n_pts;
+		bool isSame=polygon[p1]==polygon[p2];
+
+		double v1x=polygon[p2].first-polygon[p1].first;
+		double v1y=polygon[p2].second-polygon[p1].second;
+		double v2x=polygon[p3].first-polygon[p1].first;
+		double v2y=polygon[p3].second-polygon[p1].second;
+		double v1[3]={v1x, v1y, 0};
+		double v2[3]={v2x, v2y, 0};
+		double v=computeCrossProduct2D(v1x,v1y,v2x,v2y);
+		// Result of cross product only in Z direction
+		bool isColinear=fabs(v)<1e-9?true:false;
+		//double n1=v1x*v1x+v1y*v1y;
+		//double n2=v2x*v2x+v2y*v2y;
+		//bool isWrong=n1>3*fmin(n1,n2);
+		if(isSame || isColinear) {
+			// Remove middle point, noted as idx2 here
+			polygon.erase(polygon.begin()+p2);
+			polygonSlave.erase(polygonSlave.begin()+p2);
 			// Update loop to keep loop traversal consistent
 			tmp_n_pts=polygon.size();
 			k--;

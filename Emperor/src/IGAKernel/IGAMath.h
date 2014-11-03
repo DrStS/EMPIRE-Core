@@ -92,6 +92,12 @@ void crossProduct(double* _product, double* _v1, double* _v2);
  ***********/
 bool solve2x2linearSystem(double*, double*);
 
+double distanceLinePlane(double* Pline,double* Uline, double* Pplane,double* Nplane);
+double distancePointSegment(double* _P, double* _P1, double* _P2);
+// See http://paulbourke.net/geometry/pointlineplane/
+double distanceLineLine(double& _ratioA, double& _ratioB, double* _P1, double* _P2,double* P3, double* P4);
+
+
 }/* namespace EMPIRE */
 
 #endif /* IGAMATH_H_ */
